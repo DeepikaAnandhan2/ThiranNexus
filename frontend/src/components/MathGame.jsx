@@ -1,22 +1,48 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { speak, listenOnce, stopSpeaking } from '../utils/speech'
+import { useGestures } from '../utils/useGestures'
 
 const API = ''
-const TIMER_DURATIONS  = { easy: 15, medium: 12, hard: 10 }
-const SCORE_PER_CORRECT = { easy: 1, medium: 2, hard: 3 }
+const TIMER_DURATIONS   = { easy: 15, medium: 12, hard: 10 }
+const SCORE_PER_CORRECT = { easy: 1,  medium: 2,  hard: 3  }
+const DIFF_KEYS         = ['easy', 'medium', 'hard']
 
-export default function MathGame({ onBack }) {
-  const [phase, setPhase]       = useState('idle')
+const HELP_TEXT = 'Mental Math help. Swipe right to go back home. Swipe up to replay the current question. Swipe down to hear your score. Double tap to start or go to the next question. Long press for this help message.'
+
+const NUMBER_WORDS = {
+  zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+  eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,
+  eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,
+  seventy:70,eighty:80,ninety:90,hundred:100,
+}
+
+function parseSpokenNumber(spoken) {
+  let parsed = parseInt(spoken.replace(/[^0-9\-]/g, ''), 10)
+  if (isNaN(parsed)) {
+    const lower = spoken.toLowerCase()
+    const found = Object.entries(NUMBER_WORDS).find(([w]) => lower.includes(w))
+    parsed = found ? found[1] : NaN
+  }
+  return parsed
+}
+
+export default function MathGame({ onBack, gestureAction, clearGestureAction }) {
+  const [phase,    setPhase]    = useState('idle')
   const [question, setQuestion] = useState(null)
   const [difficulty, setDiff]   = useState('easy')
-  const [score, setScore]       = useState(0)
-  const [streak, setStreak]     = useState(0)
-  const [round, setRound]       = useState(0)
-  const [result, setResult]     = useState(null)
+  const [score,    setScore]    = useState(0)
+  const [streak,   setStreak]   = useState(0)
+  const [round,    setRound]    = useState(0)
+  const [result,   setResult]   = useState(null)
   const [timeLeft, setTimeLeft] = useState(15)
   const [statusMsg, setStatus]  = useState('Press Start to begin!')
-  const timerRef = useRef(null)
-  const abortRef = useRef(false)
+  const timerRef   = useRef(null)
+  const abortRef   = useRef(false)
+  const phaseRef   = useRef(phase)
+  const questionRef = useRef(question)
+
+  useEffect(() => { phaseRef.current    = phase    }, [phase])
+  useEffect(() => { questionRef.current = question }, [question])
 
   const clearTimer = () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null } }
 
@@ -32,16 +58,18 @@ export default function MathGame({ onBack }) {
 
   useEffect(() => () => clearTimer(), [])
 
+  // Auto difficulty escalation
   useEffect(() => {
-    if (streak >= 5  && difficulty === 'easy')   { setDiff('medium'); speak('Great streak! Moving to medium!') }
-    if (streak >= 10 && difficulty === 'medium')  { setDiff('hard');   speak('Incredible! Moving to hard!') }
+    if (streak >= 5  && difficulty === 'easy')   { setDiff('medium'); speak('Great streak! Moving to medium difficulty!') }
+    if (streak >= 10 && difficulty === 'medium')  { setDiff('hard');   speak('Incredible streak! Moving to hard difficulty!') }
   }, [streak, difficulty])
 
-  const fetchQuestion = useCallback(async (diff = difficulty) => {
+  const fetchQuestion = useCallback(async (diff) => {
+    const d = diff || difficulty
     abortRef.current = false
     setPhase('speaking'); setResult(null)
     try {
-      const res  = await fetch(`${API}/api/math?difficulty=${diff}`)
+      const res  = await fetch(`${API}/api/math?difficulty=${d}`)
       const data = await res.json()
       setQuestion(data); setStatus(`Question: ${data.question}`)
       await speak(`Question ${round + 1}. ${data.question}`, { rate: 0.85 })
@@ -49,13 +77,12 @@ export default function MathGame({ onBack }) {
       setPhase('listening'); setStatus('Listening for your answer…')
       await speak('Your answer?', { rate: 1 })
 
-      const duration = TIMER_DURATIONS[diff]
+      const duration = TIMER_DURATIONS[d]
       startTimer(duration, async () => {
         if (abortRef.current) return
         clearTimer(); setPhase('result'); setStreak(0)
         const r = { correct: false, feedback: `Time's up! The answer was ${data.answer}.` }
-        setResult(r); setRound(n => n + 1)
-        await speak(r.feedback)
+        setResult(r); setRound(n => n + 1); await speak(r.feedback)
       })
 
       const spoken = await listenOnce({ timeout: (duration + 2) * 1000 })
@@ -68,27 +95,14 @@ export default function MathGame({ onBack }) {
         setResult(r); setRound(n => n + 1); await speak(r.feedback); return
       }
 
-      // Parse number words
-      const numberWords = {
-        zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
-        eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,
-        eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,
-        seventy:70,eighty:80,ninety:90,hundred:100,
-      }
-      let parsed = parseInt(spoken.replace(/[^0-9\-]/g,''), 10)
-      if (isNaN(parsed)) {
-        const lower = spoken.toLowerCase()
-        const found = Object.entries(numberWords).find(([w]) => lower.includes(w))
-        parsed = found ? found[1] : NaN
-      }
-
+      const parsed  = parseSpokenNumber(spoken)
       const correct = !isNaN(parsed) && parsed === data.answer
       const feedback = correct
         ? `Correct! Well done! The answer is ${data.answer}.`
         : `Not quite. You said ${isNaN(parsed) ? spoken : parsed}. The answer was ${data.answer}.`
 
       setResult({ correct, feedback, userAnswer: spoken })
-      setScore(s => s + (correct ? SCORE_PER_CORRECT[diff] : 0))
+      setScore(s => s + (correct ? SCORE_PER_CORRECT[d] : 0))
       setStreak(s => correct ? s + 1 : 0)
       setRound(n => n + 1)
       setPhase('result')
@@ -100,14 +114,44 @@ export default function MathGame({ onBack }) {
   }, [difficulty, round, startTimer])
 
   const handleReplay = useCallback(async () => {
-    if (!question) return
-    stopSpeaking(); await speak(question.question, { rate: 0.8 })
-  }, [question])
+    const q = questionRef.current
+    if (!q) { await speak('No question loaded yet.'); return }
+    stopSpeaking(); await speak(q.question, { rate: 0.8 })
+  }, [])
+
+  const handleAnnounceScore = useCallback(async () => {
+    await speak(`Your current score is ${score} points. Streak: ${streak}. Round: ${round}.`)
+  }, [score, streak, round])
 
   const handleBack = useCallback(async () => {
     abortRef.current = true; clearTimer(); stopSpeaking()
-    await speak('Going back to main menu.'); onBack()
+    await speak('Going back to home.'); onBack()
   }, [onBack])
+
+  // ── Handle gestures from App ──────────────────────────────
+  useEffect(() => {
+    if (!gestureAction) return
+    clearGestureAction()
+    const p = phaseRef.current
+    if (gestureAction === 'replay')  handleReplay()
+    if (gestureAction === 'primary') {
+      if (p === 'idle' || p === 'result') fetchQuestion()
+      else speak(`Current phase is ${p}. Please wait.`)
+    }
+  }, [gestureAction, clearGestureAction, handleReplay, fetchQuestion])
+
+  // ── In-screen gestures ────────────────────────────────────
+  useGestures({
+    onSwipeRight: handleBack,
+    onSwipeUp:    handleReplay,
+    onSwipeDown:  handleAnnounceScore,
+    onDoubleTap:  () => {
+      const p = phaseRef.current
+      if (p === 'idle' || p === 'result') fetchQuestion()
+      else speak(`Please wait. Currently ${p}.`)
+    },
+    onLongPress: () => speak(HELP_TEXT),
+  }, [difficulty, phase])
 
   const timerColor = timeLeft <= 5 ? '#EF4444' : timeLeft <= 10 ? '#FF8C42' : '#2DC9A6'
   const timerPct   = (timeLeft / TIMER_DURATIONS[difficulty]) * 100
@@ -121,7 +165,7 @@ export default function MathGame({ onBack }) {
           <div className="gb1"/><div className="gb2"/>
         </div>
         <div className="game-header">
-          <button className="back-btn" onClick={handleBack} aria-label="Back to main menu">← Back</button>
+          <button className="back-btn" onClick={handleBack} aria-label="Back">← Back</button>
           <div className="score-badge" aria-label={`Score: ${score}`}>
             <span className="score-val">{score}</span>
             <span className="score-lbl">pts</span>
@@ -132,52 +176,51 @@ export default function MathGame({ onBack }) {
           <h1 className="game-title">Mental Math</h1>
           <p className="game-subtitle">Speak your answer • Beat the clock</p>
         </div>
+
+        <div className="in-game-gesture-bar" aria-hidden="true">
+          <span>👉 Back</span>
+          <span>👆 Replay</span>
+          <span>👇 Score</span>
+          <span>👆👆 {phase === 'idle' || phase === 'result' ? 'Next' : 'Wait'}</span>
+        </div>
       </div>
 
       {/* Body */}
       <div className="game-body">
 
-        {/* Stats row */}
-        <div className="stats-row" aria-label={`Round ${round}, Streak ${streak}`}>
+        <div className="stats-row">
           <div className="stat-chip">Round {round}</div>
           <div className="stat-chip">🔥 {streak} streak</div>
           <div className={`stat-chip diff-chip ${difficulty}`}>{difficulty}</div>
         </div>
 
-        {/* Question card */}
         {question && phase !== 'idle' && (
           <div className="question-card" aria-live="polite" aria-label={`Question: ${question.question}`}>
             <p className="question-text">{question.question}</p>
           </div>
         )}
 
-        {/* Timer */}
         {phase === 'listening' && (
-          <div className="timer-wrap" aria-label={`${timeLeft} seconds remaining`}>
+          <div className="timer-wrap" aria-label={`${timeLeft} seconds left`}>
             <div className="timer-track">
               <div className="timer-bar" style={{ width: `${timerPct}%`, background: timerColor }}
-                role="progressbar" aria-valuenow={timeLeft} aria-valuemin={0} aria-valuemax={TIMER_DURATIONS[difficulty]} />
+                role="progressbar" aria-valuenow={timeLeft} aria-valuemin={0} aria-valuemax={TIMER_DURATIONS[difficulty]}/>
             </div>
             <span className="timer-num" style={{ color: timerColor }}>{timeLeft}s</span>
           </div>
         )}
 
-        {/* Status */}
         <div className="status-text" role="status" aria-live="assertive">{statusMsg}</div>
 
-        {/* Mic */}
         {phase === 'listening' && (
-          <div className="mic-indicator" aria-label="Listening for answer">
-            <span className="mic-ring"/>
-            <span className="mic-icon">🎙️</span>
+          <div className="mic-indicator" aria-label="Listening">
+            <span className="mic-ring"/><span className="mic-icon">🎙️</span>
             <p>Speak your answer!</p>
           </div>
         )}
 
-        {/* Speaking */}
-        {phase === 'speaking' && <div className="loader" aria-label="Asking question">📢 Asking question…</div>}
+        {phase === 'speaking' && <div className="loader">📢 Asking question…</div>}
 
-        {/* Result */}
         {phase === 'result' && result && (
           <div className={`result-card ${result.correct ? 'excellent' : 'tryAgain'}`} aria-live="polite">
             <div className="result-icon">{result.correct ? '✅' : '❌'}</div>
@@ -186,21 +229,26 @@ export default function MathGame({ onBack }) {
           </div>
         )}
 
-        {/* Actions */}
         <div className="action-btns">
           {phase === 'idle' && (
-            <button className="primary-btn" onClick={() => fetchQuestion(difficulty)} aria-label="Start math game">
-              🎮 Start Game
+            <button className="primary-btn" onClick={() => fetchQuestion()} aria-label="Start math game">
+              🎮 Start Game <span className="btn-hint">or double tap</span>
             </button>
           )}
           {phase === 'result' && (
             <>
-              <button className="primary-btn" onClick={() => fetchQuestion(difficulty)} aria-label="Next question">➡️ Next Question</button>
-              <button className="ghost-btn" onClick={handleReplay} aria-label="Replay question">🔁 Replay Question</button>
+              <button className="primary-btn" onClick={() => fetchQuestion()} aria-label="Next question">
+                ➡️ Next Question <span className="btn-hint">or double tap</span>
+              </button>
+              <button className="ghost-btn" onClick={handleReplay} aria-label="Replay question">
+                🔁 Replay <span className="btn-hint">or swipe up</span>
+              </button>
             </>
           )}
           {phase === 'listening' && (
-            <button className="secondary-btn" onClick={handleReplay} aria-label="Replay question">🔁 Replay Question</button>
+            <button className="secondary-btn" onClick={handleReplay} aria-label="Replay question">
+              🔁 Replay Question <span className="btn-hint">or swipe up</span>
+            </button>
           )}
         </div>
 

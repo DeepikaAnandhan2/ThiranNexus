@@ -949,3 +949,143 @@ button:focus-visible {
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: #ccd0db; border-radius: 100px; }
+
+/* ══════════════════════════════════════════════════════════
+   GESTURE UI ELEMENTS
+══════════════════════════════════════════════════════════ */
+
+/* Toast hint that fades out */
+.gesture-hint {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26,26,46,0.92);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.6rem 1.25rem;
+  border-radius: 100px;
+  white-space: nowrap;
+  z-index: 999;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  animation: hintFadeOut 5s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes hintFadeOut {
+  0%,60% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100%   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+
+/* Gesture guide card on home */
+.gesture-guide {
+  width: 100%;
+  max-width: 440px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.gesture-guide-title {
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.9rem;
+}
+
+.gesture-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.gesture-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.gesture-row:hover { background: var(--bg); }
+
+.gesture-icon {
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.gesture-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-head);
+}
+
+.gesture-action {
+  font-size: 0.78rem;
+  color: var(--teal);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* In-game gesture bar inside banner */
+.in-game-gesture-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.in-game-gesture-bar span {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7);
+  border-radius: 100px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+/* Button gesture hint label */
+.btn-hint {
+  font-size: 0.68rem;
+  opacity: 0.65;
+  font-weight: 400;
+  margin-left: 0.25rem;
+}
+
+/* Card badge override for gesture labels */
+.card-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-radius: 100px;
+  padding: 0.15rem 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-self: flex-start;
+  margin-top: 0.2rem;
+}
+
+.game-card:nth-child(2) .card-badge {
+  color: var(--orange);
+  background: var(--orange-soft);
+}
+
+/* Swipe visual feedback ripple on body (optional, CSS only) */
+@keyframes swipeRipple {
+  0%   { opacity: 0.4; transform: scale(0.8); }
+  100% { opacity: 0;   transform: scale(2); }
+}
