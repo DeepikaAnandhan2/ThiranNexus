@@ -1,7 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
+require('dotenv').config(); // Load environment variables from .env
+const connectDB = require('./config/db'); // Ensure this matches your file path
 
 const app = express();
+
+// ─── Database Connection ──────────────────────────────────────────────────────
+connectDB();
+
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
@@ -47,7 +54,6 @@ function generateMathQuestion(difficulty = 'easy') {
   let a = Math.floor(Math.random() * max) + 1;
   let b = Math.floor(Math.random() * max) + 1;
 
-  // Ensure no negative answers for subtraction
   if (opObj.op === 'minus' && b > a) [a, b] = [b, a];
 
   return {
@@ -71,13 +77,11 @@ function similarity(s1, s2) {
   const longerLen = longer.length;
   if (longerLen === 0) return 1.0;
 
-  // Count matching characters
   let matches = 0;
   for (let i = 0; i < shorter.length; i++) {
     if (longer.includes(shorter[i])) matches++;
   }
 
-  // Word-level matching
   const words1 = s1.split(' ');
   const words2 = s2.split(' ');
   let wordMatches = 0;
@@ -134,4 +138,6 @@ app.post('/api/validate/math', (req, res) => {
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'ThiranNexus API' }));
 
-app.listen(PORT, () => console.log(`ThiranNexus backend running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`ThiranNexus backend running on port ${PORT}`);
+});
