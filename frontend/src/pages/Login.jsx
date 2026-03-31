@@ -1,10 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 
-export default function Login({ onLoginSuccess, onSwitchToRegister }) {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -13,16 +15,11 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/login", {
-        email,
-        password,
-      });
-
-      alert("Login success ✅");
-      console.log(res.data);
-
-      onLoginSuccess();
-
+      const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.token);
+        navigate("/dashboard");
+      }
     } catch (err) {
       alert(err.response?.data?.error || "Login failed ❌");
     }
@@ -30,51 +27,37 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
 
   return (
     <div className="login-container">
-
-      {/* LEFT SIDE */}
       <div className="login-left">
-        <div className="brand-box">
-          <div className="logo-circle"></div>
-          <h1 className="brand-title">Thiran Nexus</h1>
-          <p className="brand-sub">
-            Empowering abilities through smart assistance
-          </p>
+        <div className="login-brand">
+          <div className="login-logo">✨</div>
+          <h1 className="login-brand-title">Thiran Nexus</h1>
+          <div className="login-quote-box">
+            <p className="login-quote-text">"A space where everyone can learn. Creating a world of limitless possibilities."</p>
+          </div>
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
       <div className="login-right">
         <div className="login-card">
           <h2 className="login-title">Welcome Back</h2>
+          <p className="login-subtitle">Please enter your details to sign in.</p>
 
-          <input
-            type="text"
-            placeholder="Email or Phone"
-            className="login-input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <input type="email" placeholder="Email Address" className="login-input" 
+            value={email} onChange={(e) => setEmail(e.target.value)} />
+          
+          <input type="password" placeholder="Password" className="login-input" 
+            value={password} onChange={(e) => setPassword(e.target.value)} />
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="login-input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="login-extra">
+            <label><input type="checkbox" /> Remember me</label>
+            <span className="login-forgot">Forgot Password?</span>
+          </div>
 
-          <p className="forgot-text">Forgot Password?</p>
+          <button className="login-btn" onClick={handleLogin}>Sign In</button>
 
-          <button className="login-btn" onClick={handleLogin}>
-            Login
-          </button>
-
-          <p className="otp-text">Or Login with OTP</p>
-
-          <p className="register-text">
-            New user?{" "}
-            <span onClick={onSwitchToRegister}>Register</span>
-          </p>
+          <div className="login-footer">
+            <p>New user? <span onClick={() => navigate("/register")}>Register</span></p>
+          </div>
         </div>
       </div>
     </div>
