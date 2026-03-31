@@ -1,0 +1,173 @@
+/* CONTAINER */
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* LEFT */
+.register-left {
+  flex: 1;
+  background: linear-gradient(135deg, #5c29e7, #7a4df0);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.brand-box {
+  text-align: center;
+}
+
+.logo-circle {
+  width: 70px;
+  height: 70px;
+  background: white;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+}
+
+.brand-title {
+  font-size: 28px;
+}
+
+.brand-sub {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* RIGHT */
+.register-right {
+  flex: 1;
+  background: #f5f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* TITLE */
+.register-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* INPUT */
+.register-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #f7f8fa;
+}
+
+.register-input:focus {
+  border-color: #5c29e7;
+  outline: none;
+}
+
+/* ROLE */
+.role-select {
+  margin: 20px 0;
+}
+
+.role-select p {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #555;
+}
+
+.role-options {
+  display: flex;
+  gap: 20px;
+}
+
+/* 🔥 NEW ROLE CARD STYLE */
+.role-card {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  text-align: center;
+  padding: 20px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.role-card:hover {
+  transform: translateY(-5px);
+}
+
+/* ACTIVE */
+.role-card.active {
+  border-color: #5c29e7;
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(92, 41, 231, 0.2);
+}
+
+/* IMAGE */
+.role-img {
+  width: 100px; 
+  height: 100px;  
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.role-card p {
+  font-weight: 600;
+  color: #333;
+}
+
+/* BUTTON */
+.register-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #5c29e7;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* LOGIN LINK */
+.login-text {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.login-text span {
+  color: #5c29e7;
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .register-container {
+    flex-direction: column;
+  }
+
+  .register-left {
+    height: 180px;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 500px) {
+  .role-options {
+    flex-direction: column;
+  }
+}

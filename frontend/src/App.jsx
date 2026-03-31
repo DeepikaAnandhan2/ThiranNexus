@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import TongueTwister from './components/TongueTwister'
 import MathGame from './components/MathGame'
+import Login from './pages/Login'
+import Register from './pages/Register'
 import { speak } from './utils/speech'
 import { useGestures } from './utils/useGestures'
 
@@ -14,10 +16,36 @@ const HELP_TEXT = {
 }
 
 export default function App() {
+
+   /* ───────── AUTH STATE ───────── */
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [authPage, setAuthPage] = useState('login') // 👈 NEW
+
+  /* ───────── GAME STATE ───────── */
   const [screen, setScreen] = useState('home')
-  // Lifted game state so gestures can trigger actions inside games
   const [twisteAction, setTwisterAction] = useState(null)
-  const [mathAction,   setMathAction]    = useState(null)
+  const [mathAction, setMathAction] = useState(null)
+
+  /* ───────── AUTH FLOW ───────── */
+  if (!isLoggedIn) {
+    if (authPage === 'login') {
+      return (
+        <Login
+          onLoginSuccess={() => setIsLoggedIn(true)}
+          onSwitchToRegister={() => setAuthPage('register')}
+        />
+      )
+    }
+
+    if (authPage === 'register') {
+      return (
+        <Register
+          onSwitchToLogin={() => setAuthPage('login')}
+        />
+      )
+    }
+  }
+
 
   // ── Welcome announcement ──────────────────────────────────
   useEffect(() => {
