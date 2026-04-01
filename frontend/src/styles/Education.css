@@ -1,0 +1,149 @@
+/* ═══════════════════════════════════════════════════════
+   Education.css — ThiranNexus
+═══════════════════════════════════════════════════════ */
+
+.edu-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+  padding-bottom: 80px;
+}
+
+/* ── Banner ──────────────────────────────────────────────── */
+.edu-banner {
+  width: 100%;
+  background: linear-gradient(145deg, #1A1A2E, #16213E);
+  padding: 1.5rem 1.25rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.edu-banner-bubble1 {
+  position: absolute; width:130px; height:130px; border-radius:50%;
+  background:#2DC9A6; opacity:0.06; top:-40px; right:-20px;
+}
+.edu-banner-bubble2 {
+  position: absolute; width:80px; height:80px; border-radius:50%;
+  background:#FF8C42; opacity:0.07; bottom:10px; left:-10px;
+}
+
+.edu-banner-avatar {
+  font-size: 3rem;
+  animation: edu-bob 2.5s ease-in-out infinite;
+  position: relative; z-index: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+}
+
+@keyframes edu-bob {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.edu-banner-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(1.5rem,5vw,2rem);
+  font-weight: 900; color: #fff;
+  position: relative; z-index: 1;
+}
+
+.edu-banner-subtitle {
+  font-size: 0.82rem; color: rgba(255,255,255,0.5);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  font-weight: 500; position: relative; z-index: 1;
+}
+
+.edu-disability-badge {
+  background: rgba(45,201,166,0.15);
+  border: 1px solid rgba(45,201,166,0.3);
+  border-radius: 100px; padding: 0.3rem 0.9rem;
+  font-size: 0.75rem; color: #2DC9A6; font-weight: 700;
+  margin-top: 0.25rem; position: relative; z-index: 1;
+}
+
+/* ── Body ────────────────────────────────────────────────── */
+.edu-body {
+  width: 100%;
+  background: #F0F4F8;
+  border-radius: 28px 28px 0 0;
+  margin-top: -2rem;
+  padding: 1.5rem 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Level Tabs ──────────────────────────────────────────── */
+.edu-level-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.edu-level-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1.5px solid rgba(26,26,46,0.08);
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(26,26,46,0.06);
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+
+.edu-level-tab::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px; border-radius: 4px 0 0 4px;
+}
+
+.edu-tab-teal::before   { background: #2DC9A6; }
+.edu-tab-orange::before { background: #FF8C42; }
+
+.edu-level-tab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,26,46,0.1); }
+.edu-tab-teal:hover   { border-color: #2DC9A6; }
+.edu-tab-orange:hover { border-color: #FF8C42; }
+
+.edu-tab-active.edu-tab-teal   { border-color: #2DC9A6; background: rgba(45,201,166,0.06); }
+.edu-tab-active.edu-tab-orange { border-color: #FF8C42; background: rgba(255,140,66,0.06); }
+
+.edu-tab-icon  { font-size: 1.6rem; flex-shrink: 0; }
+.edu-tab-info  { display: flex; flex-direction: column; gap: 0.1rem; }
+.edu-tab-label { font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 800; color: #1A1A2E; }
+.edu-tab-desc  { font-size: 0.7rem; color: #8899AA; font-weight: 500; }
+
+/* ── Empty State ─────────────────────────────────────────── */
+.edu-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.edu-empty-text { font-size: 0.92rem; color: #4A5568; font-weight: 500; }
+.edu-empty-hint { font-size: 0.8rem; color: #8899AA; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .edu-body   { padding: 1.25rem 1rem 1.75rem; }
+  .edu-banner { padding: 1.25rem 1rem 3rem; }
+  .edu-level-tabs { grid-template-columns: 1fr; }
+}

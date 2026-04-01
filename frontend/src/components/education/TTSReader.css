@@ -1,0 +1,17 @@
+.tts-wrap {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 12px; margin: 10px 0;
+}
+.tts-label { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-bottom: 8px; }
+.tts-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tts-btn {
+  padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+}
+.tts-play { background: #22c55e; color: white; }
+.tts-pause { background: #f59e0b; color: white; }
+.tts-stop { background: #ef4444; color: white; }
+.tts-speed { display: flex; align-items: center; gap: 5px; margin-left: auto; }
+.tts-speed-btn {
+  font-size: 0.7rem; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff;
+}
+.tts-speed-active { background: #6366f1; color: white; border-color: #6366f1; }
