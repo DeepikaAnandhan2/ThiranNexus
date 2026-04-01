@@ -146,3 +146,6 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'ThiranNe
 app.listen(PORT, () => {
     console.log(`ThiranNexus backend running on port ${PORT}`);
 });
+
+
+app.use('/api/education', require('./routes/education'))
