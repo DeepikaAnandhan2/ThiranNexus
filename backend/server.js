@@ -26,6 +26,7 @@ app.use(express.json());
 // Ensure these route files exist in your backend/routes folder!
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/schemes', require('./routes/schemeRoutes'));
+app.use('/api/education', require('./routes/education'));
 
 // ✅ TEMP TEST ROUTE (for debugging data)
 app.get('/api/add-test-data', async (req, res) => {
