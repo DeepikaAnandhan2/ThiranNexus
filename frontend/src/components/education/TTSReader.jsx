@@ -4,6 +4,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import './TTSReader.css'
+import { FaPlay, FaPause, FaStop } from 'react-icons/fa'
 
 export default function TTSReader({ text, autoPlay = false }) {
   const [playing,  setPlaying]  = useState(false)
@@ -58,7 +59,7 @@ export default function TTSReader({ text, autoPlay = false }) {
             onClick={handlePlay}
             aria-label={paused ? 'Resume reading' : 'Start reading'}
           >
-            {paused ? '▶ Resume' : '▶ Play'}
+            <FaPlay /> Play
           </button>
         ) : (
           <button
@@ -66,7 +67,7 @@ export default function TTSReader({ text, autoPlay = false }) {
             onClick={handlePause}
             aria-label="Pause reading"
           >
-            ⏸ Pause
+             <FaPause /> Pause
           </button>
         )}
 
@@ -76,7 +77,9 @@ export default function TTSReader({ text, autoPlay = false }) {
           disabled={!playing && !paused}
           aria-label="Stop reading"
         >
-          ⏹ Stop
+            <FaStop /> Stop
+
+
         </button>
 
         {/* Speed control */}

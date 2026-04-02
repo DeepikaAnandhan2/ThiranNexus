@@ -7,6 +7,13 @@ import axios from 'axios'
 import TTSReader from './TTSReader'
 import STTSearch from './STTSearch'
 import './SchoolView.css'
+import {
+  FaSearch,
+  FaBookOpen,
+  FaBrain,
+  FaQuestionCircle,
+  FaArrowLeft
+} from 'react-icons/fa'
 
 const API    = 'http://localhost:5000'
 const token = () => localStorage.getItem('token')
@@ -127,7 +134,7 @@ export default function SchoolView({ user }) {
           </select>
         </div>
         <button className="school-fetch-btn" onClick={fetchContent} disabled={loading}>
-          {loading ? '⏳ Loading…' : '🔍 Search'}
+          <FaSearch /> {loading ? 'Loading...' : 'Search'}
         </button>
       </div>
 
@@ -152,7 +159,9 @@ export default function SchoolView({ user }) {
               onClick={() => selectContent(item)}
               aria-label={`Open ${item.title}`}
             >
-              <div className="school-card-icon">📖</div>
+              <div className="school-card-icon">
+                <FaBookOpen />
+              </div>
               <div className="school-card-info">
                 <h3 className="school-card-title">{item.title}</h3>
                 <p className="school-card-desc">{item.description?.slice(0, 100)}…</p>
@@ -194,13 +203,14 @@ export default function SchoolView({ user }) {
               <button
                 className="school-action-btn"
                 onClick={() => handleSimplify(selected.description)}
-                disabled={simplifying}
               >
-                🧠 Simplify Text
+                <FaBrain /> Simplify
               </button>
+
+             
             )}
-            <button className="school-action-btn school-quiz-btn" onClick={handleQuiz}>
-              📝 Take Quiz
+            <button className="school-back-btn" onClick={() => setView('list')}>
+              <FaArrowLeft /> Back
             </button>
           </div>
 
