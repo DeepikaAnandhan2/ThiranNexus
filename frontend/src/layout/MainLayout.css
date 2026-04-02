@@ -1,0 +1,19 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Main content */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Scroll only content, not sidebar */
+.page-content {
+  padding: 20px;
+  overflow-y: auto;
+  height: calc(100vh - 70px); /* minus topbar */
+}
