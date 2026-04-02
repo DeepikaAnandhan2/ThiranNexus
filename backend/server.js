@@ -1,25 +1,65 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-require('dotenv').config(); // Load environment variables from .env
-const connectDB = require('./config/db'); // Ensure this matches your file path
+require('dotenv').config();
+const connectDB = require('./config/db');
+
+// Seed import
+const seedSchemes = require('./data/seedSchemes');
 
 const app = express();
 
-// ─── Database Connection ──────────────────────────────────────────────────────
-connectDB();
+// ─── Database Connection ─────────────────────────────────────
+connectDB().then(() => {
+  console.log("✅ DB Connected");
+  // Only seeds if the database connection is successful
+  seedSchemes(); 
+}).catch(err => console.error("❌ DB Connection Error:", err));
 
 const PORT = process.env.PORT || 5000;
 
+// ─── Middleware ──────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth',  require('./routes/auth'))
+// ─── Routes ──────────────────────────────────────────────────
+// Ensure these route files exist in your backend/routes folder!
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/schemes', require('./routes/schemeRoutes'));
 
-// Keep existing game routes
-app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'ThiranNexus API' }))
+// ✅ TEMP TEST ROUTE (for debugging data)
+app.get('/api/add-test-data', async (req, res) => {
+  try {
+    const Scheme = require('./models/Scheme');
+    await Scheme.insertMany([
+      {
+        title: "Hearing Aid Support",
+        description: "Financial help for hearing aids",
+        disabilityType: "HEA",
+        eligibility: ["Hearing disability"],
+        benefits: "Free devices"
+      },
+      {
+        title: "Vision Assistance Scheme",
+        description: "Support for visually impaired",
+        disabilityType: "VIS",
+        eligibility: ["Visual impairment"],
+        benefits: "Free glasses"
+      }
+    ]);
+    res.send("✅ Test Data Inserted");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error inserting data");
+  }
+});
 
-// ─── Tongue Twisters ────────────────────────────────────────────────────────
+// ─── Health Check ────────────────────────────────────────────
+app.get('/api/health', (req, res) =>
+  res.json({ status: 'ok', service: 'ThiranNexus API' })
+);
+
+// ─── Tongue Twisters Data ────────────────────────────────────
 const twisters = [
   { id: 1, text: "She sells seashells by the seashore.", difficulty: "easy" },
   { id: 2, text: "Peter Piper picked a peck of pickled peppers.", difficulty: "easy" },
@@ -35,7 +75,7 @@ const twisters = [
   { id: 12, text: "Unique New York, unique New York, you know you need unique New York.", difficulty: "hard" },
 ];
 
-// ─── Math Question Generator ─────────────────────────────────────────────────
+// ─── Math Question Generator ─────────────────────────────────
 const operations = [
   { op: 'plus', fn: (a, b) => a + b },
   { op: 'minus', fn: (a, b) => a - b },
@@ -62,8 +102,7 @@ function generateMathQuestion(difficulty = 'easy') {
   if (opObj.op === 'minus' && b > a) [a, b] = [b, a];
 
   return {
-    a,
-    b,
+    a, b,
     operation: opObj.op,
     question: `What is ${a} ${opObj.op} ${b}?`,
     answer: opObj.fn(a, b),
@@ -71,7 +110,7 @@ function generateMathQuestion(difficulty = 'easy') {
   };
 }
 
-// ─── Validation Helper ────────────────────────────────────────────────────────
+// ─── Validation Helper ───────────────────────────────────────
 function similarity(s1, s2) {
   s1 = s1.toLowerCase().trim();
   s2 = s2.toLowerCase().trim();
@@ -79,8 +118,7 @@ function similarity(s1, s2) {
 
   const longer = s1.length > s2.length ? s1 : s2;
   const shorter = s1.length > s2.length ? s2 : s1;
-  const longerLen = longer.length;
-  if (longerLen === 0) return 1.0;
+  if (longer.length === 0) return 1.0;
 
   let matches = 0;
   for (let i = 0; i < shorter.length; i++) {
@@ -91,20 +129,18 @@ function similarity(s1, s2) {
   const words2 = s2.split(' ');
   let wordMatches = 0;
   words1.forEach(w => { if (words2.includes(w)) wordMatches++; });
-  const wordScore = wordMatches / Math.max(words1.length, words2.length);
 
-  return (matches / longerLen + wordScore) / 2;
+  const wordScore = wordMatches / Math.max(words1.length, words2.length);
+  return (matches / longer.length + wordScore) / 2;
 }
 
-// ─── Routes ──────────────────────────────────────────────────────────────────
+// ─── API Endpoints ───────────────────────────────────────────
+
 app.get('/api/twisters', (req, res) => {
   const difficulty = req.query.difficulty || 'all';
-  let pool = difficulty === 'all'
-    ? twisters
-    : twisters.filter(t => t.difficulty === difficulty);
+  let pool = difficulty === 'all' ? twisters : twisters.filter(t => t.difficulty === difficulty);
   if (!pool.length) pool = twisters;
-  const twister = pool[Math.floor(Math.random() * pool.length)];
-  res.json(twister);
+  res.json(pool[Math.floor(Math.random() * pool.length)]);
 });
 
 app.get('/api/math', (req, res) => {
@@ -114,38 +150,21 @@ app.get('/api/math', (req, res) => {
 
 app.post('/api/validate/twister', (req, res) => {
   const { original, spoken } = req.body;
-  if (!original || spoken === undefined) {
-    return res.status(400).json({ error: 'Missing original or spoken text' });
-  }
+  if (!original || spoken === undefined) return res.status(400).json({ error: 'Missing data' });
   const score = similarity(original, spoken);
-  let feedback, rating;
-  if (score >= 0.85) {
-    rating = 'excellent';
-    feedback = 'Excellent! Perfect pronunciation!';
-  } else if (score >= 0.6) {
-    rating = 'good';
-    feedback = 'Good job! Keep practicing!';
-  } else {
-    rating = 'tryAgain';
-    feedback = 'Try again! Listen carefully and speak slowly.';
-  }
-  res.json({ score: Math.round(score * 100), rating, feedback });
+  res.json({
+    score: Math.round(score * 100),
+    rating: score >= 0.85 ? 'excellent' : score >= 0.6 ? 'good' : 'tryAgain'
+  });
 });
 
 app.post('/api/validate/math', (req, res) => {
   const { answer, userAnswer } = req.body;
   const correct = parseInt(userAnswer) === parseInt(answer);
-  res.json({
-    correct,
-    feedback: correct ? 'Correct! Well done!' : `Not quite. The answer was ${answer}.`,
-  });
+  res.json({ correct });
 });
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'ThiranNexus API' }));
-
+// ─── Start Server ────────────────────────────────────────────
 app.listen(PORT, () => {
-    console.log(`ThiranNexus backend running on port ${PORT}`);
+  console.log(`ThiranNexus backend running on port ${PORT}`);
 });
-
-
-app.use('/api/education', require('./routes/education'))
