@@ -4,7 +4,7 @@
 
 import { useState, useCallback } from 'react'
 import './STTSearch.css'
-
+import { FaMicrophone, FaSearch } from 'react-icons/fa'
 export default function STTSearch({ onResult, placeholder = 'Ask a question or search...', label = '🎙️ Voice Search' }) {
   const [listening, setListening] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -66,7 +66,8 @@ export default function STTSearch({ onResult, placeholder = 'Ask a question or s
           disabled={listening}
           aria-label={listening ? 'Listening...' : 'Start voice input'}
         >
-          {listening ? '⏳' : '🎙️'}
+
+            <FaMicrophone />
         </button>
         <button
           className="stt-search-btn"
@@ -74,7 +75,8 @@ export default function STTSearch({ onResult, placeholder = 'Ask a question or s
           disabled={!transcript.trim()}
           aria-label="Submit search"
         >
-          Search
+
+          <FaSearch />
         </button>
       </div>
 
