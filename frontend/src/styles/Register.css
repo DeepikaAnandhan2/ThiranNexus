@@ -1,188 +1,286 @@
-/* ═══════════════════════════════════════════════════════
-   ThiranNexus Elegant Purple Theme
-   ═══════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 .reg-container {
   display: flex;
   min-height: 100vh;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  background: #f8fafc;
+  background: #ffffff;
+  overflow: hidden;
 }
 
-/* ── LEFT SIDE (Visual Branding) ── */
+/* ── LEFT SIDE (Violet Background & Floating Icons) ── */
 .reg-left {
   flex: 1.2;
-  background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #a855f7 100%);
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 4rem;
-  color: white;
   position: relative;
   overflow: hidden;
 }
 
-/* Floating Glass Orbs */
-.reg-left::before, .reg-left::after {
-  content: '';
+.floating-bg i {
   position: absolute;
-  border-radius: 50%;
-  background: white;
-  opacity: 0.1;
-  filter: blur(60px);
-}
-.reg-left::before { width: 400px; height: 400px; top: -100px; left: -100px; }
-.reg-left::after { width: 300px; height: 300px; bottom: -50px; right: -50px; }
-
-.reg-brand { z-index: 2; text-align: center; }
-
-.reg-logo {
-  font-size: 5rem;
-  margin-bottom: 1.5rem;
-  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.2));
-  animation: float 4s ease-in-out infinite;
+  color: #7c3aed;
+  opacity: 0.12;
+  animation: floatAnim 10s infinite ease-in-out;
+  z-index: 1;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+/* Same icon placement as Login for consistency */
+.icon-1 { top: 10%; left: 10%; font-size: 4rem; animation-delay: 0s; }
+.icon-2 { top: 20%; right: 15%; font-size: 5rem; animation-delay: 2s; }
+.icon-3 { bottom: 20%; left: 15%; font-size: 3.5rem; animation-delay: 4s; }
+.icon-4 { bottom: 10%; right: 10%; font-size: 6rem; animation-delay: 1s; }
+.icon-5 { top: 50%; left: 5%; font-size: 3rem; animation-delay: 5s; }
+
+@keyframes floatAnim {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(10deg); }
 }
 
-.reg-brand-title {
-  font-size: 3rem;
+.reg-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.reg-hero-text {
+  font-size: 3.5rem;
   font-weight: 800;
-  letter-spacing: -2px;
+  color: #4c1d95;
+  line-height: 1.1;
   margin-bottom: 1rem;
 }
 
+.reg-hero-text span {
+  color: #7c3aed;
+}
+
+.reg-hero-subtext {
+  font-size: 1.2rem;
+  color: #5b21b6;
+  font-style: italic;
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
 .reg-quote-box {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  padding: 24px;
-  border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.2);
-  max-width: 400px;
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  max-width: 350px;
+  margin: 0 auto;
 }
 
 .reg-quote-text {
-  font-size: 1.2rem;
-  line-height: 1.6;
+  color: #4c1d95;
   font-weight: 500;
-  opacity: 0.95;
+  line-height: 1.5;
 }
 
-/* ── RIGHT SIDE (The Card) ── */
+/* ── RIGHT SIDE (The White Card Box) ── */
 .reg-right {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  background: #ffffff;
   padding: 2rem;
 }
 
 .reg-card {
   width: 100%;
   max-width: 460px;
-  background: white;
-  padding: 3rem;
-  border-radius: 32px;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05);
+  background: #ffffff;
+  padding: 3rem 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05), 0 2px 10px rgba(124, 58, 237, 0.08);
+  border: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+.brand-icon {
+  width: 50px;
+  height: 50px;
+  background: #7c3aed;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border-radius: 12px;
+  margin: 0 auto 1rem;
 }
 
 .reg-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1e293b;
+  font-size: 1.8rem;
+  color: #1e1b4b;
   margin-bottom: 0.5rem;
 }
 
 .reg-subtitle {
-  color: #64748b;
-  margin-bottom: 2.5rem;
+  color: #7c3aed;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
 }
 
-/* Input Fields */
 .reg-input {
   width: 100%;
-  padding: 16px;
-  margin-bottom: 1.25rem;
-  border: 2px solid #f1f5f9;
-  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   background: #f8fafc;
   font-size: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .reg-input:focus {
-  background: white;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
   outline: none;
+  border-color: #7c3aed;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
 }
 
-/* Buttons Styling */
-.reg-udid-input-row { display: flex; gap: 12px; margin-bottom: 1.25rem; }
+.reg-udid-input-row {
+  display: flex;
+  gap: 10px;
+}
 
 .reg-verify-btn {
-  padding: 0 24px;
-  background: #1e293b;
+  padding: 0 20px;
+  height: 48px;
+  background: #1e1b4b;
   color: white;
-  border-radius: 16px;
+  border-radius: 12px;
+  border: none;
   font-weight: 600;
   cursor: pointer;
-  border: none;
   transition: 0.3s;
 }
 
-.reg-verify-btn:hover { background: #6366f1; }
+.reg-verify-btn:hover {
+  background: #7c3aed;
+}
 
 .reg-btn {
   width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  padding: 14px;
+  background: #7c3aed;
   color: white;
   border: none;
-  border-radius: 16px;
-  font-size: 1.1rem;
+  border-radius: 12px;
   font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+  transition: 0.3s;
+  letter-spacing: 0.5px;
 }
 
 .reg-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
+  background: #6d28d9;
+  transform: translateY(-1px);
 }
 
-.reg-nav-btns { display: flex; gap: 15px; margin-top: 1rem; }
+.reg-nav-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 0.5rem;
+}
 
 .reg-back-btn {
   flex: 0.4;
-  padding: 16px;
   background: #f1f5f9;
-  color: #475569;
-  border-radius: 16px;
   border: none;
+  border-radius: 12px;
+  color: #64748b;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.reg-switch {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.reg-switch span {
+  color: #7c3aed;
+  font-weight: 700;
+  cursor: pointer;
+}
+/* ... Keep imports and container from before ... */
+
+/* HERO IMAGE MOCK */
+.reg-hero-illustration {
+  width: 100%;
+  max-width: 380px;
+  margin: 1.5rem 0;
+  filter: drop-shadow(0 20px 40px rgba(109, 40, 217, 0.15));
+}
+
+/* ── ACTION BUTTONS ALIGNMENT ── */
+.reg-action-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.reg-secondary-btn {
+  flex: 1;
+  padding: 14px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
   cursor: pointer;
   transition: 0.3s;
 }
 
-.reg-back-btn:hover { background: #e2e8f0; }
+.reg-secondary-btn:hover {
+  background: #e2e8f0;
+}
 
-.reg-switch span {
-  color: #6366f1;
+/* Update the main reg-btn to be flexible in a row */
+.reg-btn {
+  flex: 2; /* Makes the primary button wider than the back button */
+  padding: 14px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
+  text-transform: uppercase;
 }
 
-/* Responsive */
-@media (max-width: 1000px) {
-  .reg-container { flex-direction: column; }
-  .reg-left { padding: 3rem; min-height: 400px; }
-  .reg-brand-title { font-size: 2.2rem; }
+/* UDID ROW FIX */
+.reg-udid-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 0px; /* Overriding default input margin */
 }
+
+.udid-field {
+  flex: 1;
+}
+
+.reg-verify-btn {
+  padding: 0 15px;
+  background: #1e1b4b;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  height: 50px; /* Matches input height */
+}
+
+/* ... Keep floating-bg and card styles from previous version ... */

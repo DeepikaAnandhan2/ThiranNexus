@@ -36,7 +36,7 @@
 .page-content {
   padding: 25px;
   overflow-y: auto;
-
-  /* subtract topbar height */
   height: calc(100vh - 70px);
+  width: 100%;
+  max-width: 100%;
 }

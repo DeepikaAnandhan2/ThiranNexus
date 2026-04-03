@@ -7,20 +7,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
-  /* Support for mobile browser address bars */
+  min-height: calc(100vh - 120px);
   min-height: -webkit-fill-available; 
-  max-width: 520px;
-  margin: 0 auto;
   width: 100%;
-  background: #1A1A2E; /* Match banner to prevent white flash on bounce */
+  max-width: 100%;
+  margin: 0;
+  background: #1A1A2E;
+  border-radius: 0;
 }
 
 /* ── Banner ──────────────────────────────────────────────── */
 .mg-banner {
   width: 100%;
   background: linear-gradient(145deg, #1A1A2E, #16213E);
-  padding: 1.25rem 1.25rem 3rem;
+  padding: 1.25rem 1.25rem 2.5rem;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -153,9 +153,10 @@
 /* ── Body ────────────────────────────────────────────────── */
 .mg-body {
   width: 100%;
+  max-width: 1200px;
   background: #F0F4F8;
-  border-radius: 28px 28px 0 0;
-  margin-top: -1.5rem;
+  border-radius: 0;
+  margin: 0;
   padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -448,13 +449,14 @@
 /* Tablet and Small Desktops */
 @media (min-width: 769px) {
   .mg-container {
-    padding: 2rem 0;
+    padding: 1rem;
     min-height: auto;
   }
-  .mg-wrap {
-    border-radius: 32px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-    overflow: hidden;
+  .mg-banner {
+    border-radius: 20px 20px 0 0;
+  }
+  .mg-body {
+    border-radius: 0 0 20px 20px;
   }
   .mg-btn-primary:hover {
     transform: translateY(-2px);

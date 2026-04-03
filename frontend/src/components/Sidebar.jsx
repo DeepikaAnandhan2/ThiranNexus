@@ -11,7 +11,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const menu = [
-    { icon: <FaHome />, label: 'Home', path: '/home' },
+    { icon: <FaHome />, label: 'Home', path: '/dashboard' },
     { icon: <FaBook />, label: 'Education', path: '/education' },
     { icon: <FaGamepad />, label: 'Games', path: '/games' },
     { icon: <FaEdit />, label: 'Scribble', path: '/scribble' },
