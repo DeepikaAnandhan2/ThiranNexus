@@ -1,129 +1,232 @@
-/* Container */
+/* ─── Container & Layout ─── */
 .school-wrap {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  /* Removed max-width to allow full-width expansion */
+  width: 100%;             
+  margin: 0;               
+  padding: 20px;
+  box-sizing: border-box;  /* Ensures padding doesn't create horizontal scroll */
+  animation: fadeIn 0.5s ease-in;
 }
 
-/* Filters */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Filters Section ─── */
 .school-filters {
   display: flex;
-  gap: 15px;
-  align-items: end;
+  gap: 20px;
+  align-items: flex-end;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   flex-wrap: wrap;
+  border: 1px solid #eef2f6;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.school-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.school-filter-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
 .school-select {
-  padding: 10px;
+  padding: 12px 15px;
   border-radius: 10px;
-  border: 1px solid #ddd;
+  border: 2px solid #f1f5f9;
+  background-color: #f8fafc;
+  min-width: 180px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.school-select:focus {
+  border-color: #7c3aed;
+  background-color: #ffffff;
 }
 
 .school-fetch-btn {
   background: linear-gradient(135deg, #7c3aed, #5b21b6);
   color: white;
   border: none;
-  padding: 10px 16px;
+  padding: 12px 30px;
   border-radius: 10px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
+  font-weight: 600;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Cards */
+.school-fetch-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+/* ─── Content List & Full-Width Cards ─── */
+.school-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
 .school-content-card {
   display: flex;
-  gap: 15px;
-  padding: 15px;
+  gap: 20px;
+  padding: 24px;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
   align-items: center;
-  transition: 0.2s;
+  text-align: left; 
+  width: 100%;             /* Ensures card takes full width of container */
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .school-content-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  transform: translateX(8px);
+  border-color: #7c3aed;
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.08);
 }
 
 .school-card-icon {
-  font-size: 22px;
+  font-size: 24px;
   color: #7c3aed;
+  background: #f5f3ff;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.school-card-info {
+  flex: 1;                 /* This pushes everything else to the sides */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .school-card-title {
   font-weight: 700;
+  font-size: 1.15rem;
+  color: #0f172a;
+  margin: 0;
 }
 
 .school-card-desc {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: #64748b;
+  line-height: 1.5;
+  margin: 0;
 }
 
-/* Reader */
+.school-card-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.school-tag {
+  background: #f5f3ff;
+  color: #7c3aed;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid #ddd6fe;
+}
+
+.school-card-arrow {
+  font-size: 1.8rem;
+  color: #cbd5e1;
+  padding-left: 10px;
+  flex-shrink: 0;
+}
+
+/* ─── Reader View ─── */
 .school-reader {
   background: white;
-  padding: 20px;
-  border-radius: 12px;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.school-content-box {
+  margin: 25px 0;
+  padding: 30px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border-left: 5px solid #7c3aed;
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #334155;
 }
 
 .school-back-btn {
-  background: #f1f5f9;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  cursor: pointer;
-}
-
-/* Content */
-.school-content-box {
-  margin-top: 15px;
-  padding: 15px;
-  border-radius: 10px;
   background: #f8fafc;
-}
-
-/* Actions */
-.school-actions {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.school-action-btn {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  display: flex;
-  gap: 6px;
+  border: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  border-radius: 12px;
+  display: inline-flex;
+  gap: 8px;
   align-items: center;
   cursor: pointer;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 20px;
+  transition: all 0.2s;
 }
 
-.school-quiz-btn {
-  background: #f59e0b;
+.school-back-btn:hover {
+  background: #ffffff;
+  color: #7c3aed;
+  border-color: #7c3aed;
 }
 
-/* Quiz */
-.school-quiz-card {
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 15px;
+/* ─── AI Answer Box ─── */
+.school-ai-answer {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Tags */
-.school-tag {
-  background: #ede9fe;
-  color: #5b21b6;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
+.school-ai-label {
+  color: #15803d;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  text-transform: uppercase;
 }
