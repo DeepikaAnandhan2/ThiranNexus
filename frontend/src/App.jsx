@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 
 // Pages
-import LandingPage from './pages/LandingPage'; // New Landing Page
+import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -18,65 +18,83 @@ import SchemeDetails from './pages/SchemeDetails';
 import SavedApplied from './pages/SavedApplied';
 import Scribble from './pages/Scribble';
 import DashboardMain from './components/ParentDashboard/DashboardMain';
-
 import Dashboard from './pages/Dashboard';
 
-// Layout Wrapper for Dashboard/Internal Pages
-const AppLayout = ({ children }) => {
+// (OPTIONAL) Admin Routes
+import AdminRoutes from './admin/AdminRoutes';
+
+// 🔹 Layout Wrapper
+const AppLayout = () => {
   return (
     <div className="app-shell">
       <Sidebar />
       <div className="main-wrapper">
         <Topbar />
         <main className="main-content">
-          {children}
+          {/* 🔥 Outlet replaces children */}
+          <Outlet />
         </main>
       </div>
     </div>
   );
 };
 
-// Auth-specific wrapper for Schemes
+// 🔹 Protected Route
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+
+  // if not logged in → go to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+// 🔹 Schemes Wrapper
 const SchemesWithAuth = () => {
   const { user } = useAuth();
-  return (
-    <AppLayout>
-      <Schemes user={user} />
-    </AppLayout>
-  );
+  return <Schemes user={user} />;
 };
+
+import { Outlet } from "react-router-dom";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          
-          {/* --- PUBLIC ROUTES --- */}
-          {/* The Landing Page is now the first thing people see */}
+
+          {/* 🔓 PUBLIC ROUTES */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* --- PRIVATE / DASHBOARD ROUTES --- */}
-          {/* These use the AppLayout (Sidebar + Topbar) */}
-          <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+          {/* 🔐 PROTECTED USER ROUTES */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/scribble" element={<Scribble />} />
 
-          <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
-          <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
-          <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
-          <Route path="/scribble" element={<AppLayout><Scribble /></AppLayout>} />
+            <Route path="/parent-dashboard" element={<DashboardMain />} />
 
-          {/* Parent specific View */}
-          <Route path="/parent-dashboard" element={<AppLayout><DashboardMain /></AppLayout>} />
+            <Route path="/schemes" element={<SchemesWithAuth />} />
+            <Route path="/scheme/:id" element={<SchemeDetails />} />
+            <Route path="/saved" element={<SavedApplied />} />
+          </Route>
 
-          {/* Scheme Management */}
-          <Route path="/schemes" element={<SchemesWithAuth />} />
-          <Route path="/scheme/:id" element={<AppLayout><SchemeDetails /></AppLayout>} />
-          <Route path="/saved" element={<AppLayout><SavedApplied /></AppLayout>} />
+          {/* 🛠 ADMIN ROUTES */}
+          <Route path="/admin/*" element={<AdminRoutes />} />
 
-          {/* --- FALLBACK --- */}
-          {/* Redirects unknown paths back to the landing page */}
+          {/* ❌ FALLBACK */}
           <Route path="*" element={<Navigate to="/" replace />} />
 
         </Routes>
