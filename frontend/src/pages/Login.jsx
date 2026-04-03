@@ -18,7 +18,8 @@ export default function Login() {
       const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        navigate("/dashboard");
+        // Changed from /dashboard to /home to match App.jsx routes
+        navigate("/home");
       }
     } catch (err) {
       alert(err.response?.data?.error || "Login failed ❌");

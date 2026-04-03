@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary: #4c3de3;
+  --bg-main: #f0f2ff;
+  --text-dark: #1b2559;
+  --text-muted: #a3aed0;
+  --shadow-card: 0 2px 12px rgba(76, 61, 227, 0.07);
+  --border: #e8ecf5;
+}
+
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-main);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+/* ===== WELCOME CARD ===== */
+.welcome-card {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #4c3de3, #6c5ce7);
+  color: white;
+  padding: 20px 24px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.welcome-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.welcome-card p {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* ===== LAYOUT FIX ===== */
+.app-shell {
+  display: flex;
+}
+
+/* 🔥 FIXED: NO GAP */
+.main-wrapper {
+  margin-left: 80px; /* matches sidebar */
+  width: calc(100% - 80px); /* removes gap */
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Scrollable content */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ===== PAGE ===== */
+.page-content {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+}
+
+/* ===== STATS ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 18px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.stat-num {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== CARDS ===== */
+.glass-card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* ===== TABLE ===== */
+.table-card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.data-table td {
+  padding: 10px;
+  font-size: 13px;
+}
+
+.data-table tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border);
+}
+
+/* ===== RIGHT SIDEBAR ===== */
+.right-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.trainers-card,
+.courses-card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.trainer-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.trainer-row:last-child {
+  border-bottom: none;
+}
+
+/* ===== COURSES ===== */
+.course-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.course-item:last-child {
+  border-bottom: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px) {
+  .page-content {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .main-wrapper {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+}
