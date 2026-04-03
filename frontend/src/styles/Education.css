@@ -6,11 +6,14 @@
   --white: #FFFFFF;
 }
 
-.edu-container {
+.edu-container,
+.education-container {
   background-color: var(--bg-soft-purple);
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
   color: var(--text-dark);
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Header UI from the top of your image */
@@ -53,6 +56,7 @@
   padding: 20px;
   max-width: 900px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .level-card {

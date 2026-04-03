@@ -1,5 +1,5 @@
 .sidebar {
-  width: 80px;
+  width: 90px;
   height: 100vh;
   position: fixed;
   top: 0;
@@ -11,10 +11,11 @@
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
   overflow: hidden;
+  margin: 0;
 }
 
 .sidebar.expanded {
-  width: 220px;
+  width: 240px;
 }
 
 .logo {

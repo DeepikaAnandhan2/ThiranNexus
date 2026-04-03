@@ -63,19 +63,19 @@ html, body, #root {
 /* MAIN APP LAYOUT */
 .app-shell {
   display: flex;
+  width: 100%;
   min-height: 100vh;
-  background-color: #f4f7fe;
+  position: relative; /* Context for the fixed sidebar */
 }
-
 /* RIGHT SIDE (Topbar + Content) */
 .main-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-
-  /* IMPORTANT: space for fixed sidebar */
-  margin-left: 80px;
-
+  min-width: 0; /* Prevents flex items from overflowing */
+  
+  /* This margin-left MUST match the sidebar width exactly */
+  margin-left: 80px; 
   transition: margin-left 0.3s ease;
 }
 
@@ -88,7 +88,10 @@ html, body, #root {
 .main-content {
   flex: 1;
   padding: 25px;
+  height: calc(100vh - 70px);
   overflow-y: auto;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* 🔥 FIXED ROOT (NO MORE BLACK SIDES) */

@@ -16,7 +16,7 @@
 .games-banner {
   width: 100%;
   background: linear-gradient(145deg, #1A1A2E, #16213E);
-  padding: 3rem 1.25rem 5rem; /* Increased padding for desktop feel */
+  padding: 2rem 1.25rem 4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,12 +77,12 @@
 
 /* ── Body ────────────────────────────────────────────────── */
 .games-body {
-  width: 92%;
-  max-width: 1200px; /* Standard desktop container width */
+  width: 100%;
+  max-width: 100%;
   background: #F0F4F8;
-  border-radius: 40px;
-  margin: -3rem auto 0; /* Centered container overlapping banner */
-  padding: 2.5rem 2rem;
+  border-radius: 0;
+  margin: 0;
+  padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
