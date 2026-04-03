@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import SchoolView  from '../components/education/SchoolView'
 import CollegeView from '../components/education/CollegeView'
 import '../styles/Education.css'
-import MainLayout from '../layout/MainLayout'
+// MainLayout import removed to prevent double headers
 import schoolImg from '../assets/school.png'
 import collegeImg from '../assets/college.png'
 
@@ -25,62 +25,61 @@ export default function Education() {
     const utter = new SpeechSynthesisUtterance(`Opening ${level} mode`);
     window.speechSynthesis.speak(utter);
   }
-  // ... (imports remain the same)
 
   return (
-  <MainLayout user={user}>
-    <div className="edu-content">
-      {!activeLevel ? (
-        <div className="welcome-screen">
-          <h1 className="main-title">Online Learning</h1>
-          <p className="main-subtitle">
-            Choose your path to start exploring interactive courses and materials.
-          </p>
+    <div className="education-container">
+      <div className="edu-content">
+        {!activeLevel ? (
+          <div className="welcome-screen">
+            <h1 className="main-title">Online Learning</h1>
+            <p className="main-subtitle">
+              Choose your path to start exploring interactive courses and materials.
+            </p>
 
-          <div className="level-cards-grid">
-            
-            {/* School */}
-            <div className="level-card school-card" onClick={() => handleLevelSelect('school')}>
-              <div className="card-illustration">
-                <img src={schoolImg} alt="School" />
+            <div className="level-cards-grid">
+              
+              {/* School */}
+              <div className="level-card school-card" onClick={() => handleLevelSelect('school')}>
+                <div className="card-illustration">
+                  <img src={schoolImg} alt="School" />
+                </div>
+                <div className="card-text">
+                  <h3>School Level</h3>
+                  <p>NCERT & Interactive Lessons</p>
+                </div>
+                <button className="start-btn">Get Started</button>
               </div>
-              <div className="card-text">
-                <h3>School Level</h3>
-                <p>NCERT & Interactive Lessons</p>
+
+              {/* College */}
+              <div className="level-card college-card" onClick={() => handleLevelSelect('college')}>
+                <div className="card-illustration">
+                  <img 
+                    src={collegeImg} 
+                    alt="College" 
+                    className="college-img"
+                  />
+                </div>
+                <div className="card-text">
+                  <h3>College Level</h3>
+                  <p>Advanced Lectures & ISL Support</p>
+                </div>
+                <button className="start-btn">Explore</button>
               </div>
-              <button className="start-btn">Get Started</button>
+
             </div>
-
-            {/* College */}
-            <div className="level-card college-card" onClick={() => handleLevelSelect('college')}>
-              <div className="card-illustration">
-                <img 
-                  src={collegeImg} 
-                  alt="College" 
-                  className="college-img"
-                />
-              </div>
-              <div className="card-text">
-                <h3>College Level</h3>
-                <p>Advanced Lectures & ISL Support</p>
-              </div>
-              <button className="start-btn">Explore</button>
-            </div>
-
           </div>
-        </div>
-      ) : (
-        <div className="active-view-container">
-          <button className="back-pill" onClick={() => setActiveLevel(null)}>
-            ← Switch Level
-          </button>
+        ) : (
+          <div className="active-view-container">
+            <button className="back-pill" onClick={() => setActiveLevel(null)}>
+              ← Switch Level
+            </button>
 
-          {activeLevel === 'school'
-            ? <SchoolView user={user} />
-            : <CollegeView user={user} />}
-        </div>
-      )}
+            {activeLevel === 'school'
+              ? <SchoolView user={user} />
+              : <CollegeView user={user} />}
+          </div>
+        )}
+      </div>
     </div>
-  </MainLayout>
-)
+  )
 }
