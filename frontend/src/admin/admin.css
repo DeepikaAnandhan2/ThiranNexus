@@ -1,0 +1,90 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* MAIN CONTAINER */
+.admin-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  min-width: 250px;
+  height: 100vh;
+  background: linear-gradient(180deg, #5c29e7, #7a4df0);
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  /* 🔥 IMPORTANT FIX */
+  position: relative;   /* NOT fixed */
+}
+
+/* LOGO */
+.logo {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+/* LINKS */
+.sidebar a {
+  text-decoration: none;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  transition: 0.3s;
+}
+
+/* ACTIVE */
+.sidebar a.active,
+.sidebar a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* MAIN AREA */
+.main {
+  flex: 1;   /* takes remaining space */
+  display: flex;
+  flex-direction: column;
+  background: #f5f6fa;
+
+  /* 🔥 IMPORTANT */
+  overflow-x: hidden;
+}
+
+/* TOPBAR */
+.topbar {
+  height: 60px;
+  background: white;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+/* CONTENT */
+.content {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    left: -250px;
+    transition: 0.3s;
+  }
+
+  .sidebar.active {
+    left: 0;
+  }
+}

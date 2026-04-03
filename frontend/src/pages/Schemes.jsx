@@ -1,67 +1,114 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import "../styles/schemes.css";
-
-// Shared data list (In a real app, this comes from your backend API)
-export const schemesList = [
-  {
-    id: 1,
-    title: 'Vision Assistance Scheme',
-    description: 'Support for visually impaired individuals.',
-    disabilityType: 'Visual',
-    eligibility: ['Visual Impairment', 'Income below 2L per annum'],
-    benefits: ['Free Glasses', 'Eye Checkup'],
-    link: "https://www.inclusivetechindia.in/schemes"
-  },
-  {
-    id: 2,
-    title: 'Hearing Aid Support',
-    description: 'Financial help for high-quality hearing aids.',
-    disabilityType: 'Hearing',
-    eligibility: ['Hearing Impairment', 'Medical Certificate'],
-    benefits: ['Free Devices', 'Battery replacements'],
-    link: "https://earmart.in/list-of-government-schemes-for-hearing-impaired-in-india/"
-  },
-];
 
 const Schemes = ({ user }) => {
   const [recommendedSchemes, setRecommendedSchemes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // If user has a disability type, filter. Otherwise show all.
-    if (user?.disabilityType) {
-      const filtered = schemesList.filter((scheme) =>
-        scheme.disabilityType.toLowerCase().includes(user.disabilityType.toLowerCase())
-      );
-      setRecommendedSchemes(filtered);
-    } else {
-      setRecommendedSchemes(schemesList);
-    }
-  }, [user]);
+    const fetchSchemes = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        const disabilityParam = user?.disabilityType 
+          ? `&disabilityType=${encodeURIComponent(user.disabilityType)}`
+          : '';
+        
+        const res = await axios.get(`/api/schemes/recommended?${disabilityParam}`, { headers });
+        setRecommendedSchemes(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch schemes:', err);
+        setError('Failed to load schemes');
+        // Fallback to local data
+        setRecommendedSchemes([
+          {
+            id: 1,
+            title: 'National Scholarship for Disabled Students',
+            description: 'Central Government scholarship for students with disabilities.',
+            disabilityType: 'All',
+            eligibility: ['Class 8-12', 'Income below threshold'],
+            benefits: 'Financial support for education',
+            applyLink: '#'
+          },
+          {
+            id: 2,
+            title: 'Tamil Nadu Disability Welfare Scheme',
+            description: 'State Government scheme for persons with disabilities.',
+            disabilityType: 'All',
+            eligibility: ['TN Resident', 'Disability Certificate'],
+            benefits: 'Monthly allowance',
+            applyLink: '#'
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchemes();
+  }, [user?.disabilityType]);
+
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="ai-header">
+          <span className="ai-icon">✨</span>
+          <h1 className="page-title">AI Scheme Recommendations</h1>
+          <p className="ai-subtitle">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
       <div className="ai-header">
         <span className="ai-icon">✨</span>
         <h1 className="page-title">AI Scheme Recommendations</h1>
-        <p className="ai-subtitle">Tailored specifically for your profile</p>
+        <p className="ai-subtitle">
+          {user?.disabilityType 
+            ? `Tailored for ${user.disabilityType} disability` 
+            : 'Tailored specifically for your profile'}
+        </p>
       </div>
 
+      {error && <p className="error-message">{error}</p>}
+
       <div className="grid">
-        {recommendedSchemes.map((scheme) => (
-          <div key={scheme.id} className="card">
-            <div className="recommendation-badge">98% Match</div>
-            <h3>{scheme.title}</h3>
-            <p>{scheme.description}</p>
-            
-            <div className="section-title">Eligibility</div>
-            <p className="small-text">{scheme.eligibility.join(', ')}</p>
-            
-            <Link to={`/scheme/${scheme.id}`} className="btn btn-view">
-              View Details
-            </Link>
-          </div>
-        ))}
+        {recommendedSchemes.length === 0 ? (
+          <p className="no-schemes">No schemes found for your disability type.</p>
+        ) : (
+          recommendedSchemes.map((scheme) => (
+            <div key={scheme._id || scheme.id} className="card">
+              <div className="recommendation-badge">98% Match</div>
+              <h3>{scheme.title}</h3>
+              <p>{scheme.description}</p>
+              
+              <div className="section-title">Eligibility</div>
+              <p className="small-text">
+                {Array.isArray(scheme.eligibility) 
+                  ? scheme.eligibility.join(', ') 
+                  : scheme.eligibility}
+              </p>
+              
+              {scheme.benefits && (
+                <>
+                  <div className="section-title">Benefits</div>
+                  <p className="small-text">{scheme.benefits}</p>
+                </>
+              )}
+              
+              <Link to={`/scheme/${scheme._id || scheme.id}`} className="btn btn-view">
+                View Details
+              </Link>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

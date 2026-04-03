@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { speak, listenOnce, stopSpeaking } from '../../utils/speech'
 import { useGestures } from '../../utils/useGestures'
+import axios from 'axios'
 import './MathGame.css'
 
 const API              = ''
@@ -111,6 +112,19 @@ export default function MathGame({ onBack, gestureAction, clearGestureAction }) 
       setStreak(s => correct ? s + 1 : 0)
       setRound(n => n + 1)
       setPhase('result')
+      
+      // Save score to backend
+      try {
+        const token = localStorage.getItem('token')
+        await axios.post('/api/dashboard/game/score', {
+          gameType: 'math',
+          score: correct ? SCORE_PER_CORRECT[d] : 0,
+          streak: correct ? streak + 1 : 0
+        }, { headers: { Authorization: `Bearer ${token}` } })
+      } catch (scoreErr) {
+        console.error('Failed to save score:', scoreErr.message)
+      }
+      
       await speak(feedback)
       setStatus(feedback)
     } catch {
