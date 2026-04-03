@@ -16,6 +16,7 @@ import Education from './pages/Education';
 import Schemes from './pages/Schemes';
 import SchemeDetails from './pages/SchemeDetails';
 import SavedApplied from './pages/SavedApplied';
+import Scribble from './pages/Scribble';
 import DashboardMain from './components/ParentDashboard/DashboardMain';
 
 /**
@@ -66,15 +67,12 @@ export default function App() {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* --- PROTECTED ROUTES (Integrated with Layout) --- */}
-          <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
-          <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
-          <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
-          
-          {/* Parent Dashboard Integration */}
-          <Route path="/parent-dashboard" element={<AppLayout><DashboardMain /></AppLayout>} />
+          {/* Protected/Feature Routes */}
+          <Route path="/home" element={<Home />} />
+          <Route path="/games" element={<Games />} />
+          <Route path="/education" element={<Education />} />
 
-          {/* Schemes & Personalization */}
+          {/* Scheme Routes - Ensure :id is present to avoid 404 */}
           <Route path="/schemes" element={<SchemesWithAuth />} />
           <Route path="/scheme/:id" element={<AppLayout><SchemeDetails /></AppLayout>} />
           <Route path="/saved" element={<AppLayout><SavedApplied /></AppLayout>} />
