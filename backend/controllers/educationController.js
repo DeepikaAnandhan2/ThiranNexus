@@ -46,32 +46,48 @@ const getSchoolContent = async (req, res) => {
 // ─────────────────────────────────────────────────────────
 const getCollegeMaterial = async (req, res) => {
   try {
-    const { query = 'Introduction to Programming', captions = 'false' } = req.query
-    const results = await searchYouTube({
-      query,
-      maxResults:   8,
-      captionsOnly: captions === 'true',
-    })
-    res.json({ success: true, query, count: results.length, results })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-}
+    const { query = 'Java' } = req.query;
+    
+    // Check user profile for accessibility needs (populated by protect middleware)
+    const disabilityType = req.user?.disabilityType || 'none';
+    const isHearingImpaired = disabilityType === 'hearing';
 
-// ─────────────────────────────────────────────────────────
-// GET /api/education/isl?topic=photosynthesis
-// Get Indian Sign Language videos for a topic
-// ─────────────────────────────────────────────────────────
+    // 1. Fetch ISL videos if student is hearing impaired
+    let islResults = [];
+    if (isHearingImpaired) {
+      islResults = await getISLVideos(query);
+    }
+
+    // 2. Fetch standard videos with forced accessibility flags
+    const standardResults = await searchYouTube({
+      query,
+      maxResults: 8,
+      isHearingImpaired: isHearingImpaired 
+    });
+
+    res.json({ 
+      success: true, 
+      accessibilityMode: disabilityType,
+      // Grouping the results for the UI
+      groups: {
+        signLanguage: islResults,
+        lectures: standardResults
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 const getISL = async (req, res) => {
   try {
-    const { topic = 'science' } = req.query
-    const results = await getISLVideos(topic)
-    res.json({ success: true, topic, results })
+    const { topic = 'education' } = req.query;
+    const results = await getISLVideos(topic);
+    res.json({ success: true, topic, results });
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message });
   }
-}
-
+};
 // ─────────────────────────────────────────────────────────
 // POST /api/education/simplify
 // Gemini AI simplifies text based on disability type

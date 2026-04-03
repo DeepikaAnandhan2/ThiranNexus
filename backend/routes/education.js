@@ -6,19 +6,21 @@ const {
 } = require('../controllers/educationController')
 const { protect } = require('../middleware/authMiddleware')
 
-// All routes protected — user must be logged in
+// ─── AUTHENTICATION LAYER ────────────────────────────────
+// All routes below this line require a valid JWT token
 router.use(protect)
 
-// School routes
+// ─── SCHOOL ROUTES ───────────────────────────────────────
 router.get('/subjects',           getSubjects)
 router.get('/school',             getSchoolMaterial)
 router.get('/school/content/:id', getSchoolContent)
 
-// College routes
+// ─── COLLEGE ROUTES ──────────────────────────────────────
+// Removed 'protect' from the individual route as router.use(protect) handles it
 router.get('/college',            getCollegeMaterial)
 router.get('/isl',                getISL)
 
-// AI routes
+// ─── AI ASSISTANCE ROUTES ────────────────────────────────
 router.post('/simplify',          simplify)
 router.post('/quiz',              getQuiz)
 router.post('/ask',               askQuestion)

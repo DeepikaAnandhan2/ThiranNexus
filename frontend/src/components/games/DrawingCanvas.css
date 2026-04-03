@@ -1,4 +1,3 @@
-/* DrawingCanvas.css */
 .canvas-wrap {
   display: flex;
   flex-direction: column;
@@ -8,6 +7,7 @@
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid rgba(139,92,246,0.2);
+  position: relative;
 }
 
 /* ── Toolbar ── */
@@ -15,79 +15,77 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.45rem 0.75rem;
   background: #1A1A2E;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
-.toolbar-section {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
+.toolbar-section { display:flex; align-items:center; gap:0.3rem; }
 
 .toolbar-divider {
-  width: 1px;
-  height: 28px;
-  background: rgba(255,255,255,0.15);
-  margin: 0 0.15rem;
+  width:1px; height:26px;
+  background:rgba(255,255,255,0.12);
+  margin: 0 0.1rem;
+  flex-shrink: 0;
 }
 
 .tool-btn {
-  width: 36px; height: 36px;
-  border-radius: 8px;
-  border: 1.5px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.06);
-  color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.15s;
+  width:34px; height:34px; border-radius:8px;
+  border:1.5px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.06);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:0.82rem; cursor:pointer; transition:all 0.15s;
+  flex-shrink: 0;
 }
-.tool-btn:hover { background: rgba(255,255,255,0.15); border-color: #8B5CF6; }
-.tool-btn.active { background: #8B5CF6; border-color: #8B5CF6; }
+.tool-btn:hover  { background:rgba(255,255,255,0.15); border-color:#8B5CF6; }
+.tool-btn.active { background:#8B5CF6; border-color:#8B5CF6; }
 
-.tool-clear { color: #EF4444; }
-.tool-clear:hover { background: rgba(239,68,68,0.2) !important; border-color: #EF4444 !important; }
-.tool-undo  { color: #FF8C42; }
-.tool-undo:hover  { background: rgba(255,140,66,0.2) !important; border-color: #FF8C42 !important; }
+.tool-clear { color:#EF4444; }
+.tool-clear:hover { background:rgba(239,68,68,0.2)!important; border-color:#EF4444!important; }
+.tool-undo  { color:#FF8C42; }
+.tool-undo:hover  { background:rgba(255,140,66,0.2)!important; border-color:#FF8C42!important; }
 
 .size-btn {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.15s;
+  width:30px; height:30px; border-radius:50%;
+  border:1.5px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.05);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.15s; flex-shrink:0;
 }
-.size-btn:hover { border-color: #8B5CF6; }
-.size-btn.active { border-color: #8B5CF6; background: rgba(139,92,246,0.2); }
+.size-btn:hover  { border-color:#8B5CF6; }
+.size-btn.active { border-color:#8B5CF6; background:rgba(139,92,246,0.2); }
 
-/* ── Color palette ── */
 .toolbar-colors {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  max-width: 200px;
+  display:flex; flex-wrap:wrap; gap:3px;
+  max-width:180px;
 }
 
 .color-btn {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s;
-  flex-shrink: 0;
+  width:20px; height:20px; border-radius:50%;
+  border:2px solid transparent; cursor:pointer;
+  transition:transform 0.15s, border-color 0.15s;
+  flex-shrink:0;
 }
-.color-btn:hover  { transform: scale(1.2); }
-.color-btn.active { border-color: #fff; transform: scale(1.25); box-shadow: 0 0 0 2px #8B5CF6; }
+.color-btn:hover  { transform:scale(1.25); }
+.color-btn.active { border-color:#fff; transform:scale(1.3); box-shadow:0 0 0 2px #8B5CF6; }
 
 /* ── Canvas ── */
 .draw-canvas {
-  flex: 1;
-  width: 100%;
-  display: block;
-  background: #fff;
-  cursor: not-allowed;
+  flex:1; width:100%; display:block;
+  background:#fff; cursor:not-allowed;
+  min-height: 0;
 }
-.draw-canvas.can-draw { cursor: crosshair; }
+.draw-canvas.can-draw { cursor:crosshair; }
+
+/* Watch label */
+.canvas-watch-label {
+  position:absolute; bottom:10px; left:50%;
+  transform:translateX(-50%);
+  background:rgba(139,92,246,0.15);
+  border:1px solid rgba(139,92,246,0.3);
+  border-radius:100px; padding:0.25rem 0.9rem;
+  font-size:0.75rem; color:#8B5CF6; font-weight:600;
+  pointer-events:none;
+  font-family:'Nunito',sans-serif;
+}

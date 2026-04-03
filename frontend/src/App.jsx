@@ -71,7 +71,7 @@ export default function App() {
           <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
           <Route path="/scribble" element={<AppLayout><Scribble /></AppLayout>} />
-          <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
+          <Route path="/education" element={<Education />} />
           
           {/* Parent Dashboard Integration */}
           <Route path="/parent-dashboard" element={<AppLayout><DashboardMain /></AppLayout>} />

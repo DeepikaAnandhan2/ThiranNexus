@@ -1,261 +1,314 @@
-// ─── Drawing Canvas ───────────────────────────────────────
-// Touch + mouse drawing with tools: pen, eraser, fill, shapes
-// Syncs strokes via Socket.IO
-
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { FaPen, FaEraser, FaFill, FaTrash, FaUndo, FaMinus, FaCircle, FaSquare } from 'react-icons/fa'
+import { FaPen, FaEraser, FaFill, FaTrash, FaUndo } from 'react-icons/fa'
 import './DrawingCanvas.css'
 
 const COLORS = [
-  '#1A1A2E','#8B5CF6','#FF8C42','#2DC9A6','#EF4444',
+  '#000000','#8B5CF6','#FF8C42','#2DC9A6','#EF4444',
   '#3B82F6','#F59E0B','#10B981','#EC4899','#6366F1',
   '#FFFFFF','#94A3B8',
 ]
-
 const BRUSH_SIZES = [3, 6, 10, 16]
 
-export default function DrawingCanvas({ socket, roomCode, isDrawing, onCanvasUpdate }) {
-  const canvasRef    = useRef(null)
-  const ctxRef       = useRef(null)
-  const isMouseDown  = useRef(false)
-  const lastPos      = useRef({ x: 0, y: 0 })
-  const historyRef   = useRef([])
+export default function DrawingCanvas({ socket, roomCode, isDrawing }) {
+  const canvasRef  = useRef(null)
+  const ctxRef     = useRef(null)
+  const isDown     = useRef(false)
+  const historyRef = useRef([])
+  const sizeRef    = useRef({ w: 800, h: 500 })
 
   const [tool,      setTool]      = useState('pen')
-  const [color,     setColor]     = useState('#1A1A2E')
+  const [color,     setColor]     = useState('#000000')
   const [brushSize, setBrushSize] = useState(6)
-  const [fillColor, setFillColor] = useState('#8B5CF6')
 
-  // ── Init canvas ─────────────────────────────────────
-  useEffect(() => {
+  // ── Setup canvas ────────────────────────────────────
+  const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current
-    canvas.width  = canvas.offsetWidth
-    canvas.height = canvas.offsetHeight
-    const ctx     = canvas.getContext('2d')
+    if (!canvas) return
+    const parent = canvas.parentElement
+    if (!parent) return
+
+    const w = parent.clientWidth  || 800
+    const h = parent.clientHeight || 500
+    if (w === 0 || h === 0) return
+
+    // Save existing content
+    let saved = null
+    if (canvas.width > 0 && canvas.height > 0 && ctxRef.current) {
+      try { saved = canvas.toDataURL() } catch(e) {}
+    }
+
+    canvas.width  = w
+    canvas.height = h
+    sizeRef.current = { w, h }
+
+    const ctx = canvas.getContext('2d')
+    ctx.lineCap  = 'round'
+    ctx.lineJoin = 'round'
     ctx.fillStyle = '#FFFFFF'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.lineCap   = 'round'
-    ctx.lineJoin  = 'round'
+    ctx.fillRect(0, 0, w, h)
     ctxRef.current = ctx
+
+    if (saved) {
+      const img = new Image()
+      img.onload = () => ctx.drawImage(img, 0, 0, w, h)
+      img.src = saved
+    }
   }, [])
 
-  // ── Receive strokes from other players ──────────────
+  // Run setup after mount (use setTimeout to ensure DOM is ready)
+  useEffect(() => {
+    const t = setTimeout(setupCanvas, 100)
+    return () => clearTimeout(t)
+  }, [setupCanvas])
+
+  // Also setup on resize
+  useEffect(() => {
+    window.addEventListener('resize', setupCanvas)
+    return () => window.removeEventListener('resize', setupCanvas)
+  }, [setupCanvas])
+
+  // ── Socket listeners — receive remote strokes ────────
   useEffect(() => {
     if (!socket) return
-    socket.on('draw-stroke', (stroke) => drawFromData(stroke))
-    socket.on('clear-canvas', () => clearCanvas(false))
-    socket.on('fill-canvas',  ({ x, y, color }) => floodFill(x, y, color, false))
+
+    const onStroke = (data) => {
+      const canvas = canvasRef.current
+      const ctx    = ctxRef.current
+      if (!canvas || !ctx) return
+
+      const W = canvas.width
+      const H = canvas.height
+
+      // Convert normalized ratio back to this canvas's pixels
+      const x = data.rx * W
+      const y = data.ry * H
+
+      if (data.type === 'begin') {
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+
+      } else if (data.type === 'draw') {
+        ctx.globalCompositeOperation = data.tool === 'eraser'
+          ? 'destination-out' : 'source-over'
+        ctx.strokeStyle = data.color
+        ctx.lineWidth   = data.size
+        ctx.lineTo(x, y)
+        ctx.stroke()
+
+      } else if (data.type === 'end') {
+        ctx.closePath()
+        ctx.globalCompositeOperation = 'source-over'
+      }
+    }
+
+    const onClear = () => {
+      const canvas = canvasRef.current
+      const ctx    = ctxRef.current
+      if (!canvas || !ctx) return
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+    }
+
+    const onFill = ({ rx, ry, color: fillColor }) => {
+      const canvas = canvasRef.current
+      if (!canvas || !ctxRef.current) return
+      doFloodFill(rx * canvas.width, ry * canvas.height, fillColor, false)
+    }
+
+    socket.on('draw-stroke', onStroke)
+    socket.on('clear-canvas', onClear)
+    socket.on('fill-canvas',  onFill)
+
     return () => {
-      socket.off('draw-stroke')
-      socket.off('clear-canvas')
-      socket.off('fill-canvas')
+      socket.off('draw-stroke', onStroke)
+      socket.off('clear-canvas', onClear)
+      socket.off('fill-canvas',  onFill)
     }
   }, [socket])
 
+  // ── Get position + normalized ratio ─────────────────
   const getPos = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect()
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
-    }
+    const canvas = canvasRef.current
+    if (!canvas) return { x:0, y:0, rx:0, ry:0 }
+    const rect = canvas.getBoundingClientRect()
+    const src  = e.touches ? e.touches[0] : e
+    const x    = src.clientX - rect.left
+    const y    = src.clientY - rect.top
+    return { x, y, rx: x / canvas.width, ry: y / canvas.height }
   }
 
   const saveHistory = () => {
     const canvas = canvasRef.current
-    historyRef.current.push(canvas.toDataURL())
-    if (historyRef.current.length > 20) historyRef.current.shift()
+    if (!canvas) return
+    try {
+      historyRef.current.push(canvas.toDataURL())
+      if (historyRef.current.length > 15) historyRef.current.shift()
+    } catch(e) {}
   }
 
-  // ── Draw from socket data ────────────────────────────
-  const drawFromData = (stroke) => {
-    const ctx = ctxRef.current
-    if (!ctx) return
-    if (stroke.type === 'begin') {
-      ctx.beginPath()
-      ctx.moveTo(stroke.x, stroke.y)
-    } else if (stroke.type === 'draw') {
-      ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over'
-      ctx.strokeStyle  = stroke.color
-      ctx.lineWidth    = stroke.size
-      ctx.lineTo(stroke.x, stroke.y)
-      ctx.stroke()
-    } else if (stroke.type === 'end') {
-      ctx.closePath()
-      ctx.globalCompositeOperation = 'source-over'
-    }
-  }
-
-  // ── Mouse / Touch events ─────────────────────────────
-  const onPointerDown = useCallback((e) => {
+  // ── Draw events ──────────────────────────────────────
+  const onDown = useCallback((e) => {
     if (!isDrawing) return
     e.preventDefault()
-    isMouseDown.current = true
+    isDown.current = true
     saveHistory()
-    const pos = getPos(e)
-    lastPos.current = pos
+
+    const { x, y, rx, ry } = getPos(e)
     const ctx = ctxRef.current
+    if (!ctx) return
 
     if (tool === 'fill') {
-      floodFill(pos.x, pos.y, color, true)
+      doFloodFill(x, y, color, true, rx, ry)
       return
     }
 
     ctx.beginPath()
-    ctx.moveTo(pos.x, pos.y)
-
-    socket?.emit('draw-stroke', {
-      roomCode, type: 'begin', x: pos.x, y: pos.y, color, size: brushSize, tool,
-    })
+    ctx.moveTo(x, y)
+    socket?.emit('draw-stroke', { roomCode, type:'begin', rx, ry, color, size:brushSize, tool })
   }, [isDrawing, tool, color, brushSize, socket, roomCode])
 
-  const onPointerMove = useCallback((e) => {
-    if (!isDrawing || !isMouseDown.current) return
+  const onMove = useCallback((e) => {
+    if (!isDrawing || !isDown.current) return
     e.preventDefault()
-    const pos = getPos(e)
+    const { x, y, rx, ry } = getPos(e)
     const ctx = ctxRef.current
+    if (!ctx) return
 
     ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over'
     ctx.strokeStyle = color
     ctx.lineWidth   = brushSize
-    ctx.lineTo(pos.x, pos.y)
+    ctx.lineTo(x, y)
     ctx.stroke()
 
-    socket?.emit('draw-stroke', {
-      roomCode, type: 'draw', x: pos.x, y: pos.y, color, size: brushSize, tool,
-    })
-    lastPos.current = pos
+    socket?.emit('draw-stroke', { roomCode, type:'draw', rx, ry, color, size:brushSize, tool })
   }, [isDrawing, tool, color, brushSize, socket, roomCode])
 
-  const onPointerUp = useCallback(() => {
-    if (!isDrawing || !isMouseDown.current) return
-    isMouseDown.current = false
-    ctxRef.current?.closePath()
-    ctxRef.current && (ctxRef.current.globalCompositeOperation = 'source-over')
-    socket?.emit('draw-stroke', { roomCode, type: 'end' })
-    if (onCanvasUpdate) onCanvasUpdate(canvasRef.current.toDataURL())
-  }, [isDrawing, socket, roomCode, onCanvasUpdate])
+  const onUp = useCallback(() => {
+    if (!isDown.current) return
+    isDown.current = false
+    const ctx = ctxRef.current
+    if (ctx) { ctx.closePath(); ctx.globalCompositeOperation = 'source-over' }
+    if (isDrawing) socket?.emit('draw-stroke', { roomCode, type:'end', rx:0, ry:0 })
+  }, [isDrawing, socket, roomCode])
 
-  // ── Clear ────────────────────────────────────────────
-  const clearCanvas = (emit = true) => {
+  // ── Actions ──────────────────────────────────────────
+  const clearAll = () => {
     const canvas = canvasRef.current
     const ctx    = ctxRef.current
-    if (!ctx) return
+    if (!canvas || !ctx) return
     saveHistory()
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    if (emit) socket?.emit('clear-canvas', { roomCode })
+    socket?.emit('clear-canvas', { roomCode })
   }
 
-  // ── Undo ─────────────────────────────────────────────
   const undo = () => {
-    if (historyRef.current.length === 0) return
-    const img    = new Image()
-    img.src      = historyRef.current.pop()
-    img.onload   = () => ctxRef.current?.drawImage(img, 0, 0)
+    if (!historyRef.current.length || !ctxRef.current) return
+    const img  = new Image()
+    img.onload = () => ctxRef.current.drawImage(img, 0, 0)
+    img.src    = historyRef.current.pop()
   }
 
-  // ── Flood fill ───────────────────────────────────────
-  const floodFill = (startX, startY, fillCol, emit = true) => {
-    const canvas  = canvasRef.current
-    const ctx     = ctxRef.current
-    if (!ctx) return
+  const doFloodFill = (startX, startY, fillCol, emit=true, rx=0, ry=0) => {
+    const canvas = canvasRef.current
+    const ctx    = ctxRef.current
+    if (!canvas || !ctx) return
     saveHistory()
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const W = canvas.width, H = canvas.height
+    const sx = Math.max(0, Math.min(W-1, Math.floor(startX)))
+    const sy = Math.max(0, Math.min(H-1, Math.floor(startY)))
+
+    const imageData = ctx.getImageData(0, 0, W, H)
     const data      = imageData.data
-    const startIdx  = (Math.floor(startY) * canvas.width + Math.floor(startX)) * 4
-    const startR    = data[startIdx], startG = data[startIdx+1], startB = data[startIdx+2]
+    const startIdx  = (sy * W + sx) * 4
+    const sR = data[startIdx], sG = data[startIdx+1], sB = data[startIdx+2]
 
-    const hexToRgb = (hex) => {
-      const r = parseInt(hex.slice(1,3),16)
-      const g = parseInt(hex.slice(3,5),16)
-      const b = parseInt(hex.slice(5,7),16)
-      return [r, g, b]
-    }
-    const [fillR, fillG, fillB] = hexToRgb(fillCol)
-    if (startR === fillR && startG === fillG && startB === fillB) return
+    const toRgb = (hex) => [
+      parseInt(hex.slice(1,3),16),
+      parseInt(hex.slice(3,5),16),
+      parseInt(hex.slice(5,7),16),
+    ]
+    const [fR, fG, fB] = toRgb(fillCol)
+    if (sR===fR && sG===fG && sB===fB) return
 
-    const stack = [[Math.floor(startX), Math.floor(startY)]]
+    const stack   = [[sx, sy]]
+    const visited = new Uint8Array(W * H)
+
     while (stack.length) {
       const [x, y] = stack.pop()
-      const idx    = (y * canvas.width + x) * 4
-      if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) continue
-      if (data[idx] !== startR || data[idx+1] !== startG || data[idx+2] !== startB) continue
-      data[idx] = fillR; data[idx+1] = fillG; data[idx+2] = fillB; data[idx+3] = 255
+      if (x<0||x>=W||y<0||y>=H) continue
+      const k = y*W+x
+      if (visited[k]) continue
+      visited[k] = 1
+      const i = k*4
+      if (data[i]!==sR || data[i+1]!==sG || data[i+2]!==sB) continue
+      data[i]=fR; data[i+1]=fG; data[i+2]=fB; data[i+3]=255
       stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1])
     }
     ctx.putImageData(imageData, 0, 0)
-    if (emit) socket?.emit('fill-canvas', { roomCode, x: startX, y: startY, color: fillCol })
+
+    if (emit) socket?.emit('fill-canvas', {
+      roomCode,
+      rx: rx || startX/W,
+      ry: ry || startY/H,
+      color: fillCol,
+    })
   }
 
   return (
     <div className="canvas-wrap">
-      {/* ── Toolbar ── */}
+
       {isDrawing && (
         <div className="canvas-toolbar">
-          {/* Tools */}
           <div className="toolbar-section">
-            <button className={`tool-btn ${tool==='pen'?'active':''}`} onClick={()=>setTool('pen')} title="Pen"><FaPen /></button>
-            <button className={`tool-btn ${tool==='eraser'?'active':''}`} onClick={()=>setTool('eraser')} title="Eraser"><FaEraser /></button>
-            <button className={`tool-btn ${tool==='fill'?'active':''}`} onClick={()=>setTool('fill')} title="Fill"><FaFill /></button>
+            <button className={`tool-btn${tool==='pen'?' active':''}`}    onClick={()=>setTool('pen')}    title="Pen"><FaPen/></button>
+            <button className={`tool-btn${tool==='eraser'?' active':''}`} onClick={()=>setTool('eraser')} title="Eraser"><FaEraser/></button>
+            <button className={`tool-btn${tool==='fill'?' active':''}`}   onClick={()=>setTool('fill')}   title="Fill"><FaFill/></button>
           </div>
-
-          <div className="toolbar-divider" />
-
-          {/* Brush sizes */}
+          <div className="toolbar-divider"/>
           <div className="toolbar-section">
-            {BRUSH_SIZES.map(s => (
-              <button
-                key={s}
-                className={`size-btn ${brushSize===s?'active':''}`}
-                onClick={()=>setBrushSize(s)}
-                title={`Size ${s}`}
-              >
-                <span style={{ width: s, height: s, borderRadius:'50%', background: color, display:'block' }} />
+            {BRUSH_SIZES.map(s=>(
+              <button key={s} className={`size-btn${brushSize===s?' active':''}`} onClick={()=>setBrushSize(s)}>
+                <span style={{width:Math.min(s,16),height:Math.min(s,16),borderRadius:'50%',background:color==='#FFFFFF'?'#999':color,display:'block'}}/>
               </button>
             ))}
           </div>
-
-          <div className="toolbar-divider" />
-
-          {/* Colors */}
+          <div className="toolbar-divider"/>
           <div className="toolbar-colors">
-            {COLORS.map(c => (
+            {COLORS.map(c=>(
               <button
                 key={c}
-                className={`color-btn ${color===c?'active':''}`}
-                style={{ background: c }}
-                onClick={() => setColor(c)}
-                title={c}
+                className={`color-btn${color===c?' active':''}`}
+                style={{background:c,border:c==='#FFFFFF'?'2px solid #ccc':undefined}}
+                onClick={()=>setColor(c)}
               />
             ))}
           </div>
-
-          <div className="toolbar-divider" />
-
-          {/* Actions */}
+          <div className="toolbar-divider"/>
           <div className="toolbar-section">
-            <button className="tool-btn tool-undo"  onClick={undo}             title="Undo"><FaUndo /></button>
-            <button className="tool-btn tool-clear" onClick={()=>clearCanvas()} title="Clear"><FaTrash /></button>
+            <button className="tool-btn tool-undo"  onClick={undo}     title="Undo"><FaUndo/></button>
+            <button className="tool-btn tool-clear" onClick={clearAll} title="Clear"><FaTrash/></button>
           </div>
         </div>
       )}
 
-      {/* ── Canvas ── */}
       <canvas
         ref={canvasRef}
-        className={`draw-canvas ${isDrawing ? 'can-draw' : ''}`}
-        onMouseDown={onPointerDown}
-        onMouseMove={onPointerMove}
-        onMouseUp={onPointerUp}
-        onMouseLeave={onPointerUp}
-        onTouchStart={onPointerDown}
-        onTouchMove={onPointerMove}
-        onTouchEnd={onPointerUp}
-        style={{ cursor: tool === 'eraser' ? 'cell' : tool === 'fill' ? 'crosshair' : 'default' }}
+        className={`draw-canvas${isDrawing?' can-draw':''}`}
+        onMouseDown={onDown}
+        onMouseMove={onMove}
+        onMouseUp={onUp}
+        onMouseLeave={onUp}
+        onTouchStart={onDown}
+        onTouchMove={onMove}
+        onTouchEnd={onUp}
+        style={{ cursor: !isDrawing?'default': tool==='eraser'?'cell':'crosshair' }}
       />
+
+      {!isDrawing && (
+        <div className="canvas-watch-label">👀 Watch and guess!</div>
+      )}
     </div>
   )
 }
