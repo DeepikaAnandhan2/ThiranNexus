@@ -1,5 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext'; // Assuming useAuth exists
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext'; 
+
+// Layout & Common Components
+import Sidebar from './components/Sidebar';
+import Topbar from './components/Topbar';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Page Imports
@@ -11,19 +16,45 @@ import Education from './pages/Education';
 import Schemes from './pages/Schemes';
 import SchemeDetails from './pages/SchemeDetails';
 import SavedApplied from './pages/SavedApplied';
+import DashboardMain from './components/ParentDashboard/DashboardMain';
 
-const NotFound = () => (
-  <div style={{ textAlign: 'center', padding: '100px', color: 'white', background: '#764ba2', minHeight: '100vh' }}>
-    <h1>404 - Page Not Found</h1>
-    <p>The page you are looking for does not exist or you are unauthorized.</p>
-    <a href="/home" style={{ color: '#fff', textDecoration: 'underline' }}>Back to Home</a>
+/**
+ * Layout Wrapper Component
+ * Consistently applies the Sidebar and Topbar across the platform.
+ */
+const AppLayout = ({ children }) => (
+  <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <Sidebar />
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <Topbar />
+      <div style={{ flex: 1, overflowY: 'auto', background: '#f4f7fe' }}>
+        {children}
+      </div>
+    </div>
   </div>
 );
 
-// Helper to get user from context (Adjust based on your AuthContext structure)
+const NotFound = () => (
+  <div style={{ 
+    textAlign: 'center', 
+    padding: '100px', 
+    color: '#1b2559', 
+    background: '#f4f7fe', 
+    minHeight: '100vh' 
+  }}>
+    <h1 style={{ fontSize: '3rem' }}>404</h1>
+    <h2>Page Not Found</h2>
+    <p>The link you followed may be broken or the page may have been removed.</p>
+    <a href="/home" style={{ color: '#6366f1', fontWeight: 'bold' }}>Back to Home</a>
+  </div>
+);
+
+/**
+ * Helper for the Schemes page to inject user context
+ */
 const SchemesWithAuth = () => {
   const { user } = useAuth(); 
-  return <Schemes user={user} />;
+  return <AppLayout><Schemes user={user} /></AppLayout>;
 };
 
 export default function App() {
@@ -31,19 +62,22 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
+          {/* --- PUBLIC ROUTES --- */}
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected/Feature Routes */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/education" element={<Education />} />
+          {/* --- PROTECTED ROUTES (Integrated with Layout) --- */}
+          <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
+          <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
+          <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
+          
+          {/* Parent Dashboard Integration */}
+          <Route path="/parent-dashboard" element={<AppLayout><DashboardMain /></AppLayout>} />
 
-          {/* Scheme Routes - Ensure :id is present to avoid 404 */}
+          {/* Schemes & Personalization */}
           <Route path="/schemes" element={<SchemesWithAuth />} />
-          <Route path="/scheme/:id" element={<SchemeDetails />} />
-          <Route path="/saved" element={<SavedApplied />} />
+          <Route path="/scheme/:id" element={<AppLayout><SchemeDetails /></AppLayout>} />
+          <Route path="/saved" element={<AppLayout><SavedApplied /></AppLayout>} />
 
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
