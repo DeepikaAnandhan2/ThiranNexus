@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { speak, listenOnce, stopSpeaking } from '../../utils/speech'
 import { useGestures } from '../../utils/useGestures'
+import axios from 'axios'
 import './TongueTwister.css'
 
 const API         = ''
@@ -80,6 +81,19 @@ export default function TongueTwister({ onBack, gestureAction, clearGestureActio
       if (ev.rating === 'excellent') setScore(s => s + 3)
       else if (ev.rating === 'good') setScore(s => s + 1)
       setPhase('result')
+      
+      // Save score to backend
+      try {
+        const token = localStorage.getItem('token')
+        await axios.post('/api/dashboard/game/score', {
+          gameType: 'twister',
+          score: ev.rating === 'excellent' ? 3 : ev.rating === 'good' ? 1 : 0,
+          streak: ev.rating !== 'tryAgain' ? round + 1 : 0
+        }, { headers: { Authorization: `Bearer ${token}` } })
+      } catch (scoreErr) {
+        console.error('Failed to save score:', scoreErr.message)
+      }
+      
       await speak(ev.feedback, { rate: 0.9 })
       setStatus(ev.feedback)
     } catch {

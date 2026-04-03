@@ -15,9 +15,9 @@ import {
   FaArrowLeft
 } from 'react-icons/fa'
 
-const API    = 'http://localhost:5000'
+const API    = ''
 const token = () => localStorage.getItem('token')
-const headers= () => ({ Authorization: `Bearer ${token()}` })
+const headers= () => token() ? { Authorization: `Bearer ${token()}` } : {}
 
 const SUBJECTS = ['Mathematics','Science','English','Hindi','Social Science',
   'Physics','Chemistry','Biology','History','Geography','Computer Science']

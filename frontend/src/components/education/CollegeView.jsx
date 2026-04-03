@@ -12,13 +12,12 @@ import {
   FaSearch
 } from 'react-icons/fa'
 
-const API = 'http://localhost:5000'
+const API = ''
 
 // Helper to get token safely
 const getAuthHeaders = () => {
-  const userInfo = localStorage.getItem('userInfo');
-  const token = userInfo ? JSON.parse(userInfo).token : localStorage.getItem('token');
-  return { Authorization: `Bearer ${token}` };
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 export default function CollegeView({ user }) {

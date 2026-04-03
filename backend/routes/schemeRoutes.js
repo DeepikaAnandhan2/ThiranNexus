@@ -3,18 +3,36 @@ const router = express.Router();
 
 const Scheme = require("../models/Scheme");
 const UserScheme = require("../models/UserScheme");
+const { protect } = require("../middleware/authMiddleware");
 
+// Apply authentication to all routes
+router.use(protect);
 
 // ─────────────────────────────────────────────
 // ✅ 1. AI RECOMMENDED SCHEMES
 // ─────────────────────────────────────────────
 router.get("/recommended", async (req, res) => {
   try {
-    const { disabilityType } = req.query;
+    // Try to get disability type from authenticated user's profile
+    let disabilityType = req.query.disabilityType;
+    
+    // If no query param but user is authenticated, get from their profile
+    if (!disabilityType && req.user?.disabilityType) {
+      disabilityType = req.user.disabilityType;
+    }
 
-    const schemes = await Scheme.find({
-      disabilityType: disabilityType
-    });
+    let schemes;
+    if (disabilityType && disabilityType !== 'none' && disabilityType !== 'All') {
+      schemes = await Scheme.find({
+        $or: [
+          { disabilityType: { $regex: new RegExp(`^${disabilityType}$`, 'i') } },
+          { disabilityType: { $regex: new RegExp(disabilityType, 'i') } },
+          { disabilityType: 'All' }
+        ]
+      });
+    } else {
+      schemes = await Scheme.find({});
+    }
 
     res.json(schemes);
   } catch (err) {

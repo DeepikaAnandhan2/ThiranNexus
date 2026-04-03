@@ -2,6 +2,7 @@
 
 const User          = require('../models/User')
 const ScribbleScore = require('../models/ScribbleScore')
+const GameScore     = require('../models/GameScore')
 
 // ── Util: last N day labels ────────────────────────────────
 function lastNDayLabels(n = 7) {
@@ -35,11 +36,13 @@ async function countPerDay(Model, query, dateField = 'playedAt', n = 7) {
 }
 
 // ── Compute badges from real stats ────────────────────────
-function computeBadges({ wins, gamesPlayed, streak, bestScore }) {
+function computeBadges({ wins, gamesPlayed, streak, bestScore, twisterWins, mathScore }) {
   return [
     { id: 'first-win',    icon: '🏆', name: 'First Win',      desc: 'Win your first Scribble game', target: 1,   current: wins },
     { id: 'streak-5',     icon: '🔥', name: '5-Day Streak',   desc: 'Play 5 days in a row',         target: 5,   current: streak },
     { id: 'scribble-pro', icon: '🎨', name: 'Scribble Pro',   desc: 'Win 10 Scribble games',        target: 10,  current: wins },
+    { id: 'twister-pro',  icon: '🗣️', name: 'Twister Master', desc: 'Score 20+ in Twister',         target: 20,  current: twisterWins || 0 },
+    { id: 'math-genius',   icon: '🧮', name: 'Math Genius',    desc: 'Score 50+ in Math game',      target: 50,  current: mathScore || 0 },
     { id: 'gamer',        icon: '🕹️', name: 'Game Addict',    desc: 'Play 20 games total',          target: 20,  current: gamesPlayed },
     { id: 'high-scorer',  icon: '⚡', name: 'High Scorer',    desc: 'Score 300+ in one game',       target: 300, current: bestScore },
     { id: 'consistent',   icon: '📚', name: 'Consistent',     desc: 'Play 7 days in a row',         target: 7,   current: streak },
@@ -62,15 +65,24 @@ exports.getSummary = async (req, res) => {
     const wins        = allScribble.filter(s => s.rank === 1).length
     const bestScore   = allScribble.reduce((mx, s) => Math.max(mx, s.totalScore), 0)
 
-    // Streak calculation
+    // Fetch all game scores (twister + math)
+    const allGameScores = await GameScore.find({ userId })
+    const twisterScores = allGameScores.filter(g => g.gameType === 'twister')
+    const mathScores = allGameScores.filter(g => g.gameType === 'math')
+    const twisterWins = twisterScores.reduce((mx, s) => Math.max(mx, s.score), 0)
+    const mathScore = mathScores.reduce((mx, s) => Math.max(mx, s.score), 0)
+
+    // Streak calculation - combine all games
+    const allGameDates = new Set([
+      ...allScribble.map(s => s.playedAt.toISOString().split('T')[0]),
+      ...allGameScores.map(g => g.playedAt.toISOString().split('T')[0])
+    ])
     let streak = 0
     const today = new Date(); today.setHours(23,59,59,999)
     for (let i = 0; i < 30; i++) {
-      const day   = new Date(today); day.setDate(day.getDate() - i)
-      const start = new Date(day);   start.setHours(0,0,0,0)
-      const end   = new Date(day);   end.setHours(23,59,59,999)
-      const played = allScribble.some(s => s.playedAt >= start && s.playedAt <= end)
-      if (played) streak++
+      const d = new Date(today); d.setDate(d.getDate() - i)
+      const dateStr = d.toISOString().split('T')[0]
+      if (allGameDates.has(dateStr)) streak++
       else if (i > 0) break
     }
 
@@ -82,14 +94,16 @@ exports.getSummary = async (req, res) => {
       { label: 'English',        pct: 85, color: '#10B981' },
       { label: 'Social Studies', pct: 55, color: '#F59E0B' },
       { label: 'Scribble Game',  pct: wins > 0 ? Math.min(100, wins * 10) : 0, color: '#EC4899' },
+      { label: 'Tongue Twister',  pct: twisterWins > 0 ? Math.min(100, twisterWins / 2) : 0, color: '#10B981' },
+      { label: 'Mental Math',     pct: mathScore > 0 ? Math.min(100, mathScore) : 0, color: '#F97316' },
     ]
 
     res.json({
       success: true,
-      metrics: { gamesPlayed, wins, bestScore, streak, badgesEarned: computeBadges({ wins, gamesPlayed, streak, bestScore }).filter(b => b.state === 'earned').length },
+      metrics: { gamesPlayed: gamesPlayed + twisterScores.length + mathScores.length, wins, bestScore, streak, badgesEarned: computeBadges({ wins, gamesPlayed, streak, bestScore, twisterWins, mathScore }).filter(b => b.state === 'earned').length },
       trend: { labels: lastNDayLabels(7), gameSeries: gameTrend, lessonSeries: [3,5,2,6,4,7,5] },
       categoryPerformance,
-      badges: computeBadges({ wins, gamesPlayed, streak, bestScore }),
+      badges: computeBadges({ wins, gamesPlayed, streak, bestScore, twisterWins, mathScore }),
     })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -104,20 +118,34 @@ exports.getGames = async (req, res) => {
     const userId = req.user._id.toString()
     const limit  = parseInt(req.query.limit) || 10
 
+    // Get scribble scores
     const history = await ScribbleScore
       .find({ userId })
       .sort({ playedAt: -1 })
       .limit(limit)
+
+    // Get all game scores for Math and Twister
+    const allGameScores = await GameScore.find({ userId }).sort({ playedAt: -1 }).limit(limit)
+    const twisterScores = allGameScores.filter(g => g.gameType === 'twister')
+    const mathScores = allGameScores.filter(g => g.gameType === 'math')
 
     const wins    = history.filter(s => s.rank === 1).length
     const avgScore = history.length
       ? Math.round(history.reduce((s, r) => s + r.totalScore, 0) / history.length)
       : 0
 
+    const twisterAvg = twisterScores.length
+      ? Math.round(twisterScores.reduce((s, r) => s + r.score, 0) / twisterScores.length)
+      : 0
+
+    const mathAvg = mathScores.length
+      ? Math.round(mathScores.reduce((s, r) => s + r.score, 0) / mathScores.length)
+      : 0
+
     const categoryBreakdown = [
-      { game: 'Scribble',       played: history.length, wins, avgScore, color: '#7C3AED' },
-      { game: 'Mental Math',    played: 0, wins: 0, avgScore: 0, color: '#F97316' },
-      { game: 'Tongue Twister', played: 0, wins: 0, avgScore: 0, color: '#10B981' },
+      { game: 'Scribble',       played: history.length, wins, avgScore: avgScore || 0, color: '#7C3AED' },
+      { game: 'Mental Math',    played: mathScores.length, wins: mathScores.filter(s => s.score > 0).length, avgScore: mathAvg, color: '#F97316' },
+      { game: 'Tongue Twister', played: twisterScores.length, wins: twisterScores.filter(s => s.score > 0).length, avgScore: twisterAvg, color: '#10B981' },
     ]
 
     res.json({ success: true, history, categoryBreakdown })
@@ -160,6 +188,37 @@ exports.getEducation = async (req, res) => {
       weeklyTrend,
       quizStats: { correct: 68, wrong: 18, skipped: 14 },
     })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// POST /api/dashboard/game/score
+// Save game score from Tongue Twister or Math Game
+// ─────────────────────────────────────────────────────────
+exports.saveGameScore = async (req, res) => {
+  try {
+    const userId = req.user._id.toString()
+    const { gameType, score, streak = 0 } = req.body
+    
+    if (!gameType || score === undefined) {
+      return res.status(400).json({ error: 'gameType and score are required' })
+    }
+    
+    if (!['twister', 'math', 'scribble'].includes(gameType)) {
+      return res.status(400).json({ error: 'Invalid gameType' })
+    }
+    
+    const gameScore = await GameScore.create({
+      userId,
+      gameType,
+      score,
+      streak,
+      playedAt: new Date()
+    })
+    
+    res.json({ success: true, gameScore })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
