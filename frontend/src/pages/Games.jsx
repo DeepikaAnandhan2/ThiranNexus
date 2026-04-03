@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom' // 1. Import useNavigate
 import TongueTwister from '../components/games/TongueTwister'
 import MathGame      from '../components/games/MathGame'
 import { speak }     from '../utils/speech'
@@ -6,19 +7,24 @@ import { useGestures } from '../utils/useGestures'
 import '../styles/Games.css'
 
 const GAMES = [
-  { id: 'twister',  icon: '🌀', title: 'Tongue Twister', desc: 'Practice tricky phrases aloud',       badge: '👈 Swipe Left',  color: 'teal'   },
+  { id: 'twister',  icon: '🌀', title: 'Tongue Twister', desc: 'Practice tricky phrases aloud',      badge: '👈 Swipe Left',  color: 'teal'   },
   { id: 'math',     icon: '🧮', title: 'Mental Math',    desc: 'Solve equations using your voice',    badge: '👆👆 Double Tap', color: 'orange' },
   { id: 'scribble', icon: '✍️', title: 'Scribble',       desc: 'Draw and improve brain coordination', badge: '👉 Swipe Right',  color: 'purple' },
 ]
 
 export default function Games() {
-  const [activeGame,     setActiveGame]     = useState(null)
-  const [twisterGesture, setTwisterGesture] = useState(null)
-  const [mathGesture,    setMathGesture]    = useState(null)
+  const [activeGame, setActiveGame] = useState(null)
+  const navigate = useNavigate() // 2. Initialize navigate
 
   const selectGame = async (id, title) => {
     await speak(`Starting ${title}.`)
-    setActiveGame(id)
+    
+    // 3. Check if it's scribble to navigate to the page
+    if (id === 'scribble') {
+      navigate('/scribble') 
+    } else {
+      setActiveGame(id)
+    }
   }
 
   const goBack = async () => {
@@ -35,22 +41,17 @@ export default function Games() {
     onLongPress:  () => speak('Games screen. Swipe left for Tongue Twister. Double tap for Mental Math. Swipe right for Scribble.'),
   }, [activeGame])
 
-  // Render active game
+  // Render active game (Internal Components)
   if (activeGame === 'twister')  return (
     <TongueTwister
       onBack={goBack}
-      gestureAction={twisterGesture}
-      clearGestureAction={() => setTwisterGesture(null)}
     />
   )
   if (activeGame === 'math')     return (
     <MathGame
       onBack={goBack}
-      gestureAction={mathGesture}
-      clearGestureAction={() => setMathGesture(null)}
     />
   )
-  if (activeGame === 'scribble') return <Scribble onBack={goBack} />
 
   // Game selection screen
   return (
@@ -68,11 +69,10 @@ export default function Games() {
       {/* Body */}
       <div className="games-body">
 
-        {/* Gesture hints */}
         <div className="games-gesture-hint" aria-label="Gesture hints">
-          <span>👈 Tongue Twister</span>
-          <span>👆👆 Math</span>
-          <span>👉 Scribble</span>
+          <span> Tongue Twister</span>
+          <span> Math</span>
+          <span> Scribble</span>
         </div>
 
         <p className="games-section-label">Choose a Game</p>
@@ -83,7 +83,7 @@ export default function Games() {
             <button
               key={id}
               className={`games-card ${color}`}
-              onClick={() => selectGame(id, title)}
+              onClick={() => selectGame(id, title)} // This now handles the navigation
               aria-label={`${title}. ${desc}`}
             >
               <div className="games-card-avatar" aria-hidden="true">{icon}</div>
@@ -102,7 +102,6 @@ export default function Games() {
           <button
             className="games-replay-btn"
             onClick={() => speak('Swipe left for Tongue Twister. Double tap for Mental Math. Swipe right for Scribble.')}
-            aria-label="Replay instructions"
           >
             🔊 Replay Instructions
           </button>

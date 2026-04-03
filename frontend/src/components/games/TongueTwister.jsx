@@ -170,10 +170,10 @@ export default function TongueTwister({ onBack, gestureAction, clearGestureActio
         <p className="tt-subtitle">Speak clearly • Score points</p>
 
         <div className="tt-gesture-bar" aria-hidden="true">
-          <span>👉 Back</span>
-          <span>👆 Replay</span>
-          <span>👇 Difficulty</span>
-          <span>👆👆 {phase === 'ready' ? 'Record' : 'Start'}</span>
+          <span> Back</span>
+          <span> Replay</span>
+          <span> Difficulty</span>
+          <span> {phase === 'ready' ? 'Record' : 'Start'}</span>
         </div>
       </div>
 

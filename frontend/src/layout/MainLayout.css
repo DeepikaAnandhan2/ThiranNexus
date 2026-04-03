@@ -1,19 +1,42 @@
+/* Reset spacing (important to avoid hidden gaps) */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Layout container */
 .layout {
   display: flex;
   min-height: 100vh;
+  background-color: #f4f7fe;
 }
 
-/* Main content */
+/* Main content area */
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-width: 0;
+
+  /* Match sidebar width */
+  margin-left: 80px;
+  width: calc(100% - 80px);
+
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Scroll only content, not sidebar */
+/* When sidebar expands */
+.layout:has(.sidebar.expanded) .main {
+  margin-left: 220px;
+  width: calc(100% - 220px);
+}
+
+/* Page content below topbar */
 .page-content {
-  padding: 20px;
+  padding: 25px;
   overflow-y: auto;
-  height: calc(100vh - 70px); /* minus topbar */
+
+  /* subtract topbar height */
+  height: calc(100vh - 70px);
 }
