@@ -1,32 +1,49 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const http = require('http'); // Required for Socket.io
+const { Server } = require('socket.io'); // Required for Socket.io
 require('dotenv').config();
-const connectDB = require('./config/db');
 
-// Seed import
+const connectDB = require('./config/db');
 const seedSchemes = require('./data/seedSchemes');
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// ─── Database Connection ─────────────────────────────────────
+// ─── 1. Create HTTP Server & Socket.io Instance ──────────────
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*', // Adjust this in production for security
+    methods: ['GET', 'POST']
+  }
+});
+
+// ─── 2. Database Connection ──────────────────────────────────
 connectDB().then(() => {
   console.log("✅ DB Connected");
-  // Only seeds if the database connection is successful
   seedSchemes(); 
 }).catch(err => console.error("❌ DB Connection Error:", err));
 
-const PORT = process.env.PORT || 5000;
-
-// ─── Middleware ──────────────────────────────────────────────
+// ─── 3. Middleware ───────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
-// ─── Routes ──────────────────────────────────────────────────
-// Ensure these route files exist in your backend/routes folder!
+// ─── 4. Socket.io Logic ──────────────────────────────────────
+// Import and initialize your scribble socket handler
+require('./scribbleSocket')(io);
+
+// ─── 5. Routes ───────────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/schemes', require('./routes/schemeRoutes'));
 app.use('/api/education', require('./routes/education'));
+app.use('/api/scribble', require('./routes/scribble')); // New Scribble Routes
+
+// ✅ Health Check
+app.get('/api/health', (req, res) =>
+  res.json({ status: 'ok', service: 'ThiranNexus API' })
+);
 
 // ✅ TEMP TEST ROUTE (for debugging data)
 app.get('/api/add-test-data', async (req, res) => {
@@ -55,12 +72,8 @@ app.get('/api/add-test-data', async (req, res) => {
   }
 });
 
-// ─── Health Check ────────────────────────────────────────────
-app.get('/api/health', (req, res) =>
-  res.json({ status: 'ok', service: 'ThiranNexus API' })
-);
+// ─── 6. Game Logic (Twisters & Math) ─────────────────────────
 
-// ─── Tongue Twisters Data ────────────────────────────────────
 const twisters = [
   { id: 1, text: "She sells seashells by the seashore.", difficulty: "easy" },
   { id: 2, text: "Peter Piper picked a peck of pickled peppers.", difficulty: "easy" },
@@ -76,7 +89,6 @@ const twisters = [
   { id: 12, text: "Unique New York, unique New York, you know you need unique New York.", difficulty: "hard" },
 ];
 
-// ─── Math Question Generator ─────────────────────────────────
 const operations = [
   { op: 'plus', fn: (a, b) => a + b },
   { op: 'minus', fn: (a, b) => a - b },
@@ -111,7 +123,6 @@ function generateMathQuestion(difficulty = 'easy') {
   };
 }
 
-// ─── Validation Helper ───────────────────────────────────────
 function similarity(s1, s2) {
   s1 = s1.toLowerCase().trim();
   s2 = s2.toLowerCase().trim();
@@ -134,8 +145,6 @@ function similarity(s1, s2) {
   const wordScore = wordMatches / Math.max(words1.length, words2.length);
   return (matches / longer.length + wordScore) / 2;
 }
-
-// ─── API Endpoints ───────────────────────────────────────────
 
 app.get('/api/twisters', (req, res) => {
   const difficulty = req.query.difficulty || 'all';
@@ -165,7 +174,8 @@ app.post('/api/validate/math', (req, res) => {
   res.json({ correct });
 });
 
-// ─── Start Server ────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`ThiranNexus backend running on port ${PORT}`);
+// ─── 7. Start Server ─────────────────────────────────────────
+// Use server.listen instead of app.listen to support WebSockets
+server.listen(PORT, () => {
+  console.log(`ThiranNexus running on port ${PORT} 🚀`);
 });

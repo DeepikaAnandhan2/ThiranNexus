@@ -16,6 +16,7 @@ import Education from './pages/Education';
 import Schemes from './pages/Schemes';
 import SchemeDetails from './pages/SchemeDetails';
 import SavedApplied from './pages/SavedApplied';
+import Scribble from './pages/Scribble';
 import DashboardMain from './components/ParentDashboard/DashboardMain';
 
 /**
@@ -62,13 +63,14 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* --- PUBLIC ROUTES --- */}
+           {/* --- PUBLIC ROUTES --- */}
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           {/* --- PROTECTED ROUTES (Integrated with Layout) --- */}
           <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
+          <Route path="/scribble" element={<AppLayout><Scribble /></AppLayout>} />
           <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
           
           {/* Parent Dashboard Integration */}
@@ -81,6 +83,7 @@ export default function App() {
 
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
+         
         </Routes>
       </BrowserRouter>
     </AuthProvider>

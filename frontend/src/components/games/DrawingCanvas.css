@@ -1,0 +1,93 @@
+/* DrawingCanvas.css */
+.canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(139,92,246,0.2);
+}
+
+/* ── Toolbar ── */
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #1A1A2E;
+  flex-wrap: wrap;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.15);
+  margin: 0 0.15rem;
+}
+
+.tool-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tool-btn:hover { background: rgba(255,255,255,0.15); border-color: #8B5CF6; }
+.tool-btn.active { background: #8B5CF6; border-color: #8B5CF6; }
+
+.tool-clear { color: #EF4444; }
+.tool-clear:hover { background: rgba(239,68,68,0.2) !important; border-color: #EF4444 !important; }
+.tool-undo  { color: #FF8C42; }
+.tool-undo:hover  { background: rgba(255,140,66,0.2) !important; border-color: #FF8C42 !important; }
+
+.size-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s;
+}
+.size-btn:hover { border-color: #8B5CF6; }
+.size-btn.active { border-color: #8B5CF6; background: rgba(139,92,246,0.2); }
+
+/* ── Color palette ── */
+.toolbar-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 200px;
+}
+
+.color-btn {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.color-btn:hover  { transform: scale(1.2); }
+.color-btn.active { border-color: #fff; transform: scale(1.25); box-shadow: 0 0 0 2px #8B5CF6; }
+
+/* ── Canvas ── */
+.draw-canvas {
+  flex: 1;
+  width: 100%;
+  display: block;
+  background: #fff;
+  cursor: not-allowed;
+}
+.draw-canvas.can-draw { cursor: crosshair; }
