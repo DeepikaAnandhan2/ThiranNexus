@@ -5,7 +5,6 @@ import STTSearch from './STTSearch'
 import './CollegeView.css'
 
 import {
-  FaPlay,
   FaArrowLeft,
   FaYoutube,
   FaFileAlt,
@@ -14,8 +13,13 @@ import {
 } from 'react-icons/fa'
 
 const API = 'http://localhost:5000'
-const token = () => localStorage.getItem('token')
-const headers = () => ({ Authorization: `Bearer ${token()}` })
+
+// Helper to get token safely
+const getAuthHeaders = () => {
+  const userInfo = localStorage.getItem('userInfo');
+  const token = userInfo ? JSON.parse(userInfo).token : localStorage.getItem('token');
+  return { Authorization: `Bearer ${token}` };
+}
 
 export default function CollegeView({ user }) {
   const [videos, setVideos] = useState([])
@@ -26,24 +30,31 @@ export default function CollegeView({ user }) {
   const [showISL, setShowISL] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
   const [transcript, setTranscript] = useState('')
-  const [aiAnswer, setAiAnswer] = useState('')
-  const [aiLoading, setAiLoading] = useState(false)
   const [lastQuery, setLastQuery] = useState('')
 
   const handleSearch = async (query) => {
     if (!query.trim()) return
     setLoading(true)
     setVideos([])
+    setIslVideos([]) // Clear previous results
     setSelected(null)
     setLastQuery(query)
 
     try {
       const res = await axios.get(`${API}/api/education/college`, {
         params: { query },
-        headers: headers()
+        headers: getAuthHeaders()
       })
-      setVideos(res.data.results || [])
-    } catch {
+      
+      // Backend now returns groups: { lectures, signLanguage }
+      const { lectures = [], signLanguage = [] } = res.data.groups || {}
+      
+      setVideos(lectures)
+      if (signLanguage.length > 0) {
+        setIslVideos(signLanguage)
+      }
+    } catch (err) {
+      console.error("Search failed:", err.response?.status === 401 ? "Unauthorized" : err.message)
       setVideos([])
     } finally {
       setLoading(false)
@@ -58,12 +69,14 @@ export default function CollegeView({ user }) {
 
   const handleISL = async () => {
     setShowISL(true)
-    setIslLoading(true)
+    // Avoid re-fetching if we already got ISL videos during main search
+    if (islVideos.length > 0) return 
 
+    setIslLoading(true)
     try {
       const res = await axios.get(`${API}/api/education/isl`, {
         params: { topic: lastQuery },
-        headers: headers()
+        headers: getAuthHeaders()
       })
       setIslVideos(res.data.results || [])
     } catch {
@@ -74,99 +87,92 @@ export default function CollegeView({ user }) {
   }
 
   const handleTranscript = () => {
-    setShowTranscript(true)
+    setShowTranscript(!showTranscript)
     setTranscript(`${selected.title}\n\n${selected.description}`)
   }
 
   return (
     <div className="college-wrap">
-
-      {/* Search */}
       <STTSearch
         onResult={handleSearch}
-        placeholder="Search college topics..."
+        placeholder="Search college topics (e.g. Java)..."
         label="Search Topics"
       />
 
-      {/* Loading */}
-      {loading && <div className="college-loading">Searching...</div>}
+      {loading && <div className="college-loading">Searching resources...</div>}
 
-      {/* Video List */}
       {!selected && videos.length > 0 && (
         <div className="college-video-list">
           <p className="college-results">
             <FaSearch /> {videos.length} results for "{lastQuery}"
+            {islVideos.length > 0 && <span className="isl-badge"> + Sign Language Content</span>}
           </p>
 
-          {videos.map(video => (
-            <div
-              key={video.videoId}
-              className="college-card"
-              onClick={() => selectVideo(video)}
-            >
-              <img src={video.thumbnail} className="college-thumb" />
-              
-              <div className="college-info">
-                <h3>{video.title}</h3>
-                <p className="channel">{video.channel}</p>
-                <p className="desc">{video.description?.slice(0, 80)}</p>
+          <div className="grid-container">
+            {videos.map(video => (
+              <div key={video.videoId} className="college-card" onClick={() => selectVideo(video)}>
+                <img src={video.thumbnail} className="college-thumb" alt="thumbnail" />
+                <div className="college-info">
+                  <h3>{video.title}</h3>
+                  <p className="channel">{video.channel}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Player */}
       {selected && (
         <div className="college-player">
-
           <button className="back-btn" onClick={() => setSelected(null)}>
-            <FaArrowLeft /> Back
+            <FaArrowLeft /> Back to Search
           </button>
 
-          <h2>{selected.title}</h2>
-          <p className="channel">{selected.channel}</p>
-
-          <div className="video-box">
-            <iframe src={selected.embedUrl} allowFullScreen />
+          <div className="player-header">
+            <h2>{selected.title}</h2>
+            <p className="channel">{selected.channel}</p>
           </div>
 
-          {/* Actions */}
+          <div className="video-box">
+            <iframe src={selected.embedUrl} title="player" allowFullScreen />
+          </div>
+
           <div className="actions">
-            <button onClick={handleTranscript}>
-              <FaFileAlt /> Transcript
+            <button onClick={handleTranscript} className={showTranscript ? 'active' : ''}>
+              <FaFileAlt /> {showTranscript ? 'Hide Transcript' : 'Show Transcript'}
             </button>
 
-            <button onClick={handleISL}>
-              <FaHandsHelping /> ISL
+            <button onClick={handleISL} className={showISL ? 'active' : ''}>
+              <FaHandsHelping /> Sign Language
             </button>
 
-            <a href={selected.watchUrl} target="_blank">
-              <FaYoutube /> YouTube
+            <a href={selected.watchUrl} target="_blank" rel="noreferrer" className="yt-link">
+              <FaYoutube /> Open in YouTube
             </a>
           </div>
 
-          {/* Transcript */}
           {showTranscript && (
-            <div className="panel">
+            <div className="panel animate-in">
               <TTSReader text={transcript} />
-              <pre>{transcript}</pre>
+              <pre className="transcript-text">{transcript}</pre>
             </div>
           )}
 
-          {/* ISL */}
           {showISL && (
-            <div className="panel">
-              {islLoading ? "Loading ISL..." : (
+            <div className="panel animate-in">
+              <h3>Indian Sign Language Support</h3>
+              {islLoading ? <p>Finding sign language videos...</p> : (
                 <div className="isl-grid">
-                  {islVideos.map(v => (
-                    <iframe key={v.videoId} src={v.embedUrl} />
-                  ))}
+                  {islVideos.length > 0 ? islVideos.map(v => (
+                    <div key={v.videoId} className="isl-item">
+                       <iframe src={v.embedUrl} title="isl-frame" />
+                       <p>{v.title}</p>
+                    </div>
+                  )) : <p>No sign language videos found for this specific topic.</p>}
                 </div>
               )}
             </div>
           )}
-
         </div>
       )}
     </div>

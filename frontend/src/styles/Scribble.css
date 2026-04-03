@@ -6,7 +6,7 @@
 /* ── LOBBY ─────────────────────────────────────────────── */
 .scribble-lobby {
   min-height: 100vh;
-  background: #0D0D1A;
+  background: #f4f4f7;
   display: flex; align-items: center; justify-content: center;
   padding: 2rem;
   position: relative; overflow: hidden;
@@ -222,7 +222,7 @@
 
 /* ── WAITING ROOM ──────────────────────────────────────── */
 .scribble-waiting {
-  min-height: 100vh; background: #0D0D1A;
+  min-height: 100vh; background: #ffffff;
   display: flex; align-items: center; justify-content: center; padding: 2rem;
 }
 
