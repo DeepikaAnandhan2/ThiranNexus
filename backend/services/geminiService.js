@@ -14,10 +14,12 @@ const getClient = () => {
   return genAI
 }
 
+const getModel = () => getClient().getGenerativeModel({ model: 'gemini-1.5-flash' })
+
 // ── 1. Simplify content for cognitive disability ───────────
 const simplifyContent = async (text, disabilityType = 'cognitive') => {
   try {
-    const model  = getClient().getGenerativeModel({ model: 'gemini-pro' })
+    const model  = getModel()
 
     const promptMap = {
       cognitive: `Rewrite the following educational content in very simple, easy-to-understand language for a student with cognitive disability. Use short sentences, simple words, and bullet points. Avoid complex vocabulary. Make it friendly and encouraging.\n\nContent:\n${text}`,
@@ -37,7 +39,7 @@ const simplifyContent = async (text, disabilityType = 'cognitive') => {
 // ── 2. Generate quiz from content ─────────────────────────
 const generateQuiz = async (text, numQuestions = 3) => {
   try {
-    const model = getClient().getGenerativeModel({ model: 'gemini-pro' })
+    const model = getModel()
     const prompt = `Based on the following educational content, generate ${numQuestions} simple multiple choice questions suitable for differently abled students. 
     
 For each question provide:
@@ -64,7 +66,7 @@ ${text.slice(0, 1500)}`
 // ── 3. Answer student question ─────────────────────────────
 const answerQuestion = async (question, context) => {
   try {
-    const model  = getClient().getGenerativeModel({ model: 'gemini-pro' })
+    const model  = getModel()
     const prompt = `You are a friendly, patient teacher for differently abled students. 
 A student asked: "${question}"
 
