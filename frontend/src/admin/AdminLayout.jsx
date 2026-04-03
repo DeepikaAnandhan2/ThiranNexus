@@ -1,54 +1,76 @@
 import { Link, useLocation, Outlet } from "react-router-dom";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Users,
   BarChart,
   FileText,
   Bell,
-  MessageSquare,
-  Award,
-  Settings
+  MessageCircle,
+  Trophy,
+  Settings,
+  Menu
 } from "lucide-react";
-import "./admin.css";
 
-const NAV = [
-  { path: "/admin", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
-  { path: "/admin/users", label: "Users", icon: <Users size={18} /> },
-  { path: "/admin/analytics", label: "Analytics", icon: <BarChart size={18} /> },
-  { path: "/admin/content", label: "Content", icon: <FileText size={18} /> },
-  { path: "/admin/alerts", label: "Alerts", icon: <Bell size={18} /> },
-  { path: "/admin/feedback", label: "Feedback", icon: <MessageSquare size={18} /> },
-  { path: "/admin/rewards", label: "Rewards", icon: <Award size={18} /> },
-  { path: "/admin/settings", label: "Settings", icon: <Settings size={18} /> },
-];
+import "./admin.css";
 
 export default function AdminLayout() {
   const location = useLocation();
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="admin-container">
 
-      {/* SIDEBAR */}
-     <aside className="sidebar">
-  <h2 className="logo">Thiran Nexus</h2>
+      {/* Overlay */}
+      {open && <div className="overlay" onClick={() => setOpen(false)}></div>}
 
-  {NAV.map((item) => (
-    <Link
-      key={item.path}
-      to={item.path}
-      className={location.pathname === item.path ? "active nav-item" : "nav-item"}
-    >
-      <span className="icon">{item.icon}</span>
-      <span>{item.label}</span>
-    </Link>
-  ))}
-</aside>
+      {/* Sidebar */}
+      <aside className={`sidebar ${open ? "show" : ""}`}>
+        <h2 className="logo">Thiran Nexus</h2>
 
-      {/* MAIN */}
+        <Link to="/admin" className="nav-item">
+          <LayoutDashboard size={18} /> Dashboard
+        </Link>
+
+        <Link to="/admin/users" className="nav-item">
+          <Users size={18} /> Users
+        </Link>
+
+        <Link to="/admin/analytics" className="nav-item">
+          <BarChart size={18} /> Analytics
+        </Link>
+
+        <Link to="/admin/content" className="nav-item">
+          <FileText size={18} /> Content
+        </Link>
+
+        <Link to="/admin/alerts" className="nav-item">
+          <Bell size={18} /> Alerts
+        </Link>
+
+        <Link to="/admin/feedback" className="nav-item">
+          <MessageCircle size={18} /> Feedback
+        </Link>
+
+        <Link to="/admin/rewards" className="nav-item">
+          <Trophy size={18} /> Rewards
+        </Link>
+
+        <Link to="/admin/settings" className="nav-item">
+          <Settings size={18} /> Settings
+        </Link>
+      </aside>
+
+      {/* Main */}
       <div className="main">
-        
 
-        {/* 🔥 THIS FIXES YOUR ISSUE */}
+        <header className="topbar">
+          <button className="menu-btn" onClick={() => setOpen(true)}>
+            <Menu size={22} color="black" />
+          </button>
+          <h3>Admin Panel</h3>
+        </header>
+
         <div className="content">
           <Outlet />
         </div>
