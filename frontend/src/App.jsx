@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext'; 
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-// Layout & Common Components
+// Layout Components
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
-import ProtectedRoute from './components/common/ProtectedRoute';
 
-// Page Imports
+// Pages
+import LandingPage from './pages/LandingPage'; // New Landing Page
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -19,43 +19,29 @@ import SavedApplied from './pages/SavedApplied';
 import Scribble from './pages/Scribble';
 import DashboardMain from './components/ParentDashboard/DashboardMain';
 
-/**
- * Layout Wrapper Component
- * Consistently applies the Sidebar and Topbar across the platform.
- */
-const AppLayout = ({ children }) => (
-  <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-    <Sidebar />
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Topbar />
-      <div style={{ flex: 1, overflowY: 'auto', background: '#f4f7fe' }}>
-        {children}
+// Layout Wrapper for Dashboard/Internal Pages
+const AppLayout = ({ children }) => {
+  return (
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-wrapper">
+        <Topbar />
+        <main className="main-content">
+          {children}
+        </main>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-const NotFound = () => (
-  <div style={{ 
-    textAlign: 'center', 
-    padding: '100px', 
-    color: '#1b2559', 
-    background: '#f4f7fe', 
-    minHeight: '100vh' 
-  }}>
-    <h1 style={{ fontSize: '3rem' }}>404</h1>
-    <h2>Page Not Found</h2>
-    <p>The link you followed may be broken or the page may have been removed.</p>
-    <a href="/home" style={{ color: '#6366f1', fontWeight: 'bold' }}>Back to Home</a>
-  </div>
-);
-
-/**
- * Helper for the Schemes page to inject user context
- */
+// Auth-specific wrapper for Schemes
 const SchemesWithAuth = () => {
-  const { user } = useAuth(); 
-  return <AppLayout><Schemes user={user} /></AppLayout>;
+  const { user } = useAuth();
+  return (
+    <AppLayout>
+      <Schemes user={user} />
+    </AppLayout>
+  );
 };
 
 export default function App() {
@@ -63,27 +49,32 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-           {/* --- PUBLIC ROUTES --- */}
-          <Route path="/" element={<Login />} />
+          
+          {/* --- PUBLIC ROUTES --- */}
+          {/* The Landing Page is now the first thing people see */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* --- PROTECTED ROUTES (Integrated with Layout) --- */}
+          {/* --- PRIVATE / DASHBOARD ROUTES --- */}
+          {/* These use the AppLayout (Sidebar + Topbar) */}
           <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
+          <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
           <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
           <Route path="/scribble" element={<AppLayout><Scribble /></AppLayout>} />
-          <Route path="/education" element={<Education />} />
-          
-          {/* Parent Dashboard Integration */}
+
+          {/* Parent specific View */}
           <Route path="/parent-dashboard" element={<AppLayout><DashboardMain /></AppLayout>} />
 
-          {/* Schemes & Personalization */}
+          {/* Scheme Management */}
           <Route path="/schemes" element={<SchemesWithAuth />} />
           <Route path="/scheme/:id" element={<AppLayout><SchemeDetails /></AppLayout>} />
           <Route path="/saved" element={<AppLayout><SavedApplied /></AppLayout>} />
 
-          {/* Catch-all Route */}
-          <Route path="*" element={<NotFound />} />
-         
+          {/* --- FALLBACK --- */}
+          {/* Redirects unknown paths back to the landing page */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

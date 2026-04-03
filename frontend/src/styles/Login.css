@@ -1,6 +1,6 @@
-/* ═══════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════
    ThiranNexus Elegant Purple Login Theme
-   ═══════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
 
 .login-container {
@@ -116,12 +116,7 @@
   font-size: 0.95rem;
 }
 
-/* Form Grouping */
-.login-input-group {
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-
+/* ── INPUT STYLING (The Fix) ── */
 .login-input {
   width: 100%;
   padding: 16px 20px;
@@ -130,7 +125,14 @@
   background: #f8fafc;
   font-size: 1rem;
   font-family: inherit;
+  display: block; /* Ensures they stack vertically */
+  box-sizing: border-box; /* Prevents padding from affecting width */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ADDS THE GAP: This targets the second input automatically */
+.login-input + .login-input {
+  margin-top: 1.25rem;
 }
 
 .login-input:focus {
@@ -144,7 +146,7 @@
 .login-btn {
   width: 100%;
   padding: 16px;
-  margin-top: 1rem;
+  margin-top: 1.5rem; /* Increased margin for better spacing */
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
   border: none;
@@ -172,6 +174,7 @@
   align-items: center;
   margin-top: 1.25rem;
   font-size: 0.85rem;
+  color: #64748b;
 }
 
 .login-forgot {
@@ -211,7 +214,7 @@
     flex: none;
   }
   .login-brand-title { font-size: 2.5rem; }
-  .login-quote-box { display: none; } /* Hide quote on mobile for space */
+  .login-quote-box { display: none; } 
 }
 
 @media (max-width: 480px) {

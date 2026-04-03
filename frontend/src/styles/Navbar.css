@@ -1,0 +1,148 @@
+/* --- Google Font Import for a clean look --- */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap');
+
+.gov-navbar {
+  background: #ffffff;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 4px solid #6366f1; /* Main indigo brand color */
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.nav-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --- Brand Styling --- */
+.logo-link {
+  text-decoration: none;
+}
+
+.logo-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1b2559; /* Deep Navy */
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -1.5px;
+}
+
+.brand-title span {
+  color: #6366f1; /* Indigo Accent */
+}
+
+.gov-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a3aed0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+/* --- Navigation & Links --- */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #4a5568;
+  font-weight: 700;
+  font-size: 15px;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #6366f1;
+}
+
+/* Underline effect on hover */
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background-color: #6366f1;
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+/* --- Auth Buttons --- */
+.auth-buttons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.btn-signin {
+  background: transparent;
+  border: 2px solid #e2e8f0;
+  color: #1b2559;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-signin:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #f8fafc;
+}
+
+.btn-register {
+  background: #6366f1;
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+  transition: all 0.3s ease;
+}
+
+.btn-register:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+}
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+  .nav-links { display: none; } /* Hide text links on smaller tablets */
+  .brand-title { font-size: 26px; }
+}
