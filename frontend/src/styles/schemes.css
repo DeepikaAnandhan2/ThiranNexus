@@ -1,47 +1,34 @@
-/* ─── Global Reset & Background ───────────────────────────────── */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  /* Matches the purple/indigo gradient from your login screen */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  color: #333;
-}
-
-/* ─── Page Wrapper ────────────────────────────────────────────── */
+/* ─── Page Container (Dashboard Style) ────────────────────────── */
 .page-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  padding: 30px;
+  background: #f4f7fe; /* Matches Dashboard background */
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
 /* ─── AI Recommendation Header ────────────────────────────────── */
 .ai-header {
-  text-align: center;
-  margin-bottom: 40px;
-  color: white;
+  text-align: left; /* Aligned left to match Dashboard header */
+  margin-bottom: 30px;
 }
 
 .ai-icon {
-  font-size: 40px;
-  display: block;
-  margin-bottom: 10px;
-  animation: shine 2s infinite ease-in-out;
+  font-size: 24px;
+  margin-right: 10px;
+  color: #6366f1;
 }
 
 .page-title {
-  font-size: 36px;
+  font-size: 26px;
   font-weight: 700;
   margin: 0;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  color: #1b2559; /* ThiranNexus Dark Blue */
 }
 
 .ai-subtitle {
-  opacity: 0.9;
+  color: #a3aed0;
   font-size: 16px;
-  margin-top: 8px;
+  margin-top: 5px;
 }
 
 /* ─── Grid Layout ─────────────────────────────────────────────── */
@@ -51,21 +38,22 @@ body {
   gap: 25px;
 }
 
-/* ─── Card (Glassmorphism Style) ─────────────────────────────── */
+/* ─── Card (Dashboard Card Style) ────────────────────────────── */
 .card {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 25px;
-  border-radius: 20px; /* Matching your login container radius */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid #eaedf3;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
   position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
 /* ─── Recommendation Badge ───────────────────────────────────── */
@@ -73,50 +61,49 @@ body {
   position: absolute;
   top: 15px;
   right: 15px;
-  background: #4caf50;
-  color: white;
-  padding: 5px 12px;
+  background: #e6fffa; /* Soft Teal */
+  color: #047857;
+  padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-weight: 700;
 }
 
 /* ─── Typography ──────────────────────────────────────────────── */
 .card h3 {
-  margin: 0 0 12px 0;
-  color: #4a148c; /* Deep Purple */
-  font-size: 22px;
+  margin: 0 0 10px 0;
+  color: #1b2559;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .card p {
-  color: #555;
-  line-height: 1.6;
-  font-size: 15px;
-  margin-bottom: 15px;
+  color: #718096;
+  line-height: 1.5;
+  font-size: 14px;
+  margin-bottom: 20px;
 }
 
 .section-title {
   display: block;
   margin-top: 15px;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #764ba2;
+  letter-spacing: 0.5px;
+  color: #6366f1; /* ThiranNexus Indigo */
   font-weight: 800;
 }
 
 .small-text {
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: #4a5568;
   margin-bottom: 10px;
 }
 
-/* ─── Buttons (Matched to Login Theme) ───────────────────────── */
+/* ─── Buttons (Dashboard Style) ─────────────────────────────── */
 .btn {
   width: 100%;
-  padding: 12px;
-  margin-top: 10px;
+  padding: 10px 18px;
   border: none;
   border-radius: 12px;
   font-weight: 600;
@@ -125,95 +112,83 @@ body {
   display: inline-block;
   text-align: center;
   transition: all 0.2s ease;
-  font-size: 15px;
+  font-size: 14px;
 }
 
-/* Primary Gradient Button (Like Login "Sign In") */
 .btn-view {
-  background: linear-gradient(to right, #8e2de2, #4a00e0);
+  background: #6366f1;
   color: white;
+  box-shadow: 0px 4px 10px rgba(99, 102, 241, 0.2);
 }
 
-/* Secondary / Save Button */
 .btn-save {
-  background: #f3f0ff;
-  color: #764ba2;
-  border: 1px solid #764ba2;
+  background: #f4f7fe;
+  color: #6366f1;
+  border: 1px solid #6366f1;
 }
 
-/* Success / Apply Button */
 .btn-apply {
-  background: #4caf50;
+  background: #22c55e;
   color: white;
 }
 
 .btn:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-}
-
-.btn:active {
-  transform: scale(0.98);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
 /* ─── Status Messages ─────────────────────────────────────────── */
 .status-msg {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #f0fff4;
+  color: #2f855a;
   padding: 12px;
   border-radius: 10px;
   text-align: center;
   margin-bottom: 20px;
   font-weight: 600;
   font-size: 14px;
+  border: 1px solid #c6f6d5;
 }
 
 /* ─── Detail Page & Button Grouping ─────────────────────────── */
 .detail-card {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
 .detail-title {
-  color: #4a148c;
+  color: #1b2559;
   font-size: 28px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .detail-list {
   padding-left: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .detail-list li {
-  margin-bottom: 8px;
-  color: #444;
+  margin-bottom: 10px;
+  color: #4a5568;
+  font-size: 15px;
 }
 
 .button-group {
   display: flex;
   gap: 12px;
-  margin-top: 25px;
+  margin-top: 30px;
   flex-wrap: wrap;
 }
 
 .button-group .btn {
   flex: 1;
-  margin-top: 0;
-  min-width: 150px;
-}
-
-/* ─── Animations ──────────────────────────────────────────────── */
-@keyframes shine {
-  0% { transform: scale(1); opacity: 0.7; text-shadow: 0 0 0px white; }
-  50% { transform: scale(1.15); opacity: 1; text-shadow: 0 0 15px white; }
-  100% { transform: scale(1); opacity: 0.7; text-shadow: 0 0 0px white; }
+  min-width: 120px;
 }
 
 /* ─── Responsive Adjustments ──────────────────────────────────── */
-@media (max-width: 600px) {
-  .page-title { font-size: 28px; }
+@media (max-width: 768px) {
+  .page-container { padding: 20px; }
+  .page-title { font-size: 22px; }
+  .grid { grid-template-columns: 1fr; }
   .button-group .btn { width: 100%; flex: none; }
 }
-
-
