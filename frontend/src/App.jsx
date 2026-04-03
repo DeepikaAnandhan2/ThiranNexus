@@ -63,22 +63,27 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* --- PUBLIC ROUTES --- */}
+           {/* --- PUBLIC ROUTES --- */}
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected/Feature Routes */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/education" element={<Education />} />
+          {/* --- PROTECTED ROUTES (Integrated with Layout) --- */}
+          <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
+          <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
+          <Route path="/scribble" element={<AppLayout><Scribble /></AppLayout>} />
+          <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
+          
+          {/* Parent Dashboard Integration */}
+          <Route path="/parent-dashboard" element={<AppLayout><DashboardMain /></AppLayout>} />
 
-          {/* Scheme Routes - Ensure :id is present to avoid 404 */}
+          {/* Schemes & Personalization */}
           <Route path="/schemes" element={<SchemesWithAuth />} />
           <Route path="/scheme/:id" element={<AppLayout><SchemeDetails /></AppLayout>} />
           <Route path="/saved" element={<AppLayout><SavedApplied /></AppLayout>} />
 
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
+         
         </Routes>
       </BrowserRouter>
     </AuthProvider>
