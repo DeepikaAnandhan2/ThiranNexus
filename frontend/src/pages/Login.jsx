@@ -19,7 +19,7 @@ export default function Login() {
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
         // Changed from /dashboard to /home to match App.jsx routes
-        navigate("/home");
+        navigate("/dashboard");
       }
     } catch (err) {
       alert(err.response?.data?.error || "Login failed ❌");

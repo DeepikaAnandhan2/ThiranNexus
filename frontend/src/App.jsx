@@ -19,6 +19,8 @@ import SavedApplied from './pages/SavedApplied';
 import Scribble from './pages/Scribble';
 import DashboardMain from './components/ParentDashboard/DashboardMain';
 
+import Dashboard from './pages/Dashboard';
+
 // Layout Wrapper for Dashboard/Internal Pages
 const AppLayout = ({ children }) => {
   return (
@@ -58,6 +60,8 @@ export default function App() {
 
           {/* --- PRIVATE / DASHBOARD ROUTES --- */}
           {/* These use the AppLayout (Sidebar + Topbar) */}
+          <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+
           <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/education" element={<AppLayout><Education /></AppLayout>} />
           <Route path="/games" element={<AppLayout><Games /></AppLayout>} />
