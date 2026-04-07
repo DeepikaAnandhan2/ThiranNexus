@@ -9,13 +9,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigate("/admin");
-    }, 1200);
-  };
+const handleLogin = async () => {
+  const data = await adminAuth.login(email, password);
+  localStorage.setItem("admin_token", data.token);
+  localStorage.setItem("admin_user", JSON.stringify(data.admin));
+  navigate("/admin");
+};
 
   return (
     <div style={{
