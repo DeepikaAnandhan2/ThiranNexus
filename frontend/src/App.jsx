@@ -19,6 +19,7 @@ import SavedApplied from './pages/SavedApplied';
 import Scribble from './pages/Scribble';
 import DashboardMain from './components/ParentDashboard/DashboardMain';
 import Dashboard from './pages/Dashboard';
+import ParentDashboard from './pages/ParentDashboardPage';
 
 // (OPTIONAL) Admin Routes
 import AdminRoutes from './admin/AdminRoutes';
@@ -89,6 +90,7 @@ export default function App() {
             <Route path="/schemes" element={<SchemesWithAuth />} />
             <Route path="/scheme/:id" element={<SchemeDetails />} />
             <Route path="/saved" element={<SavedApplied />} />
+            <Route path="/pdashboard" element={<ParentDashboard />} />
           </Route>
 
           {/* 🛠 ADMIN ROUTES */}
