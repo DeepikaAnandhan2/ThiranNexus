@@ -40,6 +40,7 @@ app.use('/api/schemes', require('./routes/schemeRoutes'));
 app.use('/api/education', require('./routes/education'));
 app.use('/api/scribble', require('./routes/scribble')); // New Scribble Routes
 app.use('/api/dashboard', require('./routes/dashboard'))
+app.use('/api/admin', require('./routes/adminRoutes'))
 // ✅ Health Check
 app.get('/api/health', (req, res) =>
   res.json({ status: 'ok', service: 'ThiranNexus API' })
