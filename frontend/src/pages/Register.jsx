@@ -30,6 +30,30 @@ export default function Register() {
     }
   };
 
+  const [isVerified, setIsVerified] = useState(false);
+
+  const handleVerify = async () => {
+  if (!formData.udid) return alert("Please enter a UDID first");
+
+  try {
+    const res = await axios.get(`http://localhost:5000/api/auth/verify-udid/${formData.udid}`);
+    
+    if (res.data.valid) {
+      alert(`Verified: ${res.data.disabilityDetails}`);
+      setIsVerified(true);
+      // Automatically update the formData with the type returned from backend
+      setFormData(prev => ({ 
+        ...prev, 
+        disabilityType: res.data.disabilityType,
+        disabilityDetails: res.data.disabilityDetails 
+      }));
+    }
+  } catch (err) {
+    setIsVerified(false);
+    alert(err.response?.data?.error || "Verification failed");
+  }
+};
+
   return (
     <div className="reg-container">
       {/* LEFT SIDE: Floating Icons + Hero Image */}
@@ -84,7 +108,15 @@ export default function Register() {
                   <div className="reg-udid-row">
                     <input type="text" placeholder="UDID (e.g. VIS101)" className="reg-input udid-field" 
                       onChange={(e) => setFormData((p) => ({ ...p, udid: e.target.value }))} />
-                    <button type="button" className="reg-verify-btn">Verify</button>
+                    <button 
+                      type="button" 
+                      className="reg-verify-btn" 
+                      onClick={handleVerify}
+                      style={{ backgroundColor: isVerified ? '#4CAF50' : '' }}
+                    >
+                      {isVerified ? "Verified ✅" : "Verify"}
+                    </button>
+
                   </div>
                 ) : (
                   <input type="text" placeholder="Enter Student UDID" className="reg-input" 
