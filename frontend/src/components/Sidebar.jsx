@@ -16,7 +16,6 @@ export default function Sidebar() {
     { icon: <FaGamepad />, label: 'Games', path: '/games' },
     { icon: <FaEdit />, label: 'Scribble', path: '/scribble' },
     { icon: <FaTrophy />, label: 'Schemes', path: '/schemes' },
-    { icon: <FaUserShield />, label: 'Parent Portal', path: '/parent-dashboard' },
    
   ];
 

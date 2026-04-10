@@ -1,146 +1,415 @@
-/* Layout Wrapper Adjustments */
-.parent-dashboard-container {
-  padding: 25px;
-  background: #f4f7fe;
-  font-family: 'Inter', sans-serif;
-}
+/* ═══════════════════════════════════════════════════════
+   ParentDashboard.css — ThiranNexus
+   Desktop-first, teal/purple/navy theme
+   Modified to work with MainLayout
+═══════════════════════════════════════════════════════ */
 
-.dashboard-header {
+/* Page container - works within MainLayout's .page-content */
+.pd-page {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
+  gap: 1.5rem;
+  min-height: calc(100vh - 120px);
+  background: #F0F4F8;
+  font-family: 'Poppins', sans-serif;
 }
 
-.header-text h2 {
-  color: #1b2559;
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0;
+/* ── Loading ─────────────────────────────────────────────── */
+.pd-loading {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 300px; gap: 1rem; color: #8899AA;
+}
+.pd-loading-overlay {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  background: rgba(240,244,248,0.7); z-index: 10; border-radius: 16px;
+}
+.pd-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(139,92,246,0.2);
+  border-top-color: #8B5CF6;
+  border-radius: 50%;
+  animation: pd-spin 0.7s linear infinite;
+}
+@keyframes pd-spin { to { transform: rotate(360deg); } }
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.pd-sidebar {
+  background: #1A1A2E;
+  display: flex; flex-direction: column;
+  padding: 1.5rem 1rem;
+  gap: 0.5rem;
+  min-height: calc(100vh - 120px);
+  width: 260px;
+  flex-shrink: 0;
+  border-radius: 16px;
 }
 
-.header-text p {
-  color: #a3aed0;
-  margin-top: 5px;
+.pd-sidebar-header {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-bottom: 1rem; padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
-.refresh-btn {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0px 4px 12px rgba(99, 102, 241, 0.2);
+.pd-sidebar-icon  { color: #2DC9A6; font-size: 1.1rem; }
+.pd-sidebar-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem; font-weight: 900; color: #E2E8F0;
 }
 
-/* Grid Layout */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
+.pd-sidebar-label {
+  font-size: 0.68rem; font-weight: 700; color: #4A5568;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin: 0.5rem 0 0.25rem 0.25rem;
+  font-family: 'Nunito', sans-serif;
 }
 
-.grid-full { grid-column: 1 / -1; }
-
-/* Card Styling */
-.dashboard-card {
-  background: white;
-  border-radius: 20px;
-  padding: 24px;
-  border: 1px solid #eaedf3;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.02);
+.pd-child-btn {
+  display: flex; align-items: center; gap: 0.65rem;
+  padding: 0.65rem 0.75rem; border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: rgba(255,255,255,0.04); cursor: pointer;
+  text-align: left; transition: all 0.2s; font-family: inherit;
+  margin-bottom: 0.25rem;
+}
+.pd-child-btn:hover { background: rgba(255,255,255,0.08); }
+.pd-child-btn.active {
+  background: rgba(139,92,246,0.15);
+  border-color: rgba(139,92,246,0.4);
 }
 
-.card-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+.pd-child-avatar { font-size: 1.5rem; flex-shrink: 0; }
+.pd-child-info   { display: flex; flex-direction: column; gap: 0.1rem; }
+.pd-child-name   { font-size: 0.85rem; font-weight: 700; color: #E2E8F0; font-family: 'Nunito', sans-serif; }
+.pd-child-type   { font-size: 0.7rem; color: #8899AA; text-transform: capitalize; }
+
+.pd-no-children  { font-size: 0.8rem; color: #4A5568; text-align: center; padding: 0.75rem; }
+
+.pd-nav {
+  margin-top: auto; display: flex; flex-direction: column; gap: 0.25rem;
+  padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06);
 }
 
-.card-title {
-  color: #1b2559;
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
+.pd-nav-btn {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.65rem 0.85rem; border-radius: 10px; border: none;
+  background: transparent; color: #8899AA; cursor: pointer;
+  font-family: 'Nunito', sans-serif; font-size: 0.85rem; font-weight: 700;
+  text-align: left; transition: all 0.18s;
 }
+.pd-nav-btn:hover { background: rgba(255,255,255,0.06); color: #E2E8F0; }
+.pd-nav-btn.active { background: rgba(139,92,246,0.15); color: #8B5CF6; }
 
-/* Chat Analysis (Progress Bars) */
-.progress-list {
+/* ── Main ────────────────────────────────────────────────── */
+.pd-main {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1.25rem;
+  position: relative;
 }
 
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  font-weight: 600;
-  color: #2b3674;
+.pd-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; flex: 1; gap: 1rem; color: #8899AA;
+  min-height: 60vh;
+}
+.pd-empty-icon { font-size: 3rem; color: #2DC9A6; }
+
+/* ── Profile Banner ──────────────────────────────────────── */
+.pd-profile-banner {
+  background: #1A1A2E;
+  border-radius: 20px; padding: 1.5rem;
+  display: flex; align-items: center; gap: 1.25rem;
+  border: 1.5px solid rgba(139,92,246,0.2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  flex-wrap: wrap;
 }
 
-.progress-track {
-  height: 10px;
-  background: #eff4fb;
-  border-radius: 10px;
+.pd-profile-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; flex-shrink: 0;
+}
+
+.pd-profile-info { flex: 1; min-width: 180px; }
+
+.pd-profile-name {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.5rem; font-weight: 900; color: #E2E8F0;
+  margin-bottom: 0.5rem;
+}
+
+.pd-profile-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.pd-tag {
+  display: flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem 0.75rem; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 600; font-family: 'Nunito', sans-serif;
+}
+
+.pd-tag-edu   { background: rgba(45,201,166,0.15); color: #2DC9A6; }
+.pd-tag-udid  { background: rgba(255,255,255,0.07); color: #8899AA; }
+.pd-tag-state { background: rgba(255,255,255,0.07); color: #8899AA; }
+
+/* Quick stats */
+.pd-quick-stats {
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.pd-quick-stat { text-align: center; }
+
+.pd-qs-val {
+  display: block; font-family: 'Nunito', sans-serif;
+  font-size: 1.5rem; font-weight: 900; color: #E2E8F0;
+}
+
+.pd-qs-label { font-size: 0.7rem; color: #8899AA; font-weight: 600; }
+
+/* ── Cards ───────────────────────────────────────────────── */
+.pd-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid rgba(26,26,46,0.08);
+  box-shadow: 0 2px 12px rgba(26,26,46,0.06);
+  padding: 1.5rem; position: relative; overflow: hidden;
+}
+
+.pd-card-header {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.pd-card-icon  { font-size: 1.1rem; }
+.pd-card-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 900; color: #1A1A2E; flex: 1;
+}
+.pd-card-sub   { font-size: 0.75rem; color: #8899AA; font-weight: 600; }
+
+/* ── Chart ───────────────────────────────────────────────── */
+.pd-chart-card { min-height: 200px; }
+
+.pd-chart {
+  display: flex; align-items: flex-end; gap: 0.5rem;
+  height: 140px; padding-bottom: 0;
+}
+
+.pd-chart-col {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 0.25rem; height: 100%;
+}
+
+.pd-chart-val {
+  font-size: 0.65rem; color: #8B5CF6; font-weight: 700;
+  font-family: 'Nunito', sans-serif; min-height: 16px;
+}
+
+.pd-chart-bar-wrap {
+  flex: 1; width: 100%; display: flex; align-items: flex-end;
+  background: rgba(26,26,46,0.04); border-radius: 6px; overflow: hidden;
+  min-height: 60px;
+}
+
+.pd-chart-bar {
+  width: 100%; border-radius: 6px 6px 0 0;
+  transition: height 0.4s ease;
+  min-height: 3px;
+}
+
+.pd-chart-games { font-size: 0.6rem; color: #FF8C42; min-height: 14px; font-weight: 700; }
+.pd-chart-day   { font-size: 0.7rem; color: #8899AA; font-weight: 700; font-family: 'Nunito', sans-serif; }
+
+/* ── Stats grid ──────────────────────────────────────────── */
+.pd-stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.pd-stat-card {
+  background: #fff; border-radius: 16px; padding: 1.25rem;
+  border: 1.5px solid rgba(26,26,46,0.08);
+  box-shadow: 0 2px 10px rgba(26,26,46,0.06);
+  display: flex; align-items: center; gap: 1rem;
+  border-left: 4px solid var(--accent);
+}
+
+.pd-stat-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(139,92,246,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--accent, #8B5CF6);
+  flex-shrink: 0;
+}
+
+.pd-stat-body  { display: flex; flex-direction: column; gap: 0.1rem; }
+.pd-stat-val   { font-family: 'Nunito', sans-serif; font-size: 1.5rem; font-weight: 900; color: #1A1A2E; }
+.pd-stat-label { font-size: 0.78rem; font-weight: 600; color: #4A5568; }
+.pd-stat-sub   { font-size: 0.7rem; color: #8899AA; }
+
+/* ── Notifications ───────────────────────────────────────── */
+.pd-notif-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.pd-notif-list-full { gap: 0.75rem; }
+
+.pd-notif {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.85rem 1rem; border-radius: 12px; border: 1px solid;
+}
+
+.pd-notif-success { background: rgba(45,201,166,0.06);  border-color: rgba(45,201,166,0.25); }
+.pd-notif-warning { background: rgba(245,158,11,0.06);  border-color: rgba(245,158,11,0.25); }
+.pd-notif-info    { background: rgba(59,130,246,0.06);  border-color: rgba(59,130,246,0.2); }
+
+.pd-notif-icon  { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.05rem; }
+.pd-notif-body  { flex: 1; }
+.pd-notif-msg   { font-size: 0.85rem; color: #1A1A2E; font-weight: 500; line-height: 1.5; }
+.pd-notif-time  { font-size: 0.72rem; color: #8899AA; font-weight: 600; }
+.pd-notif-flag  { flex-shrink: 0; font-size: 1rem; margin-top: 0.15rem; }
+
+/* ── Game cards ──────────────────────────────────────────── */
+.pd-games-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;
+}
+
+.pd-game-card {
+  background: #fff; border-radius: 18px;
+  border: 1.5px solid rgba(26,26,46,0.08);
+  box-shadow: 0 2px 12px rgba(26,26,46,0.06);
   overflow: hidden;
 }
 
-.progress-fill {
-  height: 100%;
-  border-radius: 10px;
-  background: #6366f1;
-  transition: width 1s ease-in-out;
+.pd-game-header {
+  padding: 1.25rem; display: flex; align-items: center; gap: 0.75rem;
 }
 
-/* Alerts & Notifications */
-.alert-box.urgent {
-  background: #fff5f5;
-  border: 1px solid #feb2b2;
-  padding: 18px;
-  border-radius: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.pd-game-emoji { font-size: 2rem; }
+.pd-game-name  { font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 900; color: #fff; }
+.pd-game-desc  { font-size: 0.72rem; color: rgba(255,255,255,0.65); }
+
+.pd-game-stats { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+
+.pd-gs-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.82rem;
+}
+.pd-gs-label   { color: #8899AA; font-weight: 500; }
+.pd-gs-val     { font-family: 'Nunito', sans-serif; font-weight: 800; color: #1A1A2E; }
+.pd-gs-benefit { color: #2DC9A6 !important; font-size: 0.75rem; }
+
+/* Accuracy bar */
+.pd-accuracy-wrap { padding: 0 1.25rem 1.25rem; }
+.pd-accuracy-bar  {
+  height: 6px; background: #F0F4F8; border-radius: 100px;
+  overflow: hidden; margin-bottom: 0.35rem;
+}
+.pd-accuracy-fill { height: 100%; border-radius: 100px; transition: width 0.5s ease; }
+.pd-accuracy-label { font-size: 0.72rem; color: #8899AA; font-weight: 600; }
+
+/* Streak dots */
+.pd-streak-dots {
+  padding: 0 1.25rem 1.25rem;
+  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+}
+.pd-streak-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #F0F4F8; border: 1.5px solid rgba(26,26,46,0.1);
+  transition: all 0.2s;
+}
+.pd-streak-dot.filled { background: #FF8C42; border-color: #FF8C42; }
+.pd-streak-label { font-size: 0.7rem; color: #8899AA; font-weight: 600; margin-left: 0.25rem; }
+
+/* ── Study tab ───────────────────────────────────────────── */
+.pd-study-stats {
+  display: flex; gap: 2rem; margin-bottom: 1.25rem;
+}
+.pd-study-stat-big { text-align: center; }
+.pd-study-big-val  { display: block; font-family: 'Nunito', sans-serif; font-size: 2.5rem; font-weight: 900; color: #8B5CF6; }
+.pd-study-big-label { font-size: 0.78rem; color: #8899AA; font-weight: 600; }
+
+.pd-subjects-list {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem;
+}
+.pd-subject-chip {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2);
+  border-radius: 100px; padding: 0.3rem 0.85rem;
+  font-size: 0.8rem; font-weight: 600; color: #8B5CF6;
+  font-family: 'Nunito', sans-serif;
 }
 
-.action-btn {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
+.pd-edu-info { display: flex; flex-direction: column; gap: 0.5rem; }
+.pd-edu-info-row {
+  display: flex; justify-content: space-between;
+  padding: 0.6rem 0; border-bottom: 1px solid rgba(26,26,46,0.06);
+  font-size: 0.85rem;
+}
+.pd-edu-info-label { color: #8899AA; font-weight: 500; }
+.pd-edu-info-val   { font-weight: 700; color: #1A1A2E; text-transform: capitalize; }
+
+/* ── Activity ────────────────────────────────────────────── */
+.pd-activity-list { display: flex; flex-direction: column; }
+
+.pd-activity-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 0; border-bottom: 1px solid rgba(26,26,46,0.06);
+}
+.pd-activity-item:last-child { border-bottom: none; }
+
+.pd-activity-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.pd-activity-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+.pd-activity-body { flex: 1; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.pd-activity-label { font-size: 0.85rem; font-weight: 500; color: #1A1A2E; }
+.pd-activity-badge {
+  background: rgba(139,92,246,0.1); color: #8B5CF6;
+  border-radius: 100px; padding: 0.15rem 0.55rem;
+  font-size: 0.72rem; font-weight: 700; font-family: 'Nunito', sans-serif;
+}
+.pd-activity-time { font-size: 0.72rem; color: #8899AA; white-space: nowrap; }
+
+/* ── Support card ────────────────────────────────────────── */
+.pd-support-card {
+  margin-top: 1.25rem; border-radius: 14px;
+  border: 1.5px solid rgba(139,92,246,0.2);
+  background: rgba(139,92,246,0.04);
+  padding: 1.25rem;
 }
 
-/* Medical Flow Timeline */
-.timeline-item {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  border-left: 4px solid #cbd5e0;
-  background: #f8fafc;
-  border-radius: 0 12px 12px 0;
-  margin-bottom: 10px;
+.pd-support-header {
+  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem;
+}
+.pd-support-header h3 {
+  font-family: 'Nunito', sans-serif; font-size: 0.92rem;
+  font-weight: 800; color: #1A1A2E;
+}
+.pd-support-tips { display: flex; flex-direction: column; gap: 0.45rem; }
+.pd-support-tips p { font-size: 0.83rem; color: #4A5568; line-height: 1.5; }
+
+/* ── Empty state ─────────────────────────────────────────── */
+.pd-empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 2rem; color: #8899AA; text-align: center; gap: 0.5rem;
+  font-size: 0.88rem;
 }
 
-.timeline-item.taken { border-left-color: #22c55e; }
-.timeline-item.due-now { border-left-color: #6366f1; background: #f5f3ff; }
+/* ── Tab content ─────────────────────────────────────────── */
+.pd-tab-content { display: flex; flex-direction: column; gap: 1.1rem; }
 
-.confirm-btn {
-  margin-left: auto;
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .pd-games-grid { grid-template-columns: 1fr 1fr; }
 }
 
-@media (max-width: 900px) {
-  .dashboard-grid { grid-template-columns: 1fr; }
+@media (max-width: 768px) {
+  .pd-page       { flex-direction: column; }
+  .pd-sidebar    { width: 100%; min-height: auto; flex-direction: row; flex-wrap: wrap; padding: 1rem; border-radius: 12px; }
+  .pd-nav        { flex-direction: row; flex-wrap: wrap; margin-top: 0; border-top: none; padding-top: 0; border-left: 1px solid rgba(255,255,255,0.06); padding-left: 0.5rem; }
+  .pd-main       { padding: 1rem; }
+  .pd-stats-grid { grid-template-columns: 1fr 1fr; }
+  .pd-games-grid { grid-template-columns: 1fr; }
+  .pd-profile-banner { flex-direction: column; text-align: center; }
+  .pd-quick-stats    { margin-left: 0; justify-content: center; }
 }

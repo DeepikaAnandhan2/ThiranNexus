@@ -1,8 +1,10 @@
 // ─── Scribble Game Page ───────────────────────────────────
 // Lobby → Word Selection → Game → Scoreboard
 // Uses Socket.IO for real-time drawing + guessing
+// FIXED: Correct backend payload keys (userId, nickname as flat fields)
+// FIXED: Full UI restored from original
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 import axios from 'axios'
 import {
@@ -20,10 +22,24 @@ const SOCKET_URL = 'http://localhost:5000'
 const AVATARS = ['😊','😎','🤩','😜','🥳','😇','🤓','😏','🥸','😈','👻','🤖','🦊','🐼','🦁','🐸']
 
 export default function Scribble() {
-  // ── User identity ──────────────────────────────────────
-  const [myId]       = useState(() => localStorage.getItem('tn_user') ? JSON.parse(localStorage.getItem('tn_user')).id : `guest_${Date.now()}`)
-  const [nickname,   setNickname]   = useState(() => localStorage.getItem('tn_user') ? JSON.parse(localStorage.getItem('tn_user')).name : `User${Math.floor(Math.random()*9000)+1000}`)
-  const [avatar,     setAvatar]     = useState('😊')
+  // ── User identity (FIXED: safe JSON parse) ─────────────
+  const [myId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tn_user')
+      if (saved) return JSON.parse(saved).id || `guest_${Date.now()}`
+    } catch {}
+    return `guest_${Date.now()}`
+  })
+
+  const [nickname, setNickname] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tn_user')
+      if (saved) return JSON.parse(saved).name || `User${Math.floor(Math.random()*9000)+1000}`
+    } catch {}
+    return `User${Math.floor(Math.random()*9000)+1000}`
+  })
+
+  const [avatar, setAvatar] = useState('😊')
 
   // ── Screen state ───────────────────────────────────────
   const [screen, setScreen] = useState('lobby') // lobby | waiting | wordpick | game | gameover
@@ -36,21 +52,21 @@ export default function Scribble() {
   const [roomSettings, setRoomSettings] = useState({ totalRounds: 3, timePerRound: 80, wordCategory: 'general' })
 
   // ── Game state ─────────────────────────────────────────
-  const [amDrawing,    setAmDrawing]    = useState(false)
-  const [currentDrawer,setCurrentDrawer]= useState(null)
-  const [wordOptions,  setWordOptions]  = useState([])
-  const [currentWord,  setCurrentWord]  = useState('')
-  const [wordHint,     setWordHint]     = useState('')
-  const [timeLeft,     setTimeLeft]     = useState(80)
-  const [roundNum,     setRoundNum]     = useState(0)
-  const [totalRounds,  setTotalRounds]  = useState(3)
-  const [hasGuessed,   setHasGuessed]   = useState(false)
-  const [messages,     setMessages]     = useState([])
-  const [answers,      setAnswers]      = useState([])
-  const [finalScores,  setFinalScores]  = useState([])
-  const [copied,       setCopied]       = useState(false)
-  const [roundEndWord, setRoundEndWord] = useState('')
-  const [showRoundEnd, setShowRoundEnd] = useState(false)
+  const [amDrawing,     setAmDrawing]     = useState(false)
+  const [currentDrawer, setCurrentDrawer] = useState(null)
+  const [wordOptions,   setWordOptions]   = useState([])
+  const [currentWord,   setCurrentWord]   = useState('')
+  const [wordHint,      setWordHint]      = useState('')
+  const [timeLeft,      setTimeLeft]      = useState(80)
+  const [roundNum,      setRoundNum]      = useState(0)
+  const [totalRounds,   setTotalRounds]   = useState(3)
+  const [hasGuessed,    setHasGuessed]    = useState(false)
+  const [messages,      setMessages]      = useState([])
+  const [answers,       setAnswers]       = useState([])
+  const [finalScores,   setFinalScores]   = useState([])
+  const [copied,        setCopied]        = useState(false)
+  const [roundEndWord,  setRoundEndWord]  = useState('')
+  const [showRoundEnd,  setShowRoundEnd]  = useState(false)
 
   const socketRef = useRef(null)
 
@@ -63,7 +79,7 @@ export default function Scribble() {
     socket.on('player-joined',   ({ nickname }) => addSystemMsg(`${nickname} joined the room!`))
     socket.on('player-left',     ({ nickname }) => addSystemMsg(`${nickname} left.`))
 
-    socket.on('room-state', ({ players, status, roundNum, totalRounds, timeLeft, currentDrawerId }) => {
+    socket.on('room-state', ({ players, status, roundNum, totalRounds, timeLeft }) => {
       setPlayers(players)
       setRoundNum(roundNum)
       setTotalRounds(totalRounds)
@@ -99,20 +115,19 @@ export default function Scribble() {
       setScreen('game')
     })
 
-    socket.on('word-hint', ({ hint, length }) => {
+    socket.on('word-hint', ({ hint }) => {
       setWordHint(hint)
       setCurrentWord('')
     })
 
     socket.on('timer', ({ timeLeft }) => setTimeLeft(timeLeft))
 
-    socket.on('correct-guess', ({ userId, nickname, pointsEarned }) => {
+    socket.on('correct-guess', ({ nickname, pointsEarned }) => {
       const msg = `✅ ${nickname} guessed the word! +${pointsEarned} pts`
       addSystemMsg(msg)
-      addAnswer({ message: msg, isSystem: true, type: 'correct' })
     })
 
-    socket.on('you-guessed', ({ word, points }) => {
+    socket.on('you-guessed', ({ word }) => {
       setHasGuessed(true)
       setCurrentWord(word)
     })
@@ -137,41 +152,50 @@ export default function Scribble() {
     return () => socket.disconnect()
   }, [myId])
 
-  const addSystemMsg = (msg) => {
+  const addSystemMsg = (msg) =>
     setMessages(prev => [...prev, { message: msg, isSystem: true }])
-  }
 
-  const addMessage = (msg) => {
+  const addMessage = (msg) =>
     setMessages(prev => [...prev, msg])
-  }
 
-  const addAnswer = (msg) => {
+  const addAnswer = (msg) =>
     setAnswers(prev => [...prev, msg])
-  }
 
-  // ── Create room ────────────────────────────────────────
+  // ── Create room (FIXED: flat payload keys) ─────────────
   const createRoom = async () => {
     try {
-      const res = await axios.post(`${API}/api/scribble/room/create`, {
-        userId: myId, nickname, avatar, ...roomSettings
-      })
+      const payload = {
+        userId:       myId,
+        nickname:     nickname,
+        avatar,
+        totalRounds:  roomSettings.totalRounds,
+        timePerRound: roomSettings.timePerRound,
+        wordCategory: roomSettings.wordCategory,
+      }
+      const res = await axios.post(`${API}/api/scribble/room/create`, payload)
       setRoomCode(res.data.roomCode)
       setIsHost(true)
       setPlayers(res.data.room.players)
-      socketRef.current?.emit('join-room', { roomCode: res.data.roomCode, userId: myId, nickname, avatar })
+      socketRef.current?.emit('join-room', {
+        roomCode: res.data.roomCode, userId: myId, nickname, avatar
+      })
       setScreen('waiting')
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to create room')
     }
   }
 
-  // ── Join room ──────────────────────────────────────────
+  // ── Join room (FIXED: flat payload keys) ───────────────
   const joinRoom = async () => {
     if (!joinCode.trim()) return
     try {
-      const res = await axios.post(`${API}/api/scribble/room/join`, {
-        roomCode: joinCode.toUpperCase(), userId: myId, nickname, avatar
-      })
+      const payload = {
+        roomCode: joinCode.toUpperCase(),
+        userId:   myId,
+        nickname,
+        avatar,
+      }
+      const res = await axios.post(`${API}/api/scribble/room/join`, payload)
       setRoomCode(res.data.room.roomCode)
       setIsHost(false)
       setPlayers(res.data.room.players)
@@ -211,8 +235,8 @@ export default function Scribble() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const timerPct    = (timeLeft / (roomSettings.timePerRound || 80)) * 100
-  const timerColor  = timeLeft <= 10 ? '#EF4444' : timeLeft <= 30 ? '#FF8C42' : '#8B5CF6'
+  const timerPct   = (timeLeft / (roomSettings.timePerRound || 80)) * 100
+  const timerColor = timeLeft <= 10 ? '#EF4444' : timeLeft <= 30 ? '#FF8C42' : '#8B5CF6'
 
   // ══════════════════════════════════════════════════════
   // LOBBY SCREEN
@@ -413,7 +437,10 @@ export default function Scribble() {
         </div>
 
         <div className="gameover-actions">
-          <button className="lobby-btn lobby-btn-create" onClick={() => { setScreen('waiting'); setMessages([]); setAnswers([]) }}>
+          <button
+            className="lobby-btn lobby-btn-create"
+            onClick={() => { setScreen('waiting'); setMessages([]); setAnswers([]) }}
+          >
             Play Again
           </button>
           <button className="lobby-btn lobby-btn-ghost" onClick={() => setScreen('lobby')}>
