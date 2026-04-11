@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FaHome, FaBook, FaGamepad, FaTrophy,
-  FaCog, FaSignOutAlt, FaUserShield, FaEdit
+  FaCog, FaSignOutAlt, FaUserShield, FaEdit, FaComments  // ← added here
 } from 'react-icons/fa';
 import './Sidebar.css';
 
@@ -16,7 +16,7 @@ export default function Sidebar() {
     { icon: <FaGamepad />, label: 'Games', path: '/games' },
     { icon: <FaEdit />, label: 'Scribble', path: '/scribble' },
     { icon: <FaTrophy />, label: 'Schemes', path: '/schemes' },
-   
+    { icon: <FaComments />, label: 'Help & Support', path: '/feedback' },
   ];
 
   return (

@@ -41,6 +41,8 @@ app.use('/api/education', require('./routes/education'));
 app.use('/api/scribble', require('./routes/scribble')); // New Scribble Routes
 app.use('/api/dashboard', require('./routes/dashboard'))
 app.use('/api/pdc', require('./routes/pd'))
+app.use('/api/feedback', require('./routes/feedbackRoutes'))
+app.use('/api/notifications', require('./routes/notificationRoutes'))
 app.use('/api/admin', require('./routes/adminRoutes'))
 // ✅ Health Check
 app.get('/api/health', (req, res) =>

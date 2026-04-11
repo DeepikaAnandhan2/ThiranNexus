@@ -30,7 +30,7 @@ export default function Login() {
         // 2. CRITICAL CHANGE: Use the context login function!
         // This updates the 'user' state so ProtectedRoute allows you in.
         // Usually, you pass the token and the user object returned by your API.
-        await login(res.data.token, res.data.user); 
+        login(res.data.user, res.data.token); 
         
         console.log("Login Successful!");
         navigate("/dashboard"); 

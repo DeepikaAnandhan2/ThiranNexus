@@ -136,7 +136,7 @@ export default function Dashboard() {
   const [error, setError]       = useState(null)
   const [subjFilter, setSubjFilter] = useState('all')
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
+const user = JSON.parse(localStorage.getItem('tn_user') || '{}')
   const initials = user.name
     ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'ST'

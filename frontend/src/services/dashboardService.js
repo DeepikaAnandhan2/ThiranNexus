@@ -1,6 +1,4 @@
 // frontend/src/services/dashboardService.js
-// Matches your existing services/ pattern — uses whatever axios/fetch you already have
-
 import axios from 'axios'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
@@ -8,7 +6,7 @@ const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const api = axios.create({ baseURL: BASE })
 
 api.interceptors.request.use(cfg => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('tn_token') // ← was 'token', must be 'tn_token'
   if (token) cfg.headers.Authorization = `Bearer ${token}`
   return cfg
 })
