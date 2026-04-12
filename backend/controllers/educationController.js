@@ -1,142 +1,186 @@
 // ─── Education Controller ─────────────────────────────────
-// Owner: Teammate 2
-const { searchDIKSHA, getDIKSHAContent, SUBJECTS, GRADE_MAP } = require('../services/dikshaService')
-const { searchYouTube, getVideoCaptions, getISLVideos }        = require('../services/youtubeService')
-const { simplifyContent, generateQuiz, answerQuestion }        = require('../services/geminiService')
+// Handles school (DIKSHA + Gemini) and college (YouTube) education routes
+// Disability-aware: routes content differently for visual vs hearing impaired
 
-// ─────────────────────────────────────────────────────────
-// GET /api/education/subjects
-// Returns list of subjects and grades for school
-// ─────────────────────────────────────────────────────────
-const getSubjects = (req, res) => {
-  res.json({ subjects: SUBJECTS, grades: Object.keys(GRADE_MAP) })
-}
+const {
+  searchDIKSHA,
+  getEnrichedContent,
+  getInfographicContent,
+  SUBJECTS,
+  GRADE_MAP,
+} = require('../services/dikshaService');
 
-// ─────────────────────────────────────────────────────────
-// GET /api/education/school?grade=8&subject=Science&query=
-// Fetch school material from DIKSHA
-// ─────────────────────────────────────────────────────────
-const getSchoolMaterial = async (req, res) => {
+const {
+  searchYouTube,
+  getISLVideos,
+} = require('../services/youtubeService');
+
+const {
+  simplifyContent,
+  generateQuiz,
+  answerQuestion,
+} = require('../services/geminiService');
+
+// ─── GET /api/education/subjects ─────────────────────────
+const getSubjects = async (req, res) => {
   try {
-    const { grade = '8', subject = 'Science', query = '' } = req.query
-    const results = await searchDIKSHA({ grade, subject, query })
-    res.json({ success: true, grade, subject, count: results.length, results })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-}
-
-// ─────────────────────────────────────────────────────────
-// GET /api/education/school/content/:id
-// Get full content of a specific DIKSHA item
-// ─────────────────────────────────────────────────────────
-const getSchoolContent = async (req, res) => {
-  try {
-    const content = await getDIKSHAContent(req.params.id)
-    if (!content) return res.status(404).json({ error: 'Content not found' })
-    res.json({ success: true, content })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-}
-
-// ─────────────────────────────────────────────────────────
-// GET /api/education/college?query=Data+Structures&captions=true
-// Fetch YouTube college lectures
-// ─────────────────────────────────────────────────────────
-const getCollegeMaterial = async (req, res) => {
-  try {
-    const { query = 'Java' } = req.query;
-    
-    // Check user profile for accessibility needs (populated by protect middleware)
-    const disabilityType = req.user?.disabilityType || 'none';
-    const isHearingImpaired = disabilityType === 'hearing';
-
-    // 1. Fetch ISL videos if student is hearing impaired
-    let islResults = [];
-    if (isHearingImpaired) {
-      islResults = await getISLVideos(query);
-    }
-
-    // 2. Fetch standard videos with forced accessibility flags
-    const standardResults = await searchYouTube({
-      query,
-      maxResults: 8,
-      isHearingImpaired: isHearingImpaired 
-    });
-
-    res.json({ 
-      success: true, 
-      accessibilityMode: disabilityType,
-      // Grouping the results for the UI
-      groups: {
-        signLanguage: islResults,
-        lectures: standardResults
-      }
-    });
+    res.json({ subjects: SUBJECTS, grades: Object.keys(GRADE_MAP) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// ─── GET /api/education/school ───────────────────────────
+// Returns topic list from DIKSHA (or mock)
+// Query params: grade, subject
+const getSchoolMaterial = async (req, res) => {
+  try {
+    const { grade, subject } = req.query;
+
+    if (!grade || !subject) {
+      return res.status(400).json({ error: 'grade and subject are required' });
+    }
+
+    const items = await searchDIKSHA({ grade, subject });
+    res.json({ success: true, data: items, total: items.length });
+  } catch (err) {
+    console.error('getSchoolMaterial error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ─── GET /api/education/school/content/:id ───────────────
+// Returns FULL enriched content for a specific topic
+// Disability-aware: adapts content for visual / hearing / cognitive impaired
+// Query params: grade, subject, disabilityType
+const getSchoolContent = async (req, res) => {
+  try {
+    const { id }            = req.params;
+    const { grade, subject, disabilityType = 'none' } = req.query;
+
+    if (!grade || !subject) {
+      return res.status(400).json({ error: 'grade and subject are required' });
+    }
+
+    // Get enriched content (DIKSHA full text OR Gemini-generated)
+    const content = await getEnrichedContent(id, { grade, subject, disabilityType });
+
+    res.json({ success: true, data: content });
+  } catch (err) {
+    console.error('getSchoolContent error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ─── GET /api/education/school/infographic ───────────────
+// [NEW] Returns visual infographic data for hearing-impaired students
+// Only for Class 8 and 9 (as per requirement)
+// Query params: grade (8 or 9), subject
+const getSchoolInfographic = async (req, res) => {
+  try {
+    const { grade, subject = 'Science' } = req.query;
+
+    if (!['8', '9'].includes(String(grade))) {
+      return res.status(400).json({
+        error: 'Infographic content is currently available only for Class 8 and 9'
+      });
+    }
+
+    const infographics = getInfographicContent(String(grade), subject);
+
+    if (!infographics || infographics.length === 0) {
+      return res.status(404).json({ error: 'No infographic content found for this subject' });
+    }
+
+    res.json({
+      success:  true,
+      grade:    `Class ${grade}`,
+      subject,
+      data:     infographics,
+      total:    infographics.length,
+    });
+  } catch (err) {
+    console.error('getSchoolInfographic error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ─── GET /api/education/college ──────────────────────────
+const getCollegeMaterial = async (req, res) => {
+  try {
+    const { course, query, isHearingImpaired = false } = req.query;
+    const searchQuery = query || course || 'engineering lecture';
+    const videos = await searchYouTube({
+      query: searchQuery,
+      maxResults: 8,
+      isHearingImpaired: isHearingImpaired === 'true',
+    });
+    res.json({ success: true, data: videos });
+  } catch (err) {
+    console.error('getCollegeMaterial error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ─── GET /api/education/isl ──────────────────────────────
 const getISL = async (req, res) => {
   try {
     const { topic = 'education' } = req.query;
-    const results = await getISLVideos(topic);
-    res.json({ success: true, topic, results });
+    const videos = await getISLVideos(topic);
+    res.json({ success: true, data: videos });
   } catch (err) {
+    console.error('getISL error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
-// ─────────────────────────────────────────────────────────
-// POST /api/education/simplify
-// Gemini AI simplifies text based on disability type
-// Body: { text, disabilityType }
-// ─────────────────────────────────────────────────────────
+
+// ─── POST /api/education/simplify ────────────────────────
 const simplify = async (req, res) => {
   try {
-    const { text, disabilityType = 'cognitive' } = req.body
-    if (!text) return res.status(400).json({ error: 'Text is required' })
-    const simplified = await simplifyContent(text, disabilityType)
-    res.json({ success: true, original: text, simplified })
+    const { text, disabilityType = 'cognitive' } = req.body;
+    if (!text) return res.status(400).json({ error: 'text is required' });
+    const simplified = await simplifyContent(text, disabilityType);
+    res.json({ success: true, data: simplified });
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error('simplify error:', err.message);
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
-// ─────────────────────────────────────────────────────────
-// POST /api/education/quiz
-// Gemini generates quiz from content
-// Body: { text, numQuestions }
-// ─────────────────────────────────────────────────────────
+// ─── POST /api/education/quiz ─────────────────────────────
 const getQuiz = async (req, res) => {
   try {
-    const { text, numQuestions = 3 } = req.body
-    if (!text) return res.status(400).json({ error: 'Text is required' })
-    const questions = await generateQuiz(text, numQuestions)
-    res.json({ success: true, questions })
+    const { text, numQuestions = 3 } = req.body;
+    if (!text) return res.status(400).json({ error: 'text is required' });
+    const quiz = await generateQuiz(text, numQuestions);
+    res.json({ success: true, data: quiz });
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error('getQuiz error:', err.message);
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
-// ─────────────────────────────────────────────────────────
-// POST /api/education/ask
-// Student asks a question by voice — AI answers
-// Body: { question, context }
-// ─────────────────────────────────────────────────────────
+// ─── POST /api/education/ask ──────────────────────────────
 const askQuestion = async (req, res) => {
   try {
-    const { question, context = '' } = req.body
-    if (!question) return res.status(400).json({ error: 'Question is required' })
-    const answer = await answerQuestion(question, context)
-    res.json({ success: true, question, answer })
+    const { question, context = '' } = req.body;
+    if (!question) return res.status(400).json({ error: 'question is required' });
+    const answer = await answerQuestion(question, context);
+    res.json({ success: true, data: answer });
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error('askQuestion error:', err.message);
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
 module.exports = {
-  getSubjects, getSchoolMaterial, getSchoolContent,
-  getCollegeMaterial, getISL, simplify, getQuiz, askQuestion,
-}
+  getSubjects,
+  getSchoolMaterial,
+  getSchoolContent,
+  getSchoolInfographic,   // ← new export
+  getCollegeMaterial,
+  getISL,
+  simplify,
+  getQuiz,
+  askQuestion,
+};
