@@ -90,6 +90,7 @@ export default function App() {
             <Route path="/scheme/:id" element={<SchemeDetails />} />
             <Route path="/saved" element={<SavedApplied />} />
             <Route path="/pdashboard" element={<ParentDashboard />} />
+            <Route path="/feedback"      element={<FeedbackPage />} />
           </Route>
 
           {/* 🛠 PROTECTED ADMIN DASHBOARD ROUTES */}
