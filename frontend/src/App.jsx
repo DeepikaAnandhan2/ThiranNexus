@@ -19,7 +19,7 @@ import Scribble from './pages/Scribble';
 
 import DashboardMain from './components/ParentDashboard/DashboardMain';
 import Dashboard from './pages/Dashboard';
-import ParentDashboard from './pages/ParentDashboardPage';
+import ParentDashboard from "./pages/ParentDashboard/ParentDashboard";
 import FeedbackPage from './pages/FeedbackPage'
 import AdminRoutes from './admin/AdminRoutes';
 
@@ -71,28 +71,35 @@ export default function App() {
           {/* 🛠 ADMIN LOGIN (No Sidebar/Topbar) */}
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* 🔐 PROTECTED USER ROUTES */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/education" element={<Education />} />
-            <Route path="/games" element={<Games />} />
-            <Route path="/scribble" element={<Scribble />} />
+          {/* 🔐 STUDENT ROUTES (with sidebar) */}
+<Route
+  element={
+    <ProtectedRoute>
+      <AppLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route path="/dashboard" element={<Dashboard />} />
+  <Route path="/home" element={<Home />} />
+  <Route path="/education" element={<Education />} />
+  <Route path="/games" element={<Games />} />
+  <Route path="/scribble" element={<Scribble />} />
 
-            <Route path="/parent-dashboard" element={<DashboardMain />} />
-            <Route path="/schemes" element={<SchemesWithAuth />} />
-            <Route path="/scheme/:id" element={<SchemeDetails />} />
-            <Route path="/saved" element={<SavedApplied />} />
-            <Route path="/pdashboard" element={<ParentDashboard />} />
-            <Route path="/feedback"      element={<FeedbackPage />} />
-          </Route>
+  <Route path="/schemes" element={<SchemesWithAuth />} />
+  <Route path="/scheme/:id" element={<SchemeDetails />} />
+  <Route path="/saved" element={<SavedApplied />} />
+  <Route path="/feedback" element={<FeedbackPage />} />
+</Route>
 
+{/* 🔐 PARENT ROUTE (NO SIDEBAR) */}
+<Route
+  path="/parent-dashboard"
+  element={
+    <ProtectedRoute>
+      <ParentDashboard />
+    </ProtectedRoute>
+  }
+/>
           {/* 🛠 PROTECTED ADMIN DASHBOARD ROUTES */}
           <Route 
             path="/admin/*" 
