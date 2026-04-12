@@ -1,7 +1,5 @@
 // backend/controllers/admin/adminDashboardController.js
-const User = require('../../models/User')
-const GameScore = require('../../models/GameScore')
-
+const { User, GameScore } = require('../../models') 
 
 function daysAgo(n) {
   const d = new Date()

@@ -17,10 +17,11 @@ import Schemes from './pages/Schemes';
 import SchemeDetails from './pages/SchemeDetails';
 import SavedApplied from './pages/SavedApplied';
 import Scribble from './pages/Scribble';
+
 import DashboardMain from './components/ParentDashboard/DashboardMain';
 import Dashboard from './pages/Dashboard';
 import ParentDashboard from './pages/ParentDashboardPage';
-
+import FeedbackPage from './pages/FeedbackPage'
 // (OPTIONAL) Admin Routes
 import AdminRoutes from './admin/AdminRoutes';
 
@@ -84,7 +85,7 @@ export default function App() {
             <Route path="/education" element={<Education />} />
             <Route path="/games" element={<Games />} />
             <Route path="/scribble" element={<Scribble />} />
-
+            <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/parent-dashboard" element={<DashboardMain />} />
 
             <Route path="/schemes" element={<SchemesWithAuth />} />

@@ -1,5 +1,5 @@
 import './Topbar.css';
-
+import NotificationBell from '../components/NotificationBell'
 export default function Topbar({ user }) {
   return (
     <header className="topbar">
@@ -12,6 +12,7 @@ export default function Topbar({ user }) {
             alt="user"
           />
         </div>
+        <NotificationBell />
       </div>
     </header>
   );
