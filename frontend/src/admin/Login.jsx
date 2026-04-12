@@ -1,99 +1,104 @@
-// admin/Login.jsx
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./Login.css"; // Reuse your existing CSS
+import adminImg from "../assets/learning.png"; // Your admin image
+import { useAuth } from "../context/AuthContext";
 
-export default function Login() {
+export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth(); 
 
-const handleLogin = async () => {
-  const data = await adminAuth.login(email, password);
-  localStorage.setItem("admin_token", data.token);
-  localStorage.setItem("admin_user", JSON.stringify(data.admin));
-  navigate("/admin");
+  const handleAdminLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post("http://localhost:5000/api/admin/auth/login", { email, password });
+
+    if (res.data.success) {
+      // 1. Grab the admin object specifically
+      const adminData = res.data.admin; 
+
+      // 2. Double check the role from your MongoDB
+      if (adminData.role === 'super_admin' || adminData.role === 'admin') {
+        
+        // 3. Update your AuthContext with the admin data
+        await login(res.data.token, adminData); 
+        
+        // 4. Force the navigation to the Admin Dashboard
+        navigate("/admin/dashboard"); 
+      } else {
+        alert("Not authorized as Admin ❌");
+      }
+    }
+  } catch (err) {
+    alert("Login failed ❌");
+  }
 };
 
   return (
-    <div style={{
-      minHeight: "100vh", background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%)",
-      display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Nunito', sans-serif",
-      position: "relative", overflow: "hidden"
-    }}>
-      {/* Background decoration */}
-      <div style={{ position: "absolute", top: -100, right: -100, width: 400, height: 400, borderRadius: "50%", background: "rgba(139,92,246,0.12)" }} />
-      <div style={{ position: "absolute", bottom: -150, left: -100, width: 500, height: 500, borderRadius: "50%", background: "rgba(92,41,231,0.08)" }} />
-      <div style={{ position: "absolute", top: "20%", left: "10%", width: 200, height: 200, borderRadius: "50%", background: "rgba(139,92,246,0.06)" }} />
+    <div className="login-container">
+      {/* LEFT SIDE: Reusing your visual style */}
+      <div className="login-left" style={{ background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)' }}>
+        <div className="floating-bg">
+          <i className="fa-solid fa-shield-halved icon-1" style={{ color: '#0d9488' }}></i>
+          <i className="fa-solid fa-user-gear icon-2" style={{ color: '#0d9488' }}></i>
+          <i className="fa-solid fa-chart-line icon-3" style={{ color: '#0d9488' }}></i>
+          <i className="fa-solid fa-database icon-4" style={{ color: '#0d9488' }}></i>
+        </div>
 
-      <div style={{ position: "relative", zIndex: 10, width: "100%", maxWidth: 420, padding: "0 20px" }}>
-        {/* Card */}
-        <div style={{ background: "rgba(255,255,255,0.9)", backdropFilter: "blur(20px)", borderRadius: 24, padding: "44px 40px", boxShadow: "0 20px 60px rgba(92,41,231,0.15), 0 4px 20px rgba(0,0,0,0.08)", border: "1.5px solid rgba(255,255,255,0.7)" }}>
-          {/* Logo */}
-          <div style={{ textAlign: "center", marginBottom: 36 }}>
-            <div style={{ width: 64, height: 64, borderRadius: 18, background: "linear-gradient(135deg,#8B5CF6,#5c29e7)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 28, boxShadow: "0 8px 24px rgba(92,41,231,0.3)" }}>✦</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: "#1a1a2e", letterSpacing: 0.5 }}>ThiranNexus</div>
-            <div style={{ fontSize: 14, color: "#8B5CF6", marginTop: 4, fontWeight: 600 }}>Admin Dashboard</div>
-          </div>
-
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#1a1a2e", marginBottom: 6 }}>Welcome back</div>
-          <div style={{ fontSize: 14, color: "#888", marginBottom: 28 }}>Sign in to your admin account</div>
-
-          {/* Email */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 13, fontWeight: 700, color: "#555", display: "block", marginBottom: 7 }}>Email Address</label>
-            <div style={{ position: "relative" }}>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="admin@thirannnexus.com"
-                style={{ width: "100%", padding: "12px 16px 12px 42px", borderRadius: 12, border: "1.5px solid #e8e3ff", background: "#faf9ff", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#333", transition: "border 0.2s" }}
-                onFocus={e => e.target.style.borderColor = "#8B5CF6"}
-                onBlur={e => e.target.style.borderColor = "#e8e3ff"}
-              />
-              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#8B5CF6", fontSize: 16 }}>✉</span>
-            </div>
-          </div>
-
-          {/* Password */}
-          <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 13, fontWeight: 700, color: "#555", display: "block", marginBottom: 7 }}>Password</label>
-            <div style={{ position: "relative" }}>
-              <input
-                type={showPass ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                style={{ width: "100%", padding: "12px 42px 12px 42px", borderRadius: 12, border: "1.5px solid #e8e3ff", background: "#faf9ff", fontSize: 14, outline: "none", boxSizing: "border-box", color: "#333", transition: "border 0.2s" }}
-                onFocus={e => e.target.style.borderColor = "#8B5CF6"}
-                onBlur={e => e.target.style.borderColor = "#e8e3ff"}
-              />
-              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#8B5CF6", fontSize: 16 }}>🔒</span>
-              <button onClick={() => setShowPass(!showPass)} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#8B5CF6", fontSize: 16 }}>{showPass ? "🙈" : "👁"}</button>
-            </div>
-          </div>
-
-          {/* Forgot */}
-          <div style={{ textAlign: "right", marginBottom: 24 }}>
-            <span style={{ color: "#8B5CF6", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Forgot Password?</span>
-          </div>
-
-          {/* Login Button */}
-          <button
-            onClick={handleLogin}
-            style={{
-              width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-              background: loading ? "#c4b5fd" : "linear-gradient(135deg,#8B5CF6,#5c29e7)",
-              color: "#fff", fontWeight: 800, fontSize: 16, cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: "0 6px 20px rgba(92,41,231,0.3)", transition: "all 0.2s",
-              fontFamily: "inherit"
-            }}
-          >
-            {loading ? "Signing in..." : "Sign In →"}
-          </button>
-
-          <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: "#bbb" }}>
-            ThiranNexus Admin v2.4.1 · Secure Access
+        <div className="login-content">
+          <h1 className="hero-text" style={{ color: '#134e4a' }}>Admin <br /><span style={{ color: '#0d9488' }}>Control Center</span></h1>
+          <p className="hero-subtext" style={{ color: '#115e59' }}>"Managing inclusive learning systems for ThiranNexus."</p>
+          <img src={adminImg} alt="admin illustration" className="hero-illustration" />
+          <div className="impact-badges" style={{ color: '#0d9488' }}>
+            <span>Secure</span> • <span>Centralized</span> • <span>Impactful</span>
           </div>
         </div>
+      </div>
+
+      {/* RIGHT SIDE: The Login Card */}
+      <div className="login-right">
+        <form className="login-card" onSubmit={handleAdminLogin}>
+          <div className="brand-icon" style={{ background: '#0d9488' }}>TN</div>
+          <h2 className="login-title">Admin Portal</h2>
+          <p className="login-subtitle" style={{ color: '#0d9488' }}>Management Dashboard Access</p>
+
+          <div className="input-group">
+            <input 
+              type="email" 
+              placeholder="Admin Email"
+              className="login-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
+            <input 
+              type="password" 
+              placeholder="Admin Password"
+              className="login-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="login-options">
+            <label className="remember-me">
+              <input type="checkbox" /> Keep me signed in
+            </label>
+          </div>
+
+          <button type="submit" className="login-btn" style={{ background: '#0d9488' }}>
+            ENTER DASHBOARD
+          </button>
+
+          {/* Registration link removed for Admin page security */}
+          <p className="join-text">
+            ThiranNexus Technical Team Access Only
+          </p>
+        </form>
       </div>
     </div>
   );
