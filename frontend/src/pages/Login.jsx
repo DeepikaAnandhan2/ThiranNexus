@@ -5,7 +5,7 @@ import "../styles/Login.css";
 import learningImg from "../assets/learning.png";
 import { useAuth } from "../context/AuthContext";
 
-// ... existing imports
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -27,11 +27,9 @@ export default function Login() {
       const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
       
       if (res.data.success) {
-        // 2. CRITICAL CHANGE: Use the context login function!
-        // This updates the 'user' state so ProtectedRoute allows you in.
-        // Usually, you pass the token and the user object returned by your API.
-        login(res.data.user, res.data.token); 
-        
+
+        // In handleLogin, change this one line:
+login(res.data.token, res.data.user)  // ✅ token first, user second
         console.log("Login Successful!");
         navigate("/dashboard"); 
       }
@@ -41,7 +39,6 @@ export default function Login() {
     }
   };
 
-  // ... rest of your return code remains the same
 
   return (
     <div className="login-container">

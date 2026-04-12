@@ -11,7 +11,7 @@ const alerts    = require('../controllers/admin/adminAlertsController')
 const feedback  = require('../controllers/admin/adminFeedbackController')
 const rewards   = require('../controllers/admin/adminRewardsController')
 const settings  = require('../controllers/admin/adminSettingsController')
-
+const auth = require('../controllers/admin/adminAuthController')
 // ── Dashboard ─────────────────────────────────────────────────
 router.get('/dashboard/overview', dashboard.getOverview)
 
@@ -56,4 +56,7 @@ router.put   ('/settings/admins/:id',          settings.updateAdmin)
 router.delete('/settings/admins/:id',          settings.deleteAdmin)
 router.get   ('/settings/platform',            settings.getPlatformInfo)
 
+
+router.post('/auth/login', auth.adminLogin) 
+router.get('/auth/me', auth.getAdminMe)
 module.exports = router

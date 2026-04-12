@@ -10,7 +10,7 @@ const seedSchemes = require('./data/seedSchemes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+const adminRoutes = require('./routes/adminRoutes');
 // ─── 1. Create HTTP Server & Socket.io Instance ──────────────
 const server = http.createServer(app);
 const io = new Server(server, {
