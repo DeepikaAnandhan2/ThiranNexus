@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios' // 1. Import axios
+import axios from 'axios'
 
 const AuthContext = createContext(null)
 
@@ -11,32 +11,42 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const savedToken = localStorage.getItem('tn_token')
     const savedUser = localStorage.getItem('tn_user')
+
     if (savedToken && savedUser) {
       setToken(savedToken)
       setUser(JSON.parse(savedUser))
-      // 2. Set the header for page refreshes
+
+      // ✅ Set axios header on refresh
       axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
     }
+
     setLoading(false)
   }, [])
 
-  const login = (authToken, userData) => { // NOTE: Flipped order to match your AdminLogin call
-    
+  const login = (authToken, userData) => {
     setToken(authToken)
     setUser(userData)
+
+    // ✅ KEEP YOUR ORIGINAL STORAGE
     localStorage.setItem('tn_token', authToken)
     localStorage.setItem('tn_user', JSON.stringify(userData))
-    
-    // 3. Set the header IMMEDIATELY after login
+
+    // ✅ ADD THIS (IMPORTANT FIX)
+    localStorage.setItem('token', authToken)   // 🔥 FIX FOR SCHEMES
+
+    // ✅ Set axios header immediately
     axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
   }
 
   const logout = () => {
     setUser(null)
     setToken(null)
+
+    // ✅ REMOVE BOTH KEYS
     localStorage.removeItem('tn_token')
     localStorage.removeItem('tn_user')
-    // 4. Remove the header on logout
+    localStorage.removeItem('token')   // 🔥 cleanup
+
     delete axios.defaults.headers.common['Authorization']
   }
 
