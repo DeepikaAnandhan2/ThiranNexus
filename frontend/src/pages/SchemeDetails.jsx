@@ -1,145 +1,100 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/schemes.css";
 
 const SchemeDetails = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [scheme, setScheme] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [savedMessage, setSavedMessage] = useState("");
+  const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    const fetchScheme = async () => {
+    const fetch = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const res = await axios.get(`/api/schemes/${id}`, { headers });
+        const res = await axios.get(`/api/schemes/${id}`);
+        console.log("SCHEME:", res.data);
         setScheme(res.data);
       } catch (err) {
-        console.error('Failed to fetch scheme:', err);
-        setScheme(null);
-      } finally {
-        setLoading(false);
+        console.error(err);
       }
     };
-
-    fetchScheme();
+    fetch();
   }, [id]);
 
   const handleSave = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = user._id;
-      
-      if (!userId) {
-        setSavedMessage("Please login to save schemes");
-        setTimeout(() => setSavedMessage(""), 3000);
-        return;
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      await axios.post("/api/schemes/save", {
+        userId: user._id,
+        schemeId: id
+      });
+
+      setMsg("✅ Saved successfully");
+    } catch {
+      setMsg("⚠️ Already saved");
+    }
+  };
+
+  const handleApply = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      await axios.post("/api/schemes/apply", {
+        userId: user._id,
+        schemeId: id
+      });
+
+      // ✅ FIXED LINK
+      const link = scheme?.applyLink || scheme?.link;
+
+      if (link && link.startsWith("http")) {
+        window.open(link, "_blank");
+      } else {
+        setMsg("❌ No valid apply link");
       }
 
-      const token = localStorage.getItem('token');
-      await axios.post('/api/schemes/save', 
-        { userId, schemeId: id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSavedMessage("✅ Scheme saved to your profile!");
     } catch (err) {
-      console.error('Save failed:', err);
-      setSavedMessage("ℹ️ Scheme is already saved.");
-    }
-    setTimeout(() => setSavedMessage(""), 3000);
-  };
-
-  const handleApply = () => {
-    if (scheme?.applyLink) {
-      window.open(scheme.applyLink, "_blank");
-    } else if (scheme?.link) {
-      window.open(scheme.link, "_blank");
+      console.error(err);
+      setMsg("❌ Apply failed");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="page-container">
-        <div className="card text-center">
-          <p>Loading scheme details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!scheme) {
-    return (
-      <div className="page-container">
-        <div className="card text-center">
-          <h2 style={{color: '#4a148c'}}>Scheme Not Found</h2>
-          <p>The scheme you are looking for does not exist.</p>
-          <button onClick={() => navigate("/schemes")} className="btn btn-view" style={{width: 'auto', display: 'inline-block'}}>
-            Return to Schemes
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (!scheme) return <p className="page-container">Loading...</p>;
 
   return (
     <div className="page-container">
       <div className="card detail-card">
+
         <h1 className="detail-title">{scheme.title}</h1>
-        
-        {savedMessage && <p className="status-msg">{savedMessage}</p>}
+        <p>{scheme.description}</p>
 
-        <p className="detail-description">{scheme.description}</p>
+        {msg && <p className="status-msg">{msg}</p>}
 
-        <div className="section-title">Eligibility Criteria</div>
+        <div className="section-title">Eligibility</div>
         <ul className="detail-list">
-          {Array.isArray(scheme.eligibility) 
-            ? scheme.eligibility.map((item, idx) => <li key={idx}>{item}</li>)
-            : <li>{scheme.eligibility}</li>
-          }
+          {scheme.eligibility?.map((e, i) => (
+            <li key={i}>{e}</li>
+          ))}
         </ul>
 
-        {scheme.benefits && (
-          <>
-            <div className="section-title">Key Benefits</div>
-            <ul className="detail-list">
-              {Array.isArray(scheme.benefits) 
-                ? scheme.benefits.map((item, idx) => <li key={idx}>{item}</li>)
-                : <li>{scheme.benefits}</li>
-              }
-            </ul>
-          </>
-        )}
-
-        {scheme.documentsRequired && (
-          <>
-            <div className="section-title">Documents Required</div>
-            <ul className="detail-list">
-              {Array.isArray(scheme.documentsRequired) 
-                ? scheme.documentsRequired.map((item, idx) => <li key={idx}>{item}</li>)
-                : <li>{scheme.documentsRequired}</li>
-              }
-            </ul>
-          </>
-        )}
-
-        {scheme.lastDate && (
-          <p className="last-date">📅 Last Date: {scheme.lastDate}</p>
-        )}
+        <div className="section-title">Documents</div>
+        <ul className="detail-list">
+          {scheme.documentsRequired?.map((d, i) => (
+            <li key={i}>{d}</li>
+          ))}
+        </ul>
 
         <div className="button-group">
-          <button onClick={() => navigate(-1)} className="btn btn-save" style={{background: '#eee', color: '#333', border: '1px solid #ccc'}}>
-            Back
-          </button>
           <button onClick={handleSave} className="btn btn-save">
-            Save Scheme
+            Save
           </button>
+
           <button onClick={handleApply} className="btn btn-apply">
-            Apply Now
+            Apply
           </button>
         </div>
+
       </div>
     </div>
   );

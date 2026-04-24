@@ -1,194 +1,184 @@
-/* ─── Page Container (Dashboard Style) ────────────────────────── */
+/* ─── Page Container ───────────────────────────────────── */
 .page-container {
   padding: 30px;
-  background: #f4f7fe; /* Matches Dashboard background */
+  background: #f4f7fe;
   min-height: 100vh;
   font-family: 'Inter', -apple-system, sans-serif;
 }
 
-/* ─── AI Recommendation Header ────────────────────────────────── */
+/* ─── Header Section ───────────────────────────────────── */
 .ai-header {
-  text-align: left; /* Aligned left to match Dashboard header */
-  margin-bottom: 30px;
-}
-
-.ai-icon {
-  font-size: 24px;
-  margin-right: 10px;
-  color: #6366f1;
+  margin-bottom: 25px;
 }
 
 .page-title {
   font-size: 26px;
   font-weight: 700;
-  margin: 0;
-  color: #1b2559; /* ThiranNexus Dark Blue */
+  color: #1b2559;
+  margin-bottom: 5px;
 }
 
 .ai-subtitle {
-  color: #a3aed0;
-  font-size: 16px;
-  margin-top: 5px;
+  font-size: 14px;
+  color: #6b7280;
 }
 
-/* ─── Grid Layout ─────────────────────────────────────────────── */
+/* ─── Grid Layout ─────────────────────────────────────── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 25px;
+  gap: 20px;
 }
 
-/* ─── Card (Dashboard Card Style) ────────────────────────────── */
+/* ─── Card Style ──────────────────────────────────────── */
 .card {
   background: #ffffff;
-  padding: 24px;
-  border-radius: 20px;
-  border: 1px solid #eaedf3;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
-  position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 22px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.06);
 }
 
-/* ─── Recommendation Badge ───────────────────────────────────── */
-.recommendation-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: #e6fffa; /* Soft Teal */
-  color: #047857;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* ─── Typography ──────────────────────────────────────────────── */
+/* ─── Titles & Text ───────────────────────────────────── */
 .card h3 {
-  margin: 0 0 10px 0;
-  color: #1b2559;
   font-size: 20px;
   font-weight: 700;
+  color: #1b2559;
+  margin-bottom: 8px;
 }
 
 .card p {
-  color: #718096;
-  line-height: 1.5;
   font-size: 14px;
-  margin-bottom: 20px;
+  color: #6b7280;
+  margin-bottom: 15px;
 }
 
+/* ─── Section Titles ─────────────────────────────────── */
 .section-title {
-  display: block;
   margin-top: 15px;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6366f1;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #6366f1; /* ThiranNexus Indigo */
-  font-weight: 800;
 }
 
 .small-text {
   font-size: 13px;
-  color: #4a5568;
+  color: #4b5563;
+}
+
+/* ─── Detail Page ─────────────────────────────────────── */
+.detail-card {
+  max-width: 900px;
+  margin: auto;
+}
+
+.detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1b2559;
   margin-bottom: 10px;
 }
 
-/* ─── Buttons (Dashboard Style) ─────────────────────────────── */
-.btn {
-  width: 100%;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-  transition: all 0.2s ease;
+.detail-list {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.detail-list li {
+  margin-bottom: 8px;
+  color: #374151;
   font-size: 14px;
 }
 
+/* ─── Buttons ─────────────────────────────────────────── */
+.btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-align: center;
+}
+
+/* View Button */
 .btn-view {
   background: #6366f1;
   color: white;
-  box-shadow: 0px 4px 10px rgba(99, 102, 241, 0.2);
 }
 
+/* Save Button */
 .btn-save {
-  background: #f4f7fe;
+  background: #eef2ff;
   color: #6366f1;
   border: 1px solid #6366f1;
 }
 
+/* Apply Button */
 .btn-apply {
   background: #22c55e;
   color: white;
 }
 
+/* Hover */
 .btn:hover {
-  filter: brightness(1.05);
   transform: translateY(-1px);
+  opacity: 0.95;
 }
 
-/* ─── Status Messages ─────────────────────────────────────────── */
-.status-msg {
-  background: #f0fff4;
-  color: #2f855a;
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
-  font-size: 14px;
-  border: 1px solid #c6f6d5;
-}
-
-/* ─── Detail Page & Button Grouping ─────────────────────────── */
-.detail-card {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.detail-title {
-  color: #1b2559;
-  font-size: 28px;
-  margin-bottom: 15px;
-}
-
-.detail-list {
-  padding-left: 20px;
-  margin-bottom: 25px;
-}
-
-.detail-list li {
-  margin-bottom: 10px;
-  color: #4a5568;
-  font-size: 15px;
-}
-
+/* ─── Button Group (IMPORTANT FIX) ───────────────────── */
 .button-group {
   display: flex;
+  flex-direction: column;   /* 🔥 STACKED BUTTONS */
   gap: 12px;
-  margin-top: 30px;
-  flex-wrap: wrap;
+  margin-top: 25px;
 }
 
-.button-group .btn {
-  flex: 1;
-  min-width: 120px;
+/* ─── Status Message ─────────────────────────────────── */
+.status-msg {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-size: 14px;
+  text-align: center;
 }
 
-/* ─── Responsive Adjustments ──────────────────────────────────── */
+/* ─── No Data / Error ────────────────────────────────── */
+.no-schemes {
+  text-align: center;
+  color: #6b7280;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+/* ─── Responsive ────────────────────────────────────── */
 @media (max-width: 768px) {
-  .page-container { padding: 20px; }
-  .page-title { font-size: 22px; }
-  .grid { grid-template-columns: 1fr; }
-  .button-group .btn { width: 100%; flex: none; }
+  .page-container {
+    padding: 20px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .detail-title {
+    font-size: 22px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }

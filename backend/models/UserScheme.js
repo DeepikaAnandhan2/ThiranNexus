@@ -1,14 +1,18 @@
 const mongoose = require("mongoose");
 
 const userSchemeSchema = new mongoose.Schema({
-  userId: String,
-
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
   schemeId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Scheme" // 🔥 needed for populate
+    ref: "Scheme"
   },
-
-  status: String // "saved" or "applied"
-});
+  status: {
+    type: String,
+    enum: ["saved", "applied"]
+  }
+}, { timestamps: true });
 
 module.exports = mongoose.model("UserScheme", userSchemeSchema);
