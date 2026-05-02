@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-    Games.css - Updated for Desktop & Mobile Responsiveness
+    Games.css - Updated with Logic Game (Blue Theme)
 ═══════════════════════════════════════════════════════════ */
 
 .games-page {
@@ -7,7 +7,6 @@
   flex-direction: column;
   min-height: 100vh;
   padding-bottom: 80px;
-  /* Removed strict max-width to allow desktop expansion */
   width: 100%;
   margin: 0 auto;
 }
@@ -27,20 +26,24 @@
 
 .games-banner-bubble1 {
   position: absolute;
-  width: 250px; height: 250px; /* Larger bubbles for desktop */
+  width: 250px;
+  height: 250px;
   border-radius: 50%;
   background: #2DC9A6;
   opacity: 0.06;
-  top: -100px; right: -50px;
+  top: -100px;
+  right: -50px;
 }
 
 .games-banner-bubble2 {
   position: absolute;
-  width: 180px; height: 180px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   background: #FF8C42;
   opacity: 0.07;
-  bottom: -40px; left: -40px;
+  bottom: -40px;
+  left: -40px;
 }
 
 .games-banner-avatar {
@@ -53,7 +56,7 @@
 
 @keyframes games-bob {
   0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-10px); }
+  50% { transform: translateY(-10px); }
 }
 
 .games-banner-title {
@@ -78,7 +81,6 @@
 /* ── Body ────────────────────────────────────────────────── */
 .games-body {
   width: 100%;
-  max-width: 100%;
   background: #F0F4F8;
   border-radius: 0;
   margin: 0;
@@ -117,14 +119,13 @@
   font-size: 1.4rem;
   font-weight: 800;
   color: #1A1A2E;
-  text-align: center; /* Centered for desktop */
+  text-align: center;
   margin-bottom: 0.5rem;
 }
 
 /* ── Game cards Navigation Grid ──────────────────────────── */
 .games-nav {
   display: grid;
-  /* Desktop: 3 columns | Tablet: 2 columns | Mobile: 1 column */
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
   width: 100%;
@@ -145,11 +146,12 @@
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   font-family: inherit;
-  border: none; /* Cleaner look on desktop */
+  border: none;
 }
 
+/* LEFT COLOR STRIP */
 .games-card::before {
   content: '';
   position: absolute;
@@ -158,29 +160,41 @@
   border-radius: 6px 0 0 6px;
 }
 
+/* EXISTING COLORS */
 .games-card.teal::before   { background: #2DC9A6; }
 .games-card.orange::before { background: #FF8C42; }
 .games-card.purple::before { background: #8B5CF6; }
+
+/* ✅ NEW LOGIC GAME COLOR */
+.games-card.blue::before { background: #3B82F6; }
 
 .games-card:hover { 
   transform: translateY(-8px); 
   box-shadow: 0 15px 35px rgba(26,26,46,0.15); 
 }
 
+/* ICON BOX */
 .games-card-avatar {
-  width: 70px; height: 70px;
+  width: 70px;
+  height: 70px;
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.2rem;
-  flex-shrink: 0;
 }
 
-.games-card.teal   .games-card-avatar { background: rgba(45,201,166,0.1); }
+/* ICON BACKGROUND COLORS */
+.games-card.teal .games-card-avatar   { background: rgba(45,201,166,0.1); }
 .games-card.orange .games-card-avatar { background: rgba(255,140,66,0.1); }
 .games-card.purple .games-card-avatar { background: rgba(139,92,246,0.1); }
 
+/* ✅ LOGIC GAME ICON */
+.games-card.blue .games-card-avatar {
+  background: rgba(59,130,246,0.1);
+}
+
+/* TEXT */
 .games-card-info {
   display: flex;
   flex-direction: column;
@@ -200,6 +214,7 @@
   line-height: 1.5;
 }
 
+/* BADGE */
 .games-card-badge {
   font-size: 0.7rem;
   font-weight: 700;
@@ -211,17 +226,37 @@
   margin-top: 0.5rem;
 }
 
-.games-card.teal   .games-card-badge { color: #2DC9A6; background: rgba(45,201,166,0.12); }
-.games-card.orange .games-card-badge { color: #FF8C42; background: rgba(255,140,66,0.12); }
-.games-card.purple .games-card-badge { color: #8B5CF6; background: rgba(139,92,246,0.12); }
+.games-card.teal .games-card-badge {
+  color: #2DC9A6;
+  background: rgba(45,201,166,0.12);
+}
 
+.games-card.orange .games-card-badge {
+  color: #FF8C42;
+  background: rgba(255,140,66,0.12);
+}
+
+.games-card.purple .games-card-badge {
+  color: #8B5CF6;
+  background: rgba(139,92,246,0.12);
+}
+
+/* ✅ LOGIC GAME BADGE */
+.games-card.blue .games-card-badge {
+  color: #3B82F6;
+  background: rgba(59,130,246,0.12);
+}
+
+/* ARROW */
 .games-card-arrow {
   font-size: 1.5rem;
   color: #CBD5E1;
-  transition: all 0.3s;
 }
 
-.games-card:hover .games-card-arrow { transform: translateX(5px); color: #1A1A2E; }
+.games-card:hover .games-card-arrow {
+  transform: translateX(5px);
+  color: #1A1A2E;
+}
 
 /* ── Replay button ───────────────────────────────────────── */
 .games-replay-wrap {
@@ -243,36 +278,44 @@
   align-items: center;
   gap: 0.6rem;
   cursor: pointer;
-  transition: all 0.3s;
 }
-.games-replay-btn:hover { 
-  background: #2DC9A6; 
-  color: #fff; 
+
+.games-replay-btn:hover {
+  background: #2DC9A6;
+  color: #fff;
   transform: scale(1.05);
 }
 
-/* ── Responsive Overrides ────────────────────────────────── */
+/* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .games-nav { grid-template-columns: 1fr 1fr; }
+  .games-nav {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 768px) {
-  .games-body { 
-    width: 100%; 
-    border-radius: 28px 28px 0 0; 
+  .games-body {
+    border-radius: 28px 28px 0 0;
     padding: 1.5rem 1.25rem;
     margin-top: -2rem;
   }
-  .games-nav { grid-template-columns: 1fr; }
-  .games-banner { padding: 2rem 1.25rem 4rem; }
-  .games-section-label { text-align: left; }
+
+  .games-nav {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
-  .games-card { 
-    grid-template-columns: 56px 1fr; 
+  .games-card {
+    grid-template-columns: 56px 1fr;
     padding: 1.2rem;
   }
-  .games-card-arrow { display: none; }
-  .games-banner-avatar { font-size: 3rem; }
+
+  .games-card-arrow {
+    display: none;
+  }
+
+  .games-banner-avatar {
+    font-size: 3rem;
+  }
 }

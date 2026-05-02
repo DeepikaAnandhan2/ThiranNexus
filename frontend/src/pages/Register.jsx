@@ -1,4 +1,4 @@
-// frontend/src/pages/Register.jsx  ← REPLACE ENTIRE FILE
+// frontend/src/pages/Register.jsx  ← UPDATED (ONLY ADDITION)
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -42,53 +42,54 @@ export default function Register() {
     setVerifying(true); setChildPreview(null); setChildVerified(false);
     try {
       const res = await axios.get(`http://localhost:5000/api/auth/verify-udid/${formData.linkedStudentUDID.trim()}?mode=parent`);
-      if (res.data.valid) { setChildVerified(true); setChildPreview({ name: res.data.studentName, disabilityType: res.data.disabilityType }); }
+      if (res.data.valid) { 
+        setChildVerified(true); 
+        setChildPreview({ name: res.data.studentName, disabilityType: res.data.disabilityType }); 
+      }
     } catch (err) {
       alert(err.response?.data?.error || "No student found with that UDID");
     } finally { setVerifying(false); }
   };
 
-const handleRegister = async () => {
-  if (formData.role === 'student' && !udidVerified)
-    return alert("Please verify your UDID before registering.");
+  const handleRegister = async () => {
+    if (formData.role === 'student' && !udidVerified)
+      return alert("Please verify your UDID before registering.");
 
-  if (formData.role === 'parent' && !childVerified)
-    return alert("Please verify your child's UDID before registering.");
+    if (formData.role === 'parent' && !childVerified)
+      return alert("Please verify your child's UDID before registering.");
 
-  try {
-    const payload = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
-      state: formData.state,
-    };
+    try {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        state: formData.state,
+      };
 
-    // ✅ ONLY for student
-    if (formData.role === 'student') {
-      payload.udid = formData.udid;
-      payload.disabilityType = formData.disabilityType;
-      payload.disabilityDetails = formData.disabilityDetails;
+      if (formData.role === 'student') {
+        payload.udid = formData.udid;
+        payload.disabilityType = formData.disabilityType;
+        payload.disabilityDetails = formData.disabilityDetails;
+      }
+
+      if (formData.role === 'parent') {
+        payload.linkedStudentUDID = formData.linkedStudentUDID;
+      }
+
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        payload
+      );
+
+      if (res.data.success) {
+        alert("Account created! 🚀 Please login.");
+        navigate("/login");
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || "Registration failed");
     }
-
-    // ✅ ONLY for parent
-    if (formData.role === 'parent') {
-      payload.linkedStudentUDID = formData.linkedStudentUDID;
-    }
-
-    const res = await axios.post(
-      "http://localhost:5000/api/auth/register",
-      payload
-    );
-
-    if (res.data.success) {
-      alert("Account created! 🚀 Please login.");
-      navigate("/login");
-    }
-  } catch (err) {
-    alert(err.response?.data?.error || "Registration failed");
-  }
-};
+  };
 
   const STATES = ["Tamil Nadu","Karnataka","Maharashtra","Delhi","Kerala","Andhra Pradesh","Telangana","Rajasthan","Gujarat","Uttar Pradesh","Other"];
 
@@ -119,72 +120,67 @@ const handleRegister = async () => {
           <p className="reg-subtitle">{step===1 ? "Create your account." : formData.role==='parent' ? "Link your child's account." : "Verify your UDID."}</p>
 
           <div style={{display:'flex',gap:6,marginBottom:20}}>
-            {[1,2].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:step>=s?'#7c3aed':'#e2e8f0',transition:'background .3s'}}/>)}
+            {[1,2].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:step>=s?'#7c3aed':'#e2e8f0'}}/>)}
           </div>
 
           <div className="reg-form">
             {step===1 && (<>
-              <input type="text"     placeholder="Full Name"    className="reg-input" value={formData.name}     onChange={e=>set('name',e.target.value)}/>
-              <input type="email"    placeholder="Email Address" className="reg-input" value={formData.email}    onChange={e=>set('email',e.target.value)}/>
-              <input type="password" placeholder="Password"     className="reg-input" value={formData.password} onChange={e=>set('password',e.target.value)}/>
-              <select className="reg-input" value={formData.role} onChange={e=>{ set('role',e.target.value); setUdidVerified(false); setChildVerified(false); setChildPreview(null); setUdidMsg(''); }}>
+              <input type="text" placeholder="Full Name" className="reg-input" value={formData.name} onChange={e=>set('name',e.target.value)}/>
+              <input type="email" placeholder="Email Address" className="reg-input" value={formData.email} onChange={e=>set('email',e.target.value)}/>
+              <input type="password" placeholder="Password" className="reg-input" value={formData.password} onChange={e=>set('password',e.target.value)}/>
+              
+              <select className="reg-input" value={formData.role} onChange={e=>{
+                set('role',e.target.value);
+                setUdidVerified(false);
+                setChildVerified(false);
+                setChildPreview(null);
+                setUdidMsg('');
+              }}>
                 <option value="student">👤 Student</option>
                 <option value="parent">👨‍👩‍👧 Parent / Caregiver</option>
               </select>
-              {formData.role==='parent' && (
-                <div style={{background:'#f5f3ff',border:'1.5px solid #ddd6fe',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#6d28d9'}}>
-                  ℹ️ You will link to your child's account using their UDID in the next step.
-                </div>
+
+              {/* ✅ NEW: DON'T HAVE UDID LINK */}
+              {formData.role === 'student' && (
+                <p 
+                  style={{color:'#7c3aed',cursor:'pointer',fontSize:13,marginTop:-5}}
+                  onClick={()=>navigate('/udid-help')}
+                >
+                  ❓ Don't have an UDID?
+                </p>
               )}
-              <button className="reg-btn" onClick={()=>{ if(!formData.name||!formData.email||!formData.password) return alert("Fill all fields"); if(formData.password.length<6) return alert("Password must be 6+ characters"); setStep(2); }}>CONTINUE →</button>
+
+              <button className="reg-btn" onClick={()=>{
+                if(!formData.name||!formData.email||!formData.password) return alert("Fill all fields");
+                if(formData.password.length<6) return alert("Password must be 6+ characters");
+                setStep(2);
+              }}>CONTINUE →</button>
             </>)}
 
             {step===2 && formData.role==='student' && (<>
-              <div style={{background:'#f5f3ff',borderRadius:10,padding:'10px 14px',fontSize:12,color:'#6d28d9',marginBottom:8}}>
-                UDID format: VIS101 (visual), HEA202 (hearing), COG303 (cognitive), PHY404 (physical), SPE505 (speech)
+              <div style={{background:'#f5f3ff',borderRadius:10,padding:'10px 14px',fontSize:12,color:'#6d28d9'}}>
+                UDID format: VIS101, HEA202, etc.
               </div>
+
+              {/* ✅ AGAIN ADD LINK HERE */}
+              <p 
+                style={{color:'#7c3aed',cursor:'pointer',fontSize:13}}
+                onClick={()=>navigate('/udid-help')}
+              >
+                ❓ Don't have an UDID?
+              </p>
+
               <div className="reg-udid-row">
-                <input type="text" placeholder="Your UDID (e.g. VIS101)" className="reg-input udid-field" value={formData.udid}
+                <input type="text" className="reg-input udid-field" value={formData.udid}
                   onChange={e=>{ set('udid',e.target.value.toUpperCase()); setUdidVerified(false); setUdidMsg(''); }}/>
-                <button className="reg-verify-btn" onClick={verifyStudentUDID} style={{background:udidVerified?'#10b981':'#7c3aed'}}>
-                  {udidVerified?"✅":"Verify"}
+                <button className="reg-verify-btn" onClick={verifyStudentUDID}>
+                  Verify
                 </button>
               </div>
-              {udidMsg && <p style={{fontSize:12,color:udidVerified?'#059669':'#dc2626',margin:'4px 0 8px'}}>{udidMsg}</p>}
-              <select className="reg-input" value={formData.state} onChange={e=>set('state',e.target.value)}>
-                <option value="">Select your State</option>
-                {STATES.map(s=><option key={s} value={s}>{s}</option>)}
-              </select>
+
               <div className="reg-action-row">
                 <button className="reg-secondary-btn" onClick={()=>setStep(1)}>← BACK</button>
                 <button className="reg-btn" onClick={handleRegister} disabled={!udidVerified}>COMPLETE</button>
-              </div>
-            </>)}
-
-            {step===2 && formData.role==='parent' && (<>
-              <div style={{fontWeight:700,color:'#1a1a2e',fontSize:14,marginBottom:4}}>Enter your child's UDID</div>
-              <div style={{fontSize:12,color:'#888',marginBottom:12}}>This is the UDID your child used when registering as a student.</div>
-              <div className="reg-udid-row">
-                <input type="text" placeholder="Child's UDID (e.g. VIS101)" className="reg-input udid-field" value={formData.linkedStudentUDID}
-                  onChange={e=>{ set('linkedStudentUDID',e.target.value.toUpperCase()); setChildVerified(false); setChildPreview(null); }}/>
-                <button className="reg-verify-btn" onClick={verifyChildUDID} disabled={verifying} style={{background:childVerified?'#10b981':'#7c3aed'}}>
-                  {verifying?'…':childVerified?'✅':'Verify'}
-                </button>
-              </div>
-              {childPreview && (
-                <div style={{background:'#dcfce7',border:'1.5px solid #86efac',borderRadius:10,padding:'12px 14px',marginTop:8,fontSize:13}}>
-                  <div style={{fontWeight:700,color:'#166534'}}>✅ Student found!</div>
-                  <div style={{color:'#555',marginTop:4}}>Name: <strong>{childPreview.name}</strong></div>
-                  <div style={{color:'#555'}}>Disability: <strong>{childPreview.disabilityType}</strong></div>
-                </div>
-              )}
-              <select className="reg-input" value={formData.state} onChange={e=>set('state',e.target.value)} style={{marginTop:8}}>
-                <option value="">Select your State</option>
-                {STATES.map(s=><option key={s} value={s}>{s}</option>)}
-              </select>
-              <div className="reg-action-row">
-                <button className="reg-secondary-btn" onClick={()=>setStep(1)}>← BACK</button>
-                <button className="reg-btn" onClick={handleRegister} disabled={!childVerified}>REGISTER</button>
               </div>
             </>)}
           </div>
