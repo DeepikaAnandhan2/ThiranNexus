@@ -1,0 +1,220 @@
+/* --- Global Theme --- */
+.logic-game-wrapper {
+  min-height: 100vh;
+  background: #0d1117; /* Keeping the page background dark to make white cards pop */
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-header {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 30px;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.back-link {
+  background: transparent;
+  border: 1px solid #333;
+  color: #888;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.score-pill {
+  background: #00d26a;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.title-text {
+  font-size: 3rem;
+  letter-spacing: -2px;
+  margin: 0;
+  text-align: right;
+}
+
+/* --- Content Container --- */
+.game-content {
+  width: 100%;
+  max-width: 800px;
+}
+
+.sequential-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* --- WHITE CARD LAYOUT (Clues) --- */
+.clues-section {
+  background: #ffffff; /* WHITE BOX */
+  border: 1px solid #e1e4e8;
+  border-radius: 24px;
+  padding: 35px;
+}
+
+.clues-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.section-title-black { 
+  margin: 0; 
+  color: #5856d6; /* Purple accent */
+  font-size: 24px; 
+  font-weight: 800;
+}
+
+.listen-btn {
+  background: #5856d6;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clue-card-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.clue-number {
+  background: #f1f3f5;
+  color: #495057;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.clue-text-black { 
+  margin: 0; 
+  color: #1c1c1e; /* BLACK TEXT */
+  font-size: 18px; 
+  font-weight: 500; 
+}
+
+/* --- WHITE CARD LAYOUT (Game Area) --- */
+.input-section {
+  background: #ffffff; /* WHITE BOX */
+  border: 1px solid #e1e4e8;
+  border-radius: 24px;
+  padding: 35px;
+}
+
+.section-label {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #007aff; /* Blue accent */
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.rows-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.answer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa; /* Light gray row */
+  padding: 15px 25px;
+  border-radius: 16px;
+  border: 1px solid #f1f3f5;
+}
+
+.row-number { 
+  font-weight: 800; 
+  font-size: 16px; 
+  color: #8e8e93; /* Subtle black/gray */
+}
+
+.logic-select {
+  width: 180px;
+  padding: 10px;
+  background: #ffffff;
+  border: 2px solid #e5e5ea;
+  color: #1c1c1e; /* BLACK TEXT */
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  appearance: none;
+}
+
+/* Color visual indicators for the dropdowns */
+.logic-select.green { border-color: #34c759; color: #1c1c1e; }
+.logic-select.yellow { border-color: #ffcc00; color: #1c1c1e; }
+.logic-select.blue { border-color: #007aff; color: #1c1c1e; }
+.logic-select.orange { border-color: #ff9500; color: #1c1c1e; }
+
+/* --- Footer --- */
+.action-footer {
+  text-align: center;
+  padding-bottom: 40px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 22px;
+  background: #1c1c1e;
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.submit-btn:hover { background: #5856d6; }
+
+.message-banner {
+  margin-top: 25px;
+  padding: 18px;
+  border-radius: 15px;
+  font-weight: 800;
+}
+
+.message-banner.success { background: #e2f9ec; color: #008a44; }
+.message-banner.retry { background: #ffeceb; color: #d70015; }
+
+/* --- Setup/Difficulty Card --- */
+.setup-card { background: #ffffff; padding: 50px; border-radius: 24px; text-align: center; color: #1c1c1e; }
+.setup-title { margin-bottom: 30px; font-weight: 900; }
+.difficulty-row { display: flex; gap: 15px; margin-bottom: 30px; }
+.diff-btn { 
+  flex: 1; padding: 20px; border-radius: 15px; background: #f2f2f7; 
+  color: #1c1c1e; border: 2px solid transparent; cursor: pointer; font-weight: 800; 
+}
+.diff-btn.active { border-color: #5856d6; background: #f5f3ff; color: #5856d6; }
+.start-btn { width: 100%; padding: 20px; background: #00d26a; border: none; color: white; border-radius: 15px; font-weight: 900; cursor: pointer; }

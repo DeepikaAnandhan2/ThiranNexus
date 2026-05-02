@@ -1,21 +1,23 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const http = require('http'); // Required for Socket.io
-const { Server } = require('socket.io'); // Required for Socket.io
+const http = require('http'); 
+const { Server } = require('socket.io'); 
 require('dotenv').config();
 
 const connectDB = require('./config/db');
 const seedSchemes = require('./data/seedSchemes');
-const parentRoutes = require('./routes/parentRoutes') 
+const parentRoutes = require('./routes/parentRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const adminRoutes = require('./routes/adminRoutes');
+
 // ─── 1. Create HTTP Server & Socket.io Instance ──────────────
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*', // Adjust this in production for security
+    origin: '*',
     methods: ['GET', 'POST']
   }
 });
@@ -31,25 +33,28 @@ app.use(cors());
 app.use(express.json());
 
 // ─── 4. Socket.io Logic ──────────────────────────────────────
-// Import and initialize your scribble socket handler
 require('./scribbleSocket')(io);
 
 // ─── 5. Routes ───────────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/schemes', require('./routes/schemeRoutes'));
 app.use('/api/education', require('./routes/education'));
-app.use('/api/scribble', require('./routes/scribble')); // New Scribble Routes
-app.use('/api/dashboard', require('./routes/dashboard'))
-app.use('/api/parent', parentRoutes)
-app.use('/api/feedback', require('./routes/feedbackRoutes'))
-app.use('/api/notifications', require('./routes/notificationRoutes'))
-app.use('/api/admin', require('./routes/adminRoutes'))
+app.use('/api/scribble', require('./routes/scribble'));
+app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/parent', parentRoutes);
+app.use('/api/feedback', require('./routes/feedbackRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+
+// ✅ ADD THIS LINE (Logic Game Route)
+app.use('/api/game', require('./routes/gameRoutes'));
+
 // ✅ Health Check
 app.get('/api/health', (req, res) =>
   res.json({ status: 'ok', service: 'ThiranNexus API' })
 );
 
-// ✅ TEMP TEST ROUTE (for debugging data)
+// ✅ TEMP TEST ROUTE
 app.get('/api/add-test-data', async (req, res) => {
   try {
     const Scheme = require('./models/Scheme');
@@ -179,7 +184,6 @@ app.post('/api/validate/math', (req, res) => {
 });
 
 // ─── 7. Start Server ─────────────────────────────────────────
-// Use server.listen instead of app.listen to support WebSockets
 server.listen(PORT, () => {
   console.log(`ThiranNexus running on port ${PORT} 🚀`);
 });
