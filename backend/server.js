@@ -11,6 +11,8 @@ const parentRoutes = require('./routes/parentRoutes')
 const app = express();
 const PORT = process.env.PORT || 5000;
 const adminRoutes = require('./routes/adminRoutes');
+const education2Routes = require('./routes/education2');
+
 // ─── 1. Create HTTP Server & Socket.io Instance ──────────────
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -44,6 +46,8 @@ app.use('/api/parent', parentRoutes)
 app.use('/api/feedback', require('./routes/feedbackRoutes'))
 app.use('/api/notifications', require('./routes/notificationRoutes'))
 app.use('/api/admin', require('./routes/adminRoutes'))
+app.use('/api/education2', education2Routes);
+
 // ✅ Health Check
 app.get('/api/health', (req, res) =>
   res.json({ status: 'ok', service: 'ThiranNexus API' })

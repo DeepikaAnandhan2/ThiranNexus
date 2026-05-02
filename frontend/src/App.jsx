@@ -23,18 +23,23 @@ import ParentDashboard from "./pages/ParentDashboard/ParentDashboard";
 import FeedbackPage from './pages/FeedbackPage'
 import AdminRoutes from './admin/AdminRoutes';
 
+import Education2 from './pages/Education2';
 // 🔹 Layout Wrapper
 const AppLayout = () => {
   return (
     <div className="app-shell">
       <Sidebar />
-      <div className="main-wrapper">
+      <div className="content-area">
         <Topbar />
-        <main className="main-content">
-          <Outlet />
+        <main className="page-content">
+           <div className="page-inner">
+    <Outlet />
+  </div>
+
         </main>
       </div>
     </div>
+    
   );
 };
 
@@ -84,7 +89,7 @@ export default function App() {
   <Route path="/education" element={<Education />} />
   <Route path="/games" element={<Games />} />
   <Route path="/scribble" element={<Scribble />} />
-
+  <Route path="/education2" element={<Education2 />} />
   <Route path="/schemes" element={<SchemesWithAuth />} />
   <Route path="/scheme/:id" element={<SchemeDetails />} />
   <Route path="/saved" element={<SavedApplied />} />

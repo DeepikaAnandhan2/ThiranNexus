@@ -104,7 +104,25 @@ const getSchoolInfographic = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+const getSchoolVideos = async (req, res) => {
+  try {
+    const { grade, subject } = req.query;
 
+    if (!grade || !subject) {
+      return res.status(400).json({ error: 'grade and subject are required' });
+    }
+
+    // You can later integrate YouTube or DIKSHA video API here
+    res.json({
+      success: true,
+      message: "School videos feature coming soon",
+      data: []
+    });
+  } catch (err) {
+    console.error('getSchoolVideos error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
 // ─── GET /api/education/college ──────────────────────────
 const getCollegeMaterial = async (req, res) => {
   try {
@@ -177,7 +195,8 @@ module.exports = {
   getSubjects,
   getSchoolMaterial,
   getSchoolContent,
-  getSchoolInfographic,   // ← new export
+  getSchoolInfographic, 
+  getSchoolVideos,      // ← new export
   getCollegeMaterial,
   getISL,
   simplify,

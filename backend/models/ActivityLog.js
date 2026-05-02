@@ -8,7 +8,7 @@ const ActivityLogSchema = new mongoose.Schema({
     enum: ['login','study','game_twister','game_math','game_scribble','scheme_viewed'],
     required: true
   },
-  // For study
+  // For studya
   subject:      { type: String, default: '' },
   chapter:      { type: String, default: '' },
   durationMins: { type: Number, default: 0 },

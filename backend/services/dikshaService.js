@@ -1,391 +1,597 @@
-// ─── DIKSHA / NCERT Service ───────────────────────────────
-// Fetches school study material from DIKSHA (free, no API key)
-// Enhanced: Gemini fills in full content when DIKSHA only returns topic titles
-// Docs: https://diksha.gov.in/explore
+// ─── DIKSHA Service — HEARING IMPAIRED ENHANCED ───────────
+// Strategy:
+//  1. Local NCERT DB → organized chapters (always works)
+//  2. DIKSHA API → fetch VIDEO resources for hearing impaired
+//  3. Gemini → generate content when DIKSHA text is thin
+// Tamil Nadu State Board aligned — Classes 6 to 10
 
-const axios = require('axios');
-const { simplifyContent, generateQuiz, generateFullContent } = require('./geminiService');
+const axios = require('axios')
+const {
+  getChapters,
+  getChapterContent,
+  getSubjectsForClass,
+  SUPPORTED_GRADES,
+  SUPPORTED_SUBJECTS,
+} = require('../data/ncertContent')
 
-const DIKSHA_BASE = 'https://diksha.gov.in/api/content/v1';
+const DIKSHA_BASE = 'https://diksha.gov.in/api/content/v1'
 
 const GRADE_MAP = {
-  '1': 'Class 1', '2': 'Class 2', '3': 'Class 3', '4': 'Class 4',
-  '5': 'Class 5', '6': 'Class 6', '7': 'Class 7', '8': 'Class 8',
-  '9': 'Class 9', '10': 'Class 10', '11': 'Class 11', '12': 'Class 12',
-};
+  '1':'Class 1','2':'Class 2','3':'Class 3','4':'Class 4',
+  '5':'Class 5','6':'Class 6','7':'Class 7','8':'Class 8',
+  '9':'Class 9','10':'Class 10','11':'Class 11','12':'Class 12',
+}
 
+// Added Tamil + all subjects
 const SUBJECTS = [
-  'Mathematics', 'Science', 'English', 'Hindi',
-  'Social Science', 'Physics', 'Chemistry', 'Biology', 'History',
-  'Geography', 'Economics', 'Political Science', 'Computer Science'
-];
+  'Tamil','Mathematics','Science','English','Hindi',
+  'Social Science','Physics','Chemistry','Biology',
+  'History','Geography','Economics','Political Science','Computer Science'
+]
 
-// ── Search DIKSHA content ──────────────────────────────────
-const searchDIKSHA = async ({ grade, subject, query = '' }) => {
+// ─────────────────────────────────────────────────────────
+// searchDIKSHA — Main search
+// Returns chapters from local DB + DIKSHA videos (for hearing)
+// ─────────────────────────────────────────────────────────
+const searchDIKSHA = async ({ grade, subject, query = '', disabilityType = 'none' }) => {
+
+  // ── Always serve local NCERT chapters first ────────────
+  const localChapters = getChapters(grade, subject)
+
+  let results = []
+
+  if (localChapters.length > 0) {
+    results = localChapters.map(ch => ({
+      id:             ch.id,
+      title:          ch.title,
+      description:    ch.preview,
+      grade:          `Class ${grade}`,
+      subject,
+      type:           'Chapter',
+      source:         'local',
+      hasFullContent: true,
+      chapter:        ch.chapter,
+      hasQuiz:        ch.hasQuiz,
+      videoUrl:       null,
+      thumbnailUrl:   null,
+    }))
+  }
+
+  // ── For hearing impaired: also fetch DIKSHA videos ─────
+  if (disabilityType === 'hearing') {
+    const videos = await fetchDIKSHAVideos({ grade, subject, query })
+    // Merge: put videos FIRST for hearing impaired
+    results = [...videos, ...results]
+  }
+
+  // ── Fallback if nothing found ──────────────────────────
+  if (results.length === 0) {
+    results = getMockContent(grade, subject)
+  }
+
+  return results
+}
+
+// ─────────────────────────────────────────────────────────
+// fetchDIKSHAVideos — Fetch video resources from DIKSHA
+// Specifically for hearing impaired students
+// ─────────────────────────────────────────────────────────
+const fetchDIKSHAVideos = async ({ grade, subject, query = '' }) => {
   try {
-    const gradeLabel = GRADE_MAP[grade] || `Class ${grade}`;
+    const gradeLabel = GRADE_MAP[grade] || `Class ${grade}`
+    console.log(`🎬 Fetching DIKSHA videos for Class ${grade} ${subject}`)
 
     const response = await axios.post(`${DIKSHA_BASE}/search`, {
       request: {
         filters: {
-          gradeLevel: [gradeLabel],
-          subject: [subject],
-          contentType: ['TextBook', 'ExplanationResource', 'Resource'],
-          status: ['Live']
+          board:       ['State (Tamil Nadu)', 'CBSE'],
+          medium:      ['Tamil', 'English'],
+          gradeLevel:  [gradeLabel],
+          subject:     [subject],
+          // Only video types
+          contentType: ['VideoResource', 'Video', 'ExplanationResource', 'FocusSpot'],
+          mimeType:    ['video/x-youtube', 'video/mp4', 'application/vnd.ekstep.ecml-archive'],
+          status:      ['Live'],
         },
-        query: query || subject,
-        limit: 10,
+        query:  query || subject,
+        limit:  8,
         fields: [
-          'name', 'description', 'gradeLevel', 'subject',
-          'identifier', 'downloadUrl', 'artifactUrl',
-          'appIcon', 'mimeType', 'contentType', 'body'
-        ]
+          'name','description','gradeLevel','subject',
+          'identifier','mimeType','artifactUrl',
+          'previewUrl','thumbnail','appIcon','contentType',
+          'body','streamingUrl',
+        ],
       }
     }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0'
-      },
-      timeout: 8000
-    });
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+      timeout: 10000,
+    })
 
-    const items = response.data?.result?.content || [];
-    if (items.length === 0) return getMockSchoolContent(grade, subject);
+    const items = response.data?.result?.content || []
+    console.log(`✅ DIKSHA returned ${items.length} video items for Class ${grade} ${subject}`)
+
+    if (items.length === 0) {
+      // Fallback: try YouTube search via our service
+      return await getYouTubeFallbackVideos(grade, subject)
+    }
 
     return items.map(item => ({
-      id: item.identifier,
-      title: item.name,
-      // DIKSHA often returns only a brief description — we flag it for Gemini enrichment
-      description: item.description || '',
-      hasFullContent: !!(item.body && item.body.trim().length > 200),
-      fullContent: item.body || '',
-      grade: item.gradeLevel?.join(', ') || gradeLabel,
-      subject: item.subject?.join(', ') || subject,
-      type: item.contentType,
-      icon: item.appIcon || '',
-      downloadUrl: item.artifactUrl || item.downloadUrl || '',
-      mimeType: item.mimeType || '',
-    }));
+      id:           item.identifier,
+      title:        item.name,
+      description:  item.description || '',
+      grade:        item.gradeLevel?.join(', ') || `Class ${grade}`,
+      subject:      item.subject?.join(', ') || subject,
+      type:         'Video',
+      source:       'diksha',
+      hasFullContent: false,
+      isVideo:      true,
+      // Video URL resolution
+      videoUrl:     resolveVideoUrl(item),
+      embedUrl:     resolveEmbedUrl(item),
+      thumbnailUrl: item.thumbnail || item.appIcon || '',
+      mimeType:     item.mimeType || '',
+    })).filter(item => item.videoUrl || item.embedUrl) // only items with actual video
   } catch (err) {
-    console.error('DIKSHA fetch error:', err.message);
-    return getMockSchoolContent(grade, subject);
+    console.error('DIKSHA video fetch error:', err.message)
+    return await getYouTubeFallbackVideos(grade, subject)
   }
-};
+}
 
-// ── Get content detail by ID ───────────────────────────────
-const getDIKSHAContent = async (contentId) => {
+// ─────────────────────────────────────────────────────────
+// resolveVideoUrl — Figure out the actual playable URL
+// DIKSHA stores videos in different formats
+// ─────────────────────────────────────────────────────────
+const resolveVideoUrl = (item) => {
+  // 1. Direct streaming URL (best)
+  if (item.streamingUrl) return item.streamingUrl
+  // 2. Artifact URL
+  if (item.artifactUrl) return item.artifactUrl
+  // 3. Preview URL
+  if (item.previewUrl) return item.previewUrl
+  // 4. Extract from body if YouTube embed
+  if (item.body && item.body.includes('youtube.com')) {
+    const match = item.body.match(/youtube\.com\/embed\/([^"&?/\s]+)/)
+    if (match) return `https://www.youtube.com/watch?v=${match[1]}`
+  }
+  return null
+}
+
+// ─────────────────────────────────────────────────────────
+// resolveEmbedUrl — For iframe embedding
+// ─────────────────────────────────────────────────────────
+const resolveEmbedUrl = (item) => {
+  const url = item.streamingUrl || item.artifactUrl || item.previewUrl || ''
+
+  // YouTube URL → embed URL
+  if (url.includes('youtube.com/watch')) {
+    const videoId = url.split('v=')[1]?.split('&')[0]
+    if (videoId) return `https://www.youtube.com/embed/${videoId}?cc_load_policy=1&cc_lang_pref=en&hl=en`
+  }
+  if (url.includes('youtu.be/')) {
+    const videoId = url.split('youtu.be/')[1]?.split('?')[0]
+    if (videoId) return `https://www.youtube.com/embed/${videoId}?cc_load_policy=1`
+  }
+  // Already an embed URL
+  if (url.includes('/embed/')) return url + '?cc_load_policy=1'
+  // DIKSHA player URL
+  if (url.includes('diksha.gov.in')) return url
+  // MP4 → return as-is for HTML5 video
+  if (url.endsWith('.mp4')) return url
+  return null
+}
+
+// ─────────────────────────────────────────────────────────
+// getYouTubeFallbackVideos
+// When DIKSHA has no videos, search YouTube for Tamil Nadu NCERT content
+// ─────────────────────────────────────────────────────────
+const getYouTubeFallbackVideos = async (grade, subject) => {
   try {
-    const res = await axios.get(`${DIKSHA_BASE}/read/${contentId}`, {
-      timeout: 8000
-    });
-    return res.data?.result?.content || null;
+    const { searchYouTube } = require('./youtubeService')
+    const query = `Class ${grade} ${subject} Tamil Nadu NCERT lesson`
+    const videos = await searchYouTube({ query, maxResults: 5, captionsOnly: true })
+    return videos.map(v => ({
+      id:           v.videoId,
+      title:        v.title,
+      description:  v.description,
+      grade:        `Class ${grade}`,
+      subject,
+      type:         'Video',
+      source:       'youtube',
+      isVideo:      true,
+      videoUrl:     v.watchUrl,
+      embedUrl:     v.embedUrl,
+      thumbnailUrl: v.thumbnail,
+      channel:      v.channel,
+    }))
   } catch (err) {
-    console.error('DIKSHA content error:', err.message);
-    return null;
+    console.error('YouTube fallback error:', err.message)
+    return []
   }
-};
+}
 
-// ── Get enriched content (DIKSHA + Gemini fallback) ────────
-// This is the main function used by the controller for school/content/:id
-// It ensures the student ALWAYS gets full readable content, not just a title.
+// ─────────────────────────────────────────────────────────
+// getDIKSHAContent — Get full content by ID
+// Local content returned instantly, DIKSHA as fallback
+// ─────────────────────────────────────────────────────────
+const getDIKSHAContent = async (contentId) => {
+  // Local content IDs
+  if (contentId.match(/^c\d/) || contentId.startsWith('mock-')) {
+    const chapter = getChapterContent(contentId)
+    if (chapter) {
+      return {
+        identifier:  chapter.id,
+        name:        chapter.title,
+        subject:     [chapter.subject],
+        gradeLevel:  [chapter.grade],
+        description: chapter.content,
+        body:        chapter.content,
+        quiz:        chapter.quiz,
+        keyPoints:   chapter.keyPoints,
+        source:      'local',
+        videoUrl:    null,
+      }
+    }
+  }
+
+  // DIKSHA video IDs
+  try {
+    const res = await axios.get(`${DIKSHA_BASE}/read/${contentId}`, { timeout: 8000 })
+    const item = res.data?.result?.content
+    if (!item) return null
+    return {
+      ...item,
+      videoUrl:  resolveVideoUrl(item),
+      embedUrl:  resolveEmbedUrl(item),
+      source:    'diksha',
+    }
+  } catch (err) {
+    console.error('DIKSHA content read error:', err.message)
+    return null
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// getEnrichedContent — Full content with Gemini fallback
+// Used by /api/education/school/content/:id
+// ─────────────────────────────────────────────────────────
 const getEnrichedContent = async (contentId, { grade, subject, disabilityType = 'none' }) => {
-  // Step 1: Try DIKSHA for actual content
-  const dikshaContent = await getDIKSHAContent(contentId);
+  const raw = await getDIKSHAContent(contentId)
 
-  let rawText = '';
-  let title   = '';
+  let text  = ''
+  let title = ''
+  let videoUrl  = raw?.videoUrl  || null
+  let embedUrl  = raw?.embedUrl  || null
+  let thumbUrl  = raw?.thumbnail || raw?.appIcon || null
 
-  if (dikshaContent && dikshaContent.body && dikshaContent.body.trim().length > 200) {
-    // DIKSHA returned real content — use it
-    rawText = dikshaContent.body;
-    title   = dikshaContent.name;
+  if (raw?.body && raw.body.trim().length > 300) {
+    text  = raw.body
+    title = raw.name
   } else {
-    // DIKSHA only gave us a title/stub — use Gemini to generate full content
-    title   = dikshaContent?.name || `${subject} - Class ${grade}`;
-    rawText = await generateFullContent({ title, grade, subject });
+    title = raw?.name || `${subject} — Class ${grade}`
+    try {
+      const { generateFullContent } = require('./geminiService')
+      text = await generateFullContent({ title, grade, subject })
+    } catch {
+      text = raw?.description || raw?.body || ''
+    }
   }
 
-  // Step 2: Simplify based on disability type
-  let displayContent = rawText;
-  if (disabilityType !== 'none') {
-    displayContent = await simplifyContent(rawText, disabilityType);
+  // Simplify for disability
+  let displayContent = text
+  if (disabilityType !== 'none' && disabilityType !== 'other' && text) {
+    try {
+      const { simplifyContent } = require('./geminiService')
+      displayContent = await simplifyContent(text, disabilityType)
+    } catch { /* use original */ }
   }
 
-  // Step 3: Generate quiz
-  const quiz = await generateQuiz(displayContent, 3);
+  // Quiz
+  let quiz = raw?.quiz || []
+  if (quiz.length === 0 && displayContent) {
+    try {
+      const { generateQuiz } = require('./geminiService')
+      quiz = await generateQuiz(displayContent, 3)
+    } catch { /* empty quiz */ }
+  }
 
   return {
-    id:             contentId,
+    id:          contentId,
     title,
-    grade:          `Class ${grade}`,
+    grade:       `Class ${grade}`,
     subject,
-    content:        displayContent,
-    rawContent:     rawText,
+    content:     displayContent,
+    rawContent:  text,
     quiz,
-    generatedBy:    dikshaContent?.body?.length > 200 ? 'diksha' : 'gemini',
-  };
-};
+    keyPoints:   raw?.keyPoints || [],
+    videoUrl,
+    embedUrl,
+    thumbnailUrl:thumbUrl,
+    source:      raw?.source || 'local',
+    generatedBy: raw?.body?.length > 300 ? 'diksha' : 'gemini',
+  }
+}
 
-// ── Infographic data for Class 8 & 9 (Hearing Impaired) ───
-// Visual-first content: icon + short label + color per concept
-// Covers core NCERT topics for both classes
+// ─────────────────────────────────────────────────────────
+// getInfographicContent — Visual cards for hearing impaired
+// ─────────────────────────────────────────────────────────
 const getInfographicContent = (grade, subject) => {
-  const key = `${grade}_${subject}`;
+  const key = `${grade}_${subject}`
+
   const infographics = {
+    '6_Science': [
+      {
+        topic: 'Food Sources',
+        color: '#4CAF50', emoji: '🍎',
+        steps: [
+          { icon: '🌱', label: 'Plants', detail: 'Fruits, vegetables, cereals, pulses' },
+          { icon: '🐄', label: 'Animals', detail: 'Milk, eggs, meat, honey' },
+          { icon: '🌾', label: 'Cereals', detail: 'Rice, wheat, maize — energy foods' },
+          { icon: '🫘', label: 'Pulses', detail: 'Dal, beans, peas — protein foods' },
+        ],
+        keyFacts: ['Plants give us most of our food', 'Honey is made by bees from nectar', 'Rice is staple food of Tamil Nadu'],
+      },
+      {
+        topic: 'Nutrition in Food',
+        color: '#FF9800', emoji: '💊',
+        steps: [
+          { icon: '⚡', label: 'Carbohydrates', detail: 'Rice, wheat → give energy' },
+          { icon: '💪', label: 'Proteins', detail: 'Dal, egg, milk → build body' },
+          { icon: '🔆', label: 'Vitamins', detail: 'Fruits, vegetables → prevent disease' },
+          { icon: '🦴', label: 'Minerals', detail: 'Milk, spinach → strong bones & blood' },
+        ],
+        keyFacts: ['Lack of Vitamin C → Scurvy', 'Lack of Iron → Anaemia', 'Balanced diet has all nutrients'],
+      },
+    ],
+    '7_Science': [
+      {
+        topic: 'Photosynthesis',
+        color: '#4CAF50', emoji: '🌿',
+        steps: [
+          { icon: '☀️', label: 'Sunlight', detail: 'Energy source — absorbed by chlorophyll' },
+          { icon: '💧', label: 'Water', detail: 'Absorbed from soil through roots' },
+          { icon: '💨', label: 'CO₂', detail: 'Carbon dioxide enters through stomata' },
+          { icon: '🍬', label: 'Glucose', detail: 'Food made and stored in plant' },
+          { icon: '🌬️', label: 'Oxygen', detail: 'Released into air — we breathe this!' },
+        ],
+        keyFacts: ['Chlorophyll makes leaves green', 'Stomata are tiny pores on leaves', 'Plants are called producers'],
+      },
+      {
+        topic: 'Nutrition Types',
+        color: '#9C27B0', emoji: '🌱',
+        steps: [
+          { icon: '🌿', label: 'Autotrophs', detail: 'Make own food — all green plants' },
+          { icon: '🕸️', label: 'Parasites', detail: 'Steal food from host — Cuscuta' },
+          { icon: '🪤', label: 'Insectivores', detail: 'Trap insects — Pitcher plant' },
+          { icon: '🍄', label: 'Saprophytes', detail: 'Eat dead matter — Mushroom, Mould' },
+        ],
+        keyFacts: ['Cuscuta is yellow thread-like parasite', 'Pitcher plant grows in nitrogen-poor soil', 'Mushrooms decompose dead matter'],
+      },
+    ],
     '8_Science': [
       {
         topic: 'Crop Production & Management',
-        color: '#4CAF50',
-        emoji: '🌾',
+        color: '#4CAF50', emoji: '🌾',
         steps: [
           { icon: '🌱', label: 'Preparation of Soil', detail: 'Ploughing loosens soil for roots' },
-          { icon: '🌿', label: 'Sowing Seeds', detail: 'Seeds planted at correct depth & spacing' },
-          { icon: '💧', label: 'Irrigation', detail: 'Regular water supply for growth' },
-          { icon: '🧪', label: 'Fertilizers', detail: 'Nutrients added to improve yield' },
-          { icon: '🌾', label: 'Harvesting', detail: 'Cutting & collecting mature crops' },
-          { icon: '🏠', label: 'Storage', detail: 'Stored in silos/godowns to prevent damage' },
+          { icon: '🌿', label: 'Sowing Seeds', detail: 'Seeds planted at correct depth' },
+          { icon: '💧', label: 'Irrigation', detail: 'Water supply — Mettur Dam in Tamil Nadu' },
+          { icon: '🧪', label: 'Fertilizers', detail: 'NPK — Nitrogen, Phosphorus, Potassium' },
+          { icon: '🌾', label: 'Harvesting', detail: 'Sickle or combine harvester' },
+          { icon: '🏠', label: 'Storage', detail: 'Silos, godowns — prevent pests' },
         ],
-        keyFacts: ['Kharif crops grow in June–Sep', 'Rabi crops grow in Oct–Mar', 'Zaid crops grow in summer'],
+        keyFacts: ['Paddy (rice) is Kharif crop', 'Drip irrigation saves water', 'Tamil Nadu: major paddy growing state'],
       },
       {
-        topic: 'Microorganisms',
-        color: '#9C27B0',
-        emoji: '🦠',
+        topic: 'Synthetic Fibres & Plastics',
+        color: '#2196F3', emoji: '🧵',
         steps: [
-          { icon: '🔬', label: 'Bacteria', detail: 'Single-celled, cause disease & help in curd' },
-          { icon: '🍄', label: 'Fungi', detail: 'Mushrooms, bread mould — good & bad' },
-          { icon: '🌊', label: 'Algae', detail: 'Found in water, make own food' },
-          { icon: '⚡', label: 'Protozoa', detail: 'Amoeba, parasite, causes malaria' },
-          { icon: '💊', label: 'Viruses', detail: 'Cause cold, flu, COVID — need host' },
+          { icon: '🪢', label: 'Nylon', detail: 'First synthetic fibre — very strong' },
+          { icon: '👗', label: 'Polyester', detail: 'PET — wrinkle resistant, dries fast' },
+          { icon: '🧶', label: 'Acrylic', detail: 'Artificial wool — cheaper than real wool' },
+          { icon: '🎗️', label: 'Rayon', detail: 'Artificial silk — from wood pulp' },
+          { icon: '⚠️', label: 'Plastics Problem', detail: 'Non-biodegradable — banned in Tamil Nadu 2019' },
         ],
-        keyFacts: ['Antibiotics kill bacteria, not viruses', 'Lactobacillus makes curd', 'Yeast is used in bread-making'],
+        keyFacts: ['Kanchipuram silk is natural — from silkworm', 'Tamil Nadu banned single-use plastics', 'Thermoplastics can be remoulded'],
       },
       {
-        topic: 'Combustion & Flame',
-        color: '#FF5722',
-        emoji: '🔥',
+        topic: 'Force and Pressure',
+        color: '#FF5722', emoji: '💪',
         steps: [
-          { icon: '🧨', label: 'Ignition', detail: 'Every fuel needs a minimum temp to burn' },
-          { icon: '💨', label: 'Oxygen', detail: 'Fire needs oxygen to keep burning' },
-          { icon: '🔥', label: 'Flame Zones', detail: 'Blue (hottest) → Yellow → Outer dark zone' },
-          { icon: '🚒', label: 'Fire Safety', detail: 'Sand/CO₂ extinguisher removes oxygen' },
+          { icon: '👊', label: 'What is Force?', detail: 'Push or pull that changes motion or shape' },
+          { icon: '🧲', label: 'Non-contact Forces', detail: 'Magnetic, Gravitational, Electrostatic' },
+          { icon: '🚶', label: 'Friction', detail: 'Opposes motion — helps us walk!' },
+          { icon: '📐', label: 'Pressure Formula', detail: 'Pressure = Force ÷ Area' },
+          { icon: '🐪', label: 'Camel\'s Feet', detail: 'Wide feet → less pressure on sand' },
         ],
-        keyFacts: ['Calorific value = heat per gram of fuel', 'LPG burns cleanly', 'Global warming linked to burning fuels'],
+        keyFacts: ['Sharp knife: small area → high pressure', 'Atmospheric pressure = 101,325 Pa', 'Friction causes heat'],
       },
       {
-        topic: 'Cell — Structure & Functions',
-        color: '#2196F3',
-        emoji: '🫧',
+        topic: 'Light',
+        color: '#FFC107', emoji: '💡',
         steps: [
-          { icon: '🧱', label: 'Cell Wall', detail: 'Only in plant cells — gives shape' },
-          { icon: '🌀', label: 'Cell Membrane', detail: 'Controls what enters/exits the cell' },
-          { icon: '🧬', label: 'Nucleus', detail: 'Brain of the cell — holds DNA' },
-          { icon: '⚙️', label: 'Cytoplasm', detail: 'Jelly-like fluid holding organelles' },
-          { icon: '🌿', label: 'Chloroplast', detail: 'Only in plants — makes food via sunlight' },
+          { icon: '➡️', label: 'Straight Line', detail: 'Light travels in straight lines' },
+          { icon: '🔄', label: 'Reflection', detail: 'Angle of incidence = Angle of reflection' },
+          { icon: '🔍', label: 'Concave Mirror', detail: 'Converges light → torch, dentist mirror' },
+          { icon: '🚗', label: 'Convex Mirror', detail: 'Rear-view mirror → wide field of view' },
+          { icon: '👁️', label: 'Human Eye', detail: 'Pupil → Lens → Retina → Optic nerve → Brain' },
         ],
-        keyFacts: ['Smallest cell: Mycoplasma', 'Largest cell: Ostrich egg', 'Cells → Tissue → Organ → System'],
+        keyFacts: ['Light speed = 3×10⁸ m/s', 'Myopia: concave lens', 'Hypermetropia: convex lens'],
+      },
+    ],
+    '9_Science': [
+      {
+        topic: 'States of Matter',
+        color: '#607D8B', emoji: '⚗️',
+        steps: [
+          { icon: '🧊', label: 'Solid', detail: 'Fixed shape + volume — tightly packed' },
+          { icon: '💧', label: 'Liquid', detail: 'Fixed volume — takes shape of container' },
+          { icon: '💨', label: 'Gas', detail: 'No fixed shape or volume — spreads everywhere' },
+          { icon: '🌡️', label: 'Heat Effect', detail: 'Solid → Liquid → Gas with heating' },
+          { icon: '✨', label: 'Sublimation', detail: 'Solid → Gas directly (camphor, dry ice)' },
+        ],
+        keyFacts: ['Dry ice = solid CO₂ — sublimates', 'LPG is gas stored as liquid under pressure', 'Plasma = 4th state (sun, stars)'],
+      },
+      {
+        topic: 'Motion',
+        color: '#E91E63', emoji: '🚀',
+        steps: [
+          { icon: '📍', label: 'Distance', detail: 'Total path length — scalar quantity' },
+          { icon: '➡️', label: 'Displacement', detail: 'Shortest path — vector quantity' },
+          { icon: '⚡', label: 'Speed', detail: 'Distance ÷ Time = m/s' },
+          { icon: '🎯', label: 'Velocity', detail: 'Displacement ÷ Time — has direction' },
+          { icon: '📈', label: 'Acceleration', detail: 'Change in velocity ÷ Time' },
+        ],
+        keyFacts: ['v = u + at (1st equation)', 'Area under v-t graph = distance', 'Uniform motion → straight line on d-t graph'],
+      },
+      {
+        topic: "Newton's Laws of Motion",
+        color: '#8BC34A', emoji: '⚖️',
+        steps: [
+          { icon: '😴', label: '1st Law (Inertia)', detail: 'Object stays at rest or motion unless force acts' },
+          { icon: '📊', label: '2nd Law (F=ma)', detail: 'More force → more acceleration' },
+          { icon: '↩️', label: '3rd Law (Action-Reaction)', detail: 'Every action has equal opposite reaction' },
+          { icon: '🚀', label: 'Rocket Example', detail: 'Gas pushed down → rocket goes up (3rd law)' },
+          { icon: '🏋️', label: 'Momentum', detail: 'p = m × v — conserved when no external force' },
+        ],
+        keyFacts: ['SI unit of force = Newton', 'Walking uses Newton\'s 3rd law', 'Seat belt works on inertia (1st law)'],
+      },
+    ],
+    '10_Science': [
+      {
+        topic: 'Chemical Reactions',
+        color: '#9C27B0', emoji: '⚗️',
+        steps: [
+          { icon: '➕', label: 'Combination', detail: 'A + B → AB (CaO + H₂O → Ca(OH)₂)' },
+          { icon: '➗', label: 'Decomposition', detail: 'AB → A + B (CaCO₃ → CaO + CO₂)' },
+          { icon: '🔄', label: 'Displacement', detail: 'Fe + CuSO₄ → FeSO₄ + Cu (iron displaces copper)' },
+          { icon: '⬇️', label: 'Double Displacement', detail: 'Precipitation — Na₂SO₄ + BaCl₂ → BaSO₄↓' },
+          { icon: '⚡', label: 'Redox', detail: 'Oxidation + Reduction always together' },
+        ],
+        keyFacts: ['Rusting = iron + oxygen + water', 'Rancidity = fat oxidation', 'Balancing uses Law of Conservation of Mass'],
+      },
+      {
+        topic: 'Electricity',
+        color: '#FF9800', emoji: '⚡',
+        steps: [
+          { icon: '🔋', label: 'Potential Difference', detail: 'V = W/Q — measured in Volts' },
+          { icon: '🔌', label: 'Ohm\'s Law', detail: 'V = IR — Voltage = Current × Resistance' },
+          { icon: '📏', label: 'Series Circuit', detail: 'Same current, voltage divides — R_total = R₁+R₂' },
+          { icon: '📐', label: 'Parallel Circuit', detail: 'Same voltage, current divides — R_total is less' },
+          { icon: '🔥', label: 'Heating Effect', detail: 'H = I²Rt — used in heater, iron, bulb' },
+        ],
+        keyFacts: ['1 kWh = 1 unit of electricity', 'TANGEDCO distributes power in Tamil Nadu', 'Kudankulam is nuclear power plant in Tamil Nadu'],
       },
     ],
     '8_Mathematics': [
       {
         topic: 'Rational Numbers',
-        color: '#3F51B5',
-        emoji: '🔢',
+        color: '#3F51B5', emoji: '🔢',
         steps: [
-          { icon: '➗', label: 'What is p/q?', detail: 'Any number written as fraction where q ≠ 0' },
-          { icon: '➕', label: 'Addition', detail: 'Make denominators same, then add numerators' },
-          { icon: '✖️', label: 'Multiplication', detail: 'Multiply numerators × numerators, denominators × denominators' },
-          { icon: '📏', label: 'Number Line', detail: 'Rational numbers fill gaps between integers' },
+          { icon: '➗', label: 'What is p/q?', detail: 'Any number as fraction where q ≠ 0' },
+          { icon: '0️⃣', label: 'Additive Identity', detail: '0 — adding 0 changes nothing' },
+          { icon: '1️⃣', label: 'Multiplicative Identity', detail: '1 — multiplying by 1 changes nothing' },
+          { icon: '🔄', label: 'Inverse', detail: 'Additive: 3/4 + (-3/4) = 0. Multiplicative: 3/4 × 4/3 = 1' },
+          { icon: '📏', label: 'Number Line', detail: 'Infinite rationals between any two points' },
         ],
-        keyFacts: ['0 is rational', 'Every integer is rational', 'Between any two rationals, infinite rationals exist'],
-      },
-      {
-        topic: 'Algebraic Expressions',
-        color: '#00BCD4',
-        emoji: '🔣',
-        steps: [
-          { icon: '🔤', label: 'Variables', detail: 'Letters (x, y) representing unknown values' },
-          { icon: '➕', label: 'Like Terms', detail: 'Same variable → can be added/subtracted' },
-          { icon: '🔗', label: 'Binomial', detail: 'Expression with two terms: 3x + 2' },
-          { icon: '📦', label: 'Factorisation', detail: 'Breaking expression into product of factors' },
-        ],
-        keyFacts: ['Monomial = 1 term', 'Binomial = 2 terms', 'Polynomial = many terms'],
-      },
-    ],
-    '9_Science': [
-      {
-        topic: 'Matter in Our Surroundings',
-        color: '#607D8B',
-        emoji: '⚗️',
-        steps: [
-          { icon: '🧊', label: 'Solid', detail: 'Fixed shape & volume, tightly packed particles' },
-          { icon: '💧', label: 'Liquid', detail: 'Fixed volume, takes shape of container' },
-          { icon: '💨', label: 'Gas', detail: 'No fixed shape or volume, spreads everywhere' },
-          { icon: '🌡️', label: 'Temperature Effect', detail: 'Heat → solid melts → liquid evaporates → gas' },
-          { icon: '🔄', label: 'State Changes', detail: 'Melting, Freezing, Evaporation, Condensation, Sublimation' },
-        ],
-        keyFacts: ['Latent heat = heat absorbed during state change', 'Sublimation: solid → gas directly (e.g. dry ice)', 'Plasma is the 4th state of matter'],
-      },
-      {
-        topic: 'Atoms & Molecules',
-        color: '#FF9800',
-        emoji: '⚛️',
-        steps: [
-          { icon: '🔴', label: 'Atom', detail: 'Smallest unit of an element that keeps its properties' },
-          { icon: '🔗', label: 'Molecule', detail: 'Two or more atoms bonded together' },
-          { icon: '🧮', label: 'Atomic Mass', detail: 'Relative mass of atom compared to Carbon-12' },
-          { icon: '📐', label: 'Mole Concept', detail: '1 mole = 6.022 × 10²³ particles (Avogadro number)' },
-          { icon: '⚖️', label: 'Chemical Formula', detail: 'H₂O, CO₂ — shows which atoms & how many' },
-        ],
-        keyFacts: ['Dalton proposed atomic theory', 'Atoms are NOT indivisible (protons, neutrons, electrons)', 'Avogadro number = 6.022 × 10²³'],
-      },
-      {
-        topic: 'Motion',
-        color: '#E91E63',
-        emoji: '🚀',
-        steps: [
-          { icon: '📍', label: 'Distance', detail: 'Total path length covered (scalar)' },
-          { icon: '➡️', label: 'Displacement', detail: 'Shortest path from start to end (vector)' },
-          { icon: '⚡', label: 'Speed', detail: 'Distance ÷ Time (m/s)' },
-          { icon: '🎯', label: 'Velocity', detail: 'Displacement ÷ Time — has direction too' },
-          { icon: '📈', label: 'Acceleration', detail: 'Rate of change of velocity' },
-        ],
-        keyFacts: ['Uniform motion = constant velocity', 'v = u + at (first equation of motion)', 'Area under v-t graph = distance'],
-      },
-      {
-        topic: 'Force & Laws of Motion',
-        color: '#8BC34A',
-        emoji: '💪',
-        steps: [
-          { icon: '😴', label: "Newton's 1st Law", detail: 'Object stays at rest or motion unless force acts' },
-          { icon: '📊', label: "Newton's 2nd Law", detail: 'F = ma — more mass needs more force' },
-          { icon: '↩️', label: "Newton's 3rd Law", detail: 'Every action has equal & opposite reaction' },
-          { icon: '🏋️', label: 'Inertia', detail: 'Resistance to change in state of motion' },
-        ],
-        keyFacts: ['Momentum = mass × velocity', 'Newton is the unit of force', 'Rocket works on Newton\'s 3rd law'],
+        keyFacts: ['Between any two rationals, infinite rationals exist', '0/5 = 0 is rational', '-3/4 is negative rational'],
       },
     ],
     '9_Mathematics': [
       {
         topic: 'Number Systems',
-        color: '#795548',
-        emoji: '🔢',
+        color: '#795548', emoji: '🔢',
         steps: [
-          { icon: '1️⃣', label: 'Natural Numbers', detail: 'Counting numbers: 1, 2, 3, 4...' },
-          { icon: '0️⃣', label: 'Whole Numbers', detail: 'Natural + zero: 0, 1, 2, 3...' },
-          { icon: '➖', label: 'Integers', detail: 'Whole + negatives: ...-2, -1, 0, 1, 2...' },
-          { icon: '➗', label: 'Rational', detail: 'p/q form where q ≠ 0' },
-          { icon: '√', label: 'Irrational', detail: 'Cannot be written as fraction: √2, π' },
-          { icon: '♾️', label: 'Real Numbers', detail: 'Rational + Irrational together' },
+          { icon: '1️⃣', label: 'Natural (N)', detail: '1, 2, 3... — counting numbers' },
+          { icon: '0️⃣', label: 'Whole (W)', detail: '0, 1, 2, 3... — natural + zero' },
+          { icon: '➖', label: 'Integers (Z)', detail: '...-2,-1,0,1,2... — positive + negative' },
+          { icon: '➗', label: 'Rational (Q)', detail: 'p/q form — terminating or recurring decimal' },
+          { icon: '√', label: 'Irrational', detail: '√2, π — non-terminating, non-recurring' },
         ],
-        keyFacts: ['π = 3.14159... is irrational', '√2 = 1.41421... is irrational', 'Every rational number is real'],
-      },
-      {
-        topic: 'Polynomials',
-        color: '#009688',
-        emoji: '📐',
-        steps: [
-          { icon: '1️⃣', label: 'Degree 1 (Linear)', detail: 'ax + b = 0 — straight line graph' },
-          { icon: '2️⃣', label: 'Degree 2 (Quadratic)', detail: 'ax² + bx + c — parabola graph' },
-          { icon: '3️⃣', label: 'Degree 3 (Cubic)', detail: 'ax³ + bx² + cx + d' },
-          { icon: '🎯', label: 'Zeroes of Polynomial', detail: 'Values of x where p(x) = 0' },
-          { icon: '➗', label: 'Remainder Theorem', detail: 'p(a) = remainder when divided by (x - a)' },
-        ],
-        keyFacts: ['Factor theorem: (x-a) is factor if p(a) = 0', 'A polynomial of degree n has at most n zeroes'],
+        keyFacts: ['π = 3.14159... is irrational', 'Every integer is rational', 'N ⊂ W ⊂ Z ⊂ Q ⊂ R'],
       },
     ],
     '8_Social Science': [
       {
-        topic: 'Resources',
-        color: '#4CAF50',
-        emoji: '🌍',
+        topic: 'British Rule in India',
+        color: '#795548', emoji: '🏛️',
         steps: [
-          { icon: '🏔️', label: 'Natural Resources', detail: 'Air, water, minerals — from nature' },
-          { icon: '🏭', label: 'Human-made Resources', detail: 'Buildings, machines — made by humans' },
-          { icon: '🧠', label: 'Human Resources', detail: 'Skills & knowledge of people' },
-          { icon: '🔋', label: 'Renewable', detail: 'Solar, wind — replenish naturally' },
-          { icon: '⛽', label: 'Non-renewable', detail: 'Coal, petroleum — limited supply' },
+          { icon: '⚔️', label: '1757 Plassey', detail: 'British defeated Nawab of Bengal' },
+          { icon: '🌾', label: 'Ryotwari System', detail: 'Tamil Nadu: farmers paid tax directly to British' },
+          { icon: '🚂', label: '1853 Railways', detail: 'First railway: Mumbai to Thane' },
+          { icon: '✊', label: '1857 Revolt', detail: 'First War of Independence — Sepoy Mutiny' },
+          { icon: '🏁', label: '1947 Freedom', detail: 'India independent — August 15' },
         ],
-        keyFacts: ['Sustainable development = use resources wisely', 'Agenda 21 signed at Rio Summit 1992'],
+        keyFacts: ['V.O. Chidambaram Pillai — Tamil freedom fighter', 'Subramania Bharati — poet + activist', 'Pondicherry was French colony'],
       },
     ],
     '9_Social Science': [
       {
-        topic: 'French Revolution',
-        color: '#3F51B5',
-        emoji: '🗽',
+        topic: 'French Revolution (1789)',
+        color: '#3F51B5', emoji: '🗽',
         steps: [
-          { icon: '👑', label: 'Old Regime', detail: 'King Louis XVI — clergy & nobles had privileges' },
-          { icon: '💸', label: 'Causes', detail: 'Debt, food shortage, inequality, Enlightenment ideas' },
-          { icon: '✊', label: '1789 Revolution', detail: 'Bastille stormed — July 14, 1789' },
-          { icon: '📜', label: 'Declaration', detail: 'Rights of Man — liberty, equality, fraternity' },
-          { icon: '⚔️', label: 'Reign of Terror', detail: 'Robespierre — mass executions 1793-94' },
-          { icon: '🏛️', label: 'Napoleon', detail: 'Rose to power, modernized France, spread revolution' },
+          { icon: '👑', label: 'Old Regime', detail: '3 Estates — clergy, nobles, common people' },
+          { icon: '💸', label: 'Causes', detail: 'Debt + hunger + inequality + Enlightenment ideas' },
+          { icon: '✊', label: 'July 14, 1789', detail: 'Bastille stormed — Revolution begins!' },
+          { icon: '📜', label: 'Rights Declared', detail: 'Liberty, Equality, Fraternity' },
+          { icon: '🏛️', label: 'Napoleon', detail: 'Rose to power 1799, crowned Emperor 1804' },
         ],
-        keyFacts: ['Estates: Clergy (1st), Nobles (2nd), Common people (3rd)', '"Liberty, Equality, Fraternity" is French motto', 'Napoleon crowned 1804'],
+        keyFacts: ['Pondicherry was French in Tamil Nadu', 'French motto: Liberté, Égalité, Fraternité', 'French Revolution inspired Indian freedom movement'],
       },
     ],
-  };
+    '10_Social Science': [
+      {
+        topic: 'Rise of Nationalism in Europe',
+        color: '#E91E63', emoji: '🏳️',
+        steps: [
+          { icon: '👑', label: 'Old Europe', detail: 'Kingdoms ruled — people had no national identity' },
+          { icon: '⚔️', label: 'Napoleon', detail: 'Spread revolutionary ideas across Europe' },
+          { icon: '🇩🇪', label: 'Germany Unified', detail: 'Bismarck — "Blood and Iron" — 1871' },
+          { icon: '🇮🇹', label: 'Italy Unified', detail: 'Mazzini + Garibaldi + Cavour — 1861' },
+          { icon: '💥', label: 'Balkans → WWI', detail: 'Nationalism + rivalry → World War I (1914)' },
+        ],
+        keyFacts: ['Germany unified 1871 — Kaiser Wilhelm I', 'Italy: Garibaldi led Red Shirts', 'Assassination of Franz Ferdinand → WWI'],
+      },
+    ],
+  }
 
-  // Try exact key, then grade+Science as default
+  // Exact match → Grade+Subject default → Grade+Science → Class 8 Science
   return (
     infographics[key] ||
     infographics[`${grade}_Science`] ||
+    infographics[`${grade}_Social Science`] ||
     infographics['8_Science']
-  );
-};
+  )
+}
 
-// ── Mock fallback ──────────────────────────────────────────
-const getMockSchoolContent = (grade, subject) => {
-  const mockContent = {
-    Science: [
-      {
-        id: 'mock-sci-1',
-        title: `Class ${grade} - Photosynthesis`,
-        description: 'Photosynthesis is the process by which green plants make their own food using sunlight, water, and carbon dioxide.',
-        hasFullContent: false,
-        grade: `Class ${grade}`, subject: 'Science',
-        type: 'Resource', icon: '', downloadUrl: '', mimeType: 'text/plain',
-      },
-      {
-        id: 'mock-sci-2',
-        title: `Class ${grade} - Human Digestive System`,
-        description: 'The human digestive system breaks down food into nutrients.',
-        hasFullContent: false,
-        grade: `Class ${grade}`, subject: 'Science',
-        type: 'Resource', icon: '', downloadUrl: '', mimeType: 'text/plain',
-      },
-    ],
-    Mathematics: [
-      {
-        id: 'mock-math-1',
-        title: `Class ${grade} - Fractions`,
-        description: 'A fraction represents a part of a whole.',
-        hasFullContent: false,
-        grade: `Class ${grade}`, subject: 'Mathematics',
-        type: 'Resource', icon: '', downloadUrl: '', mimeType: 'text/plain',
-      },
-    ],
-    English: [
-      {
-        id: 'mock-eng-1',
-        title: `Class ${grade} - Parts of Speech`,
-        description: 'Parts of speech are categories of words based on their function in a sentence.',
-        hasFullContent: false,
-        grade: `Class ${grade}`, subject: 'English',
-        type: 'Resource', icon: '', downloadUrl: '', mimeType: 'text/plain',
-      },
-    ],
-  };
+// ── Minimal mock fallback ──────────────────────────────────
+const getMockContent = (grade, subject) => [{
+  id:             `mock-${grade}-${subject.toLowerCase().replace(/ /g,'-')}-1`,
+  title:          `${subject} — Class ${grade} (Tamil Nadu NCERT)`,
+  description:    `${subject} content for Class ${grade}. Tap to open full lesson.`,
+  grade:          `Class ${grade}`,
+  subject,
+  type:           'Chapter',
+  source:         'mock',
+  hasFullContent: false,
+  isVideo:        false,
+  videoUrl:       null,
+}]
 
-  return mockContent[subject] || mockContent['Science'];
-};
+// ── Get subjects for a grade ───────────────────────────────
+const getSubjectsForGrade = (grade) => {
+  const local = getSubjectsForClass(grade)
+  if (local.length > 0) return local
+  return SUBJECTS.map(s => ({ subject: s, chapterCount: 0 }))
+}
 
 module.exports = {
   searchDIKSHA,
   getDIKSHAContent,
   getEnrichedContent,
   getInfographicContent,
+  fetchDIKSHAVideos,
+  getSubjectsForGrade,
   SUBJECTS,
   GRADE_MAP,
-};
+  SUPPORTED_GRADES,
+}

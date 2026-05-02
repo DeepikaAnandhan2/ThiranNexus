@@ -35,20 +35,24 @@
 
 /* ── Reset ───────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+body {
+  overflow-y: auto;
+}
 html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.6;
-  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  
+  overflow-y: auto;
+
 }
 
-#root { min-height: 100vh; display: flex; flex-direction: column; }
-
+#root {
+  width: 100%;
+}
 button {
   cursor: pointer;
   border: none;
@@ -72,6 +76,8 @@ button:focus-visible {
   padding: 0;
   position: relative;
   overflow: hidden;
+   width: 100%;
+  max-width: none;
 }
 
 /* Hero wave top */
@@ -386,13 +392,10 @@ button:focus-visible {
 .game-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1.1rem;
   min-height: 100vh;
   padding: 0;
-  max-width: 520px;
-  margin: 0 auto;
-  width: 100%;
+  width: 100%;        /* full width */
 }
 
 /* Game top banner */
@@ -1088,4 +1091,84 @@ button:focus-visible {
 @keyframes swipeRipple {
   0%   { opacity: 0.4; transform: scale(0.8); }
   100% { opacity: 0;   transform: scale(2); }
+}
+
+
+/* Layout */
+.app-shell {
+  display: flex;
+}
+
+/* Sidebar already fixed */
+.sidebar {
+  width: 240px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+}
+
+/* Right side */
+.content-area {
+  margin-left: 240px;
+  width: calc(100% - 240px);
+}
+
+/* Topbar stays normal */
+.content-area > *:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+
+.page-content {
+  width: 100%;
+}
+
+
+.page-inner {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 40px;
+}
+
+/* 🔥 FORCE FULL WIDTH FIX */
+.page-inner * {
+  max-width: none !important;
+}
+
+
+
+/* ================= GLOBAL WIDTH OVERRIDE ================= */
+
+/* Remove all max-width restrictions everywhere */
+.app-shell *,
+.content-area *,
+.page-content *,
+.page-inner * {
+  max-width: none !important;
+}
+
+/* Force full width layout */
+.page-content {
+  width: 100% !important;
+}
+
+.page-inner {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 40px !important; /* spacing from sidebar */
+}
+
+/* Fix common container patterns */
+.container,
+.wrapper,
+.content,
+.main,
+.section {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
 }
