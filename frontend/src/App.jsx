@@ -8,7 +8,7 @@ import Topbar from './components/Topbar';
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import AdminLogin from './admin/Login'; // 👈 Import your new Admin Login
+import AdminLogin from './admin/Login';
 import Register from './pages/Register';
 import Games from './pages/Games';
 import Education from './pages/Education';
@@ -17,13 +17,17 @@ import SchemeDetails from './pages/SchemeDetails';
 import SavedApplied from './pages/SavedApplied';
 import Scribble from './pages/Scribble';
 
-import DashboardMain from './components/ParentDashboard/DashboardMain';
 import Dashboard from './pages/Dashboard';
 import ParentDashboard from "./pages/ParentDashboard/ParentDashboard";
-import FeedbackPage from './pages/FeedbackPage'
+import FeedbackPage from './pages/FeedbackPage';
 import AdminRoutes from './admin/AdminRoutes';
 
+// Import the new components from the incoming changes
+import UdidHelp from './pages/UdidHelp'; 
+import LogicGame from './pages/LogicGame'; 
+
 import Education2 from './pages/Education2';
+
 // 🔹 Layout Wrapper
 const AppLayout = () => {
   return (
@@ -32,32 +36,23 @@ const AppLayout = () => {
       <div className="content-area">
         <Topbar />
         <main className="page-content">
-           <div className="page-inner">
-    <Outlet />
-  </div>
-
+          <div className="page-inner">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
-    
   );
 };
 
-// 🔹 Protected Route (for Students)
+// 🔹 Protected Route
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   return children;
 };
 
-// 🔹 Admin Protected Route (Ensures role is 'admin')
-const AdminProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/admin/login" replace />;
-  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
-  return children;
-};
-
+// 🔹 Schemes Wrapper
 const SchemesWithAuth = () => {
   const { user } = useAuth();
   return <Schemes user={user} />;
@@ -72,48 +67,47 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          
-          {/* 🛠 ADMIN LOGIN (No Sidebar/Topbar) */}
           <Route path="/admin/login" element={<AdminLogin />} />
+          
+          {/* ✅ NEW: UDID HELP PAGE */}
+          <Route path="/udid-help" element={<UdidHelp />} />
 
           {/* 🔐 STUDENT ROUTES (with sidebar) */}
-<Route
-  element={
-    <ProtectedRoute>
-      <AppLayout />
-    </ProtectedRoute>
-  }
->
-  <Route path="/dashboard" element={<Dashboard />} />
-  <Route path="/home" element={<Home />} />
-  <Route path="/education" element={<Education />} />
-  <Route path="/games" element={<Games />} />
-  <Route path="/scribble" element={<Scribble />} />
-  <Route path="/education2" element={<Education2 />} />
-  <Route path="/schemes" element={<SchemesWithAuth />} />
-  <Route path="/scheme/:id" element={<SchemeDetails />} />
-  <Route path="/saved" element={<SavedApplied />} />
-  <Route path="/feedback" element={<FeedbackPage />} />
-</Route>
-
-{/* 🔐 PARENT ROUTE (NO SIDEBAR) */}
-<Route
-  path="/parent-dashboard"
-  element={
-    <ProtectedRoute>
-      <ParentDashboard />
-    </ProtectedRoute>
-  }
-/>
-          {/* 🛠 PROTECTED ADMIN DASHBOARD ROUTES */}
-          <Route 
-            path="/admin/*" 
+          <Route
             element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/education2" element={<Education2 />} />
             
-                <AdminRoutes />
-         
-            } 
+            {/* 🎮 GAMES */}
+            <Route path="/games" element={<Games />} />
+            <Route path="/games/logic" element={<LogicGame />} />
+            
+            <Route path="/scribble" element={<Scribble />} />
+            <Route path="/schemes" element={<SchemesWithAuth />} />
+            <Route path="/scheme/:id" element={<SchemeDetails />} />
+            <Route path="/saved" element={<SavedApplied />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
+          </Route>
+
+          {/* 👨‍👩‍👧 PARENT DASHBOARD (NO SIDEBAR) */}
+          <Route
+            path="/parent-dashboard"
+            element={
+              <ProtectedRoute>
+                <ParentDashboard />
+              </ProtectedRoute>
+            }
           />
+
+          {/* 🛠 ADMIN DASHBOARD */}
+          <Route path="/admin/*" element={<AdminRoutes />} />
 
           {/* ❌ FALLBACK */}
           <Route path="*" element={<Navigate to="/" replace />} />
