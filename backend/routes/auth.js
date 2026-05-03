@@ -11,4 +11,4 @@ router.get('/verify-udid/:udid',   verifyUDID)
 // Protected
 router.get('/me', protect, getMe)
 
-module.exports = router
+module.exports = router 

@@ -12,6 +12,7 @@ const parentRoutes = require('./routes/parentRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const adminRoutes = require('./routes/adminRoutes');
+const education2Routes = require('./routes/education2');
 
 // ─── 1. Create HTTP Server & Socket.io Instance ──────────────
 const server = http.createServer(app);
@@ -39,6 +40,13 @@ require('./scribbleSocket')(io);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/schemes', require('./routes/schemeRoutes'));
 app.use('/api/education', require('./routes/education'));
+app.use('/api/scribble', require('./routes/scribble')); // New Scribble Routes
+app.use('/api/dashboard', require('./routes/dashboard'))
+app.use('/api/parent', parentRoutes)
+app.use('/api/feedback', require('./routes/feedbackRoutes'))
+app.use('/api/notifications', require('./routes/notificationRoutes'))
+app.use('/api/admin', require('./routes/adminRoutes'))
+app.use('/api/education2', education2Routes);
 app.use('/api/scribble', require('./routes/scribble'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/parent', parentRoutes);

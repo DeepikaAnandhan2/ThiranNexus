@@ -28,18 +28,23 @@ import LogicGame from './components/games/LogicGame';
 // ✅ NEW: UDID HELP PAGE
 import UdidHelp from './pages/UdidHelp';
 
+import Education2 from './pages/Education2';
 // 🔹 Layout Wrapper
 const AppLayout = () => {
   return (
     <div className="app-shell">
       <Sidebar />
-      <div className="main-wrapper">
+      <div className="content-area">
         <Topbar />
-        <main className="main-content">
-          <Outlet />
+        <main className="page-content">
+           <div className="page-inner">
+    <Outlet />
+  </div>
+
         </main>
       </div>
     </div>
+    
   );
 };
 
@@ -98,7 +103,7 @@ export default function App() {
             <Route path="/games/logic" element={<LogicGame />} />
 
             <Route path="/scribble" element={<Scribble />} />
-            <Route path="/schemes" element={<SchemesWithAuth />} />
+  <Route path="/education2" element={<Education2 />} />            <Route path="/schemes" element={<SchemesWithAuth />} />
             <Route path="/scheme/:id" element={<SchemeDetails />} />
             <Route path="/saved" element={<SavedApplied />} />
             <Route path="/feedback" element={<FeedbackPage />} />
