@@ -5,38 +5,35 @@
   box-sizing: border-box;
 }
 
-/* Layout container */
+/* src/styles/MainLayout.css */
 .layout {
   display: flex;
-  min-height: 100vh;
-  background-color: #f4f7fe;
+  width: 100vw;
+  height: 100vh;
+  background-color: #F3F0FF; /* Soft Lavender background like the sample */
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-/* Main content area */
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
 
-  /* Match sidebar width */
-  margin-left: 80px;
-  width: calc(100% - 80px);
-
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.page-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  /* This ensures the dashboard stretches to the edges */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* When sidebar expands */
 .layout:has(.sidebar.expanded) .main {
   margin-left: 220px;
   width: calc(100% - 220px);
-}
-
-/* Page content below topbar */
-.page-content {
-  padding: 25px;
-  overflow-y: auto;
-  height: calc(100vh - 70px);
-  width: 100%;
-  max-width: 100%;
 }
