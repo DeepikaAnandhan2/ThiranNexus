@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import keyboardNavigation from './utils/keyboardNavigation';
 
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
@@ -70,6 +71,13 @@ const SchemesWithAuth = () => {
 };
 
 export default function App() {
+  React.useEffect(() => {
+    keyboardNavigation.init();
+    return () => {
+      keyboardNavigation.destroy();
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
