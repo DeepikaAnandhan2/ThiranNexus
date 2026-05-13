@@ -3,6 +3,7 @@ import {
   FaHome, FaBook, FaGamepad, FaTrophy,
   FaSignOutAlt, FaEdit, FaComments, FaGraduationCap
 } from 'react-icons/fa';
+import { useListNavigation } from '../hooks/useListNavigation';
 import './Sidebar.css';
 
 export default function Sidebar() {
@@ -18,15 +19,18 @@ export default function Sidebar() {
     { icon: <FaComments />, label: 'Help & Support', path: '/feedback' },
   ];
 
+  const { getListProps, getItemProps } = useListNavigation(menu, (item) => navigate(item.path), { autoFocus: false });
+
   return (
     <aside className="sidebar expanded">
       <div className="logo">ThiranNexus</div>
 
       <nav className="sidebar-nav">
-        <ul>
+        <ul {...getListProps()}>
           {menu.map((item, i) => (
             <li key={i}>
               <NavLink
+                {...getItemProps(i)}
                 to={item.path}
                 className={({ isActive }) =>
                   isActive ? 'nav-link active' : 'nav-link'

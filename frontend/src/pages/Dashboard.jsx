@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { dashboardService } from '../services/dashboardService';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useListNavigation } from '../hooks/useListNavigation';
 import '../styles/Dashboard.css';
 
 const TAB_LIST = [
@@ -28,6 +29,8 @@ export default function Dashboard() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const { getListProps, getItemProps } = useListNavigation(TAB_LIST, (item) => setTab(item.key), { orientation: 'horizontal', autoFocus: false });
 
   const currentTabRef = useRef(tab);
   useEffect(() => { 
@@ -147,10 +150,11 @@ export default function Dashboard() {
           <div className="tn-status-pill">Live</div>
         </header>
 
-        <nav className="tn-tab-row">
-          {TAB_LIST.map((item) => (
+        <nav className="tn-tab-row" {...getListProps()}>
+          {TAB_LIST.map((item, index) => (
             <button
               key={item.key}
+              {...getItemProps(index)}
               className={`tn-tab-btn ${tab === item.key ? 'active' : ''}`}
               onClick={() => setTab(item.key)}
             >

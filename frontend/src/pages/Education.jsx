@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import SchoolView  from '../components/education/SchoolView'
 import CollegeView from '../components/education/CollegeView'
+import { useListNavigation } from '../hooks/useListNavigation'
 import '../styles/Education.css'
 // MainLayout import removed to prevent double headers
 import schoolImg from '../assets/school.png'
@@ -9,6 +10,13 @@ import collegeImg from '../assets/college.png'
 export default function Education() {
   const [user, setUser] = useState(null)
   const [activeLevel, setActiveLevel] = useState(null)
+
+  const levels = [
+    { key: 'school', title: 'School Level', desc: 'NCERT & Interactive Lessons' },
+    { key: 'college', title: 'College Level', desc: 'Advanced Lectures & ISL Support' }
+  ];
+
+  const { getListProps, getItemProps } = useListNavigation(levels, (level) => handleLevelSelect(level.key), { orientation: 'horizontal', autoFocus: false });
 
   useEffect(() => {
     const saved = localStorage.getItem('tn_user')
@@ -36,10 +44,10 @@ export default function Education() {
               Choose your path to start exploring interactive courses and materials.
             </p>
 
-            <div className="level-cards-grid">
+            <div className="level-cards-grid" {...getListProps()}>
               
               {/* School */}
-              <div className="level-card school-card" onClick={() => handleLevelSelect('school')}>
+              <div className="level-card school-card" {...getItemProps(0)} onClick={() => handleLevelSelect('school')}>
                 <div className="card-illustration">
                   <img src={schoolImg} alt="School" />
                 </div>
@@ -51,7 +59,7 @@ export default function Education() {
               </div>
 
               {/* College */}
-              <div className="level-card college-card" onClick={() => handleLevelSelect('college')}>
+              <div className="level-card college-card" {...getItemProps(1)} onClick={() => handleLevelSelect('college')}>
                 <div className="card-illustration">
                   <img 
                     src={collegeImg} 
