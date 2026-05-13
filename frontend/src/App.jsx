@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { AuthProvider, useAuth } from './context/AuthContext';
 import keyboardNavigation from './utils/keyboardNavigation';
 
+// ✅ NEW: Accessibility Helper for Hover-to-Speech
+import AccessibilityWrapper from './components/AccessibilityWrapper';
+
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 
@@ -30,6 +33,7 @@ import LogicGame from './components/games/LogicGame';
 import UdidHelp from './pages/UdidHelp';
 
 import Education2 from './pages/Education2';
+
 // 🔹 Layout Wrapper
 const AppLayout = () => {
   return (
@@ -38,14 +42,12 @@ const AppLayout = () => {
       <div className="content-area">
         <Topbar />
         <main className="page-content">
-           <div className="page-inner">
-    <Outlet />
-  </div>
-
+          <div className="page-inner">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
-    
   );
 };
 
@@ -80,61 +82,65 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      {/* ✅ Wrap the Router with AccessibilityWrapper to enable hover-to-speech */}
+      <AccessibilityWrapper>
+        <BrowserRouter>
+          <Routes>
 
-          {/* 🔓 PUBLIC ROUTES */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
+            {/* 🔓 PUBLIC ROUTES */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* ✅ NEW: UDID HELP PAGE */}
-          <Route path="/udid-help" element={<UdidHelp />} />
+            {/* ✅ NEW: UDID HELP PAGE */}
+            <Route path="/udid-help" element={<UdidHelp />} />
 
-          {/* 🔐 STUDENT ROUTES */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/education" element={<Education />} />
+            {/* 🔐 STUDENT ROUTES */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/education" element={<Education />} />
 
-            {/* 🎮 MAIN GAMES */}
-            <Route path="/games" element={<Games />} />
+              {/* 🎮 MAIN GAMES */}
+              <Route path="/games" element={<Games />} />
 
-            {/* 🎯 LOGIC GAME */}
-            <Route path="/games/logic" element={<LogicGame />} />
+              {/* 🎯 LOGIC GAME */}
+              <Route path="/games/logic" element={<LogicGame />} />
 
-            <Route path="/scribble" element={<Scribble />} />
-  <Route path="/education2" element={<Education2 />} />            <Route path="/schemes" element={<SchemesWithAuth />} />
-            <Route path="/scheme/:id" element={<SchemeDetails />} />
-            <Route path="/saved" element={<SavedApplied />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
-          </Route>
+              <Route path="/scribble" element={<Scribble />} />
+              <Route path="/education2" element={<Education2 />} />
+              <Route path="/schemes" element={<SchemesWithAuth />} />
+              <Route path="/scheme/:id" element={<SchemeDetails />} />
+              <Route path="/saved" element={<SavedApplied />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+            </Route>
 
-          {/* 👨‍👩‍👧 PARENT DASHBOARD */}
-          <Route
-            path="/parent-dashboard"
-            element={
-              <ProtectedRoute>
-                <ParentDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* 👨‍👩‍👧 PARENT DASHBOARD */}
+            <Route
+              path="/parent-dashboard"
+              element={
+                <ProtectedRoute>
+                  <ParentDashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* 🛠 ADMIN */}
-          <Route path="/admin/*" element={<AdminRoutes />} />
+            {/* 🛠 ADMIN */}
+            <Route path="/admin/*" element={<AdminRoutes />} />
 
-          {/* ❌ FALLBACK */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+            {/* ❌ FALLBACK */}
+            <Route path="*" element={<Navigate to="/" replace />} />
 
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </AccessibilityWrapper>
     </AuthProvider>
   );
 }
