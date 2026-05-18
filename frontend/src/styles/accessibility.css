@@ -1,0 +1,58 @@
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-surface: #f8fafc;
+  --text-primary: #1e293b;
+  --text-muted: #64748b;
+  --accent: #7c3aed; /* Thirannexus Purple */
+  --accent-contrast: #ffffff;
+  --border-color: #e2e8f0;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+}
+
+
+[data-vision-profile="low-vision"] {
+  --bg-primary: #000000 !important;
+  --bg-surface: #121212 !important;
+  --text-primary: #ffff00 !important;   /* High-visibility yellow text */
+  --text-muted: #ffffff !important;     /* High-visibility white text */
+  --accent: #ffff00 !important;
+  --accent-contrast: #000000 !important;
+  --border-color: #ffffff !important;
+  --success-color: #00ff00 !important;
+  --error-color: #ff0000 !important;
+}
+
+
+
+/* Protanopia (Red-Cone Deficiency) */
+[data-vision-profile="protanopia"] {
+  --accent: #0055ff;          /* Shifted to deep accessible blue */
+  --success-color: #6366f1;   /* Indigo replaces green */
+  --error-color: #eab308;     /* Yellow replaces red */
+  filter: url('#protanopia-filter');
+}
+
+/* Deuteranopia (Green-Cone Deficiency) */
+[data-vision-profile="deuteranopia"] {
+  --accent: #1e40af;          /* High contrast dark blue */
+  --success-color: #4f46e5;
+  --error-color: #f97316;     /* Orange replaces confusing reds/greens */
+  filter: url('#deuteranopia-filter');
+}
+
+/* Tritanopia (Blue-Cone Deficiency) */
+[data-vision-profile="tritanopia"] {
+  --accent: #dc2626;          /* Red tones stand out clearly to Tritanopes */
+  --success-color: #06b6d4;   /* Cyan replaces green */
+  --error-color: #f43f5e;
+  filter: url('#tritanopia-filter');
+}
+
+/* Monochrome (Total Color Blindness) */
+[data-vision-profile="monochrome"] {
+  filter: grayscale(100%) contrast(125%);
+  --accent: #000000;
+  --accent-contrast: #ffffff;
+}
