@@ -1,7 +1,4 @@
-// ─── Scribble Socket.IO — FIXED ───────────────────────────
-// Fix: draw-stroke was being emitted back to drawer only
-// Fix: socket.to() excludes sender — correct for drawing relay
-// Fix: simplified state management
+// ─── scribbleSocket.js ────────────────────────────────────────────────────────
 
 const ScribbleRoom  = require('./models/ScribbleRoom')
 const ScribbleScore = require('./models/ScribbleScore')
@@ -14,48 +11,54 @@ module.exports = (io) => {
   io.on('connection', (socket) => {
     console.log('✅ Socket connected:', socket.id)
 
-    // ── JOIN ROOM ──────────────────────────────────────
+    // ── JOIN ROOM ──────────────────────────────────────────────────────────────
     socket.on('join-room', async ({ roomCode, userId, nickname, avatar }) => {
       socket.join(roomCode)
+      // Store on socket instance — used in 'disconnect' where payload isn't available
       socket.roomCode = roomCode
       socket.userId   = userId
       socket.nickname = nickname
 
       console.log(`👤 ${nickname} joined room ${roomCode} | socket: ${socket.id}`)
 
-      // Init game state
       if (!gameState[roomCode]) {
         let room = null
         try { room = await ScribbleRoom.findOne({ roomCode }) } catch(e) {}
         gameState[roomCode] = {
-          players:        [],
-          currentDrawer:  null,
-          currentWord:    null,
-          timer:          null,
-          wordChoiceTimer:null,
-          timeLeft:       80,
-          roundNum:       0,
-          totalRounds:    room?.totalRounds  || 3,
-          timePerRound:   room?.timePerRound || 80,
-          wordOptions:    [],
-          category:       room?.wordCategory || 'general',
-          status:         'waiting',
-          guessedPlayers: [],
-          hostId:         room?.hostId || userId,
+          players:         [],
+          currentDrawer:   null,
+          currentWord:     null,
+          timer:           null,
+          wordChoiceTimer: null,
+          timeLeft:        80,
+          roundNum:        0,
+          totalRounds:     room?.totalRounds  || 3,
+          timePerRound:    room?.timePerRound || 80,
+          wordOptions:     [],
+          category:        room?.wordCategory || 'general',
+          status:          'waiting',
+          guessedPlayers:  [],
+          hostId:          room?.hostId || userId,
         }
       }
 
       const gs = gameState[roomCode]
 
-      // Add/update player
+      // Add or update player — handles reconnects by updating socketId
       const existing = gs.players.find(p => p.userId === userId)
       if (existing) {
         existing.socketId = socket.id
       } else {
-        gs.players.push({ userId, nickname, avatar: avatar || '😊', score: 0, socketId: socket.id })
+        gs.players.push({
+          userId,
+          nickname,
+          avatar:     avatar || '😊',
+          score:      0,
+          socketId:   socket.id,
+          hasGuessed: false,
+        })
       }
 
-      // Send current state to this socket
       socket.emit('room-state', {
         players:         gs.players,
         status:          gs.status,
@@ -65,23 +68,23 @@ module.exports = (io) => {
         currentDrawerId: gs.currentDrawer?.userId || null,
       })
 
-      // Tell everyone else
       socket.to(roomCode).emit('player-joined', { userId, nickname, avatar })
       io.to(roomCode).emit('players-updated', gs.players)
     })
 
-    // ── START GAME ─────────────────────────────────────
+    // ── START GAME ─────────────────────────────────────────────────────────────
     socket.on('start-game', ({ roomCode }) => {
       const gs = gameState[roomCode]
       if (!gs) return
       console.log(`🎮 Game starting in room ${roomCode}`)
       gs.status   = 'playing'
       gs.roundNum = 0
+      gs.players.forEach(p => { p.score = 0; p.hasGuessed = false })
       io.to(roomCode).emit('game-started', { totalRounds: gs.totalRounds })
       startNextTurn(io, roomCode)
     })
 
-    // ── WORD CHOSEN ────────────────────────────────────
+    // ── WORD CHOSEN ────────────────────────────────────────────────────────────
     socket.on('word-chosen', ({ roomCode, word }) => {
       const gs = gameState[roomCode]
       if (!gs) return
@@ -89,38 +92,35 @@ module.exports = (io) => {
       gs.currentWord = word
       clearTimeout(gs.wordChoiceTimer)
 
-      // Tell drawer their word
       socket.emit('your-word', { word })
 
-      // Tell others the hint (dashes)
       const hint = word.split('').map(c => c === ' ' ? ' ' : '_').join(' ')
       socket.to(roomCode).emit('word-hint', { hint, length: word.length })
 
-      // Start countdown timer
       startTimer(io, roomCode)
     })
 
-    // ── DRAW STROKE — KEY FIX ──────────────────────────
-    // socket.to(roomCode) sends to ALL in room EXCEPT sender
+    // ── DRAW STROKE ────────────────────────────────────────────────────────────
     socket.on('draw-stroke', (data) => {
-      // Relay stroke to ALL other players in room
       socket.to(data.roomCode).emit('draw-stroke', data)
     })
 
-    // ── CLEAR CANVAS ───────────────────────────────────
+    // ── CLEAR CANVAS ───────────────────────────────────────────────────────────
     socket.on('clear-canvas', ({ roomCode }) => {
       socket.to(roomCode).emit('clear-canvas')
     })
 
-    // ── FILL CANVAS ────────────────────────────────────
+    // ── FILL CANVAS ────────────────────────────────────────────────────────────
     socket.on('fill-canvas', (data) => {
       socket.to(data.roomCode).emit('fill-canvas', data)
     })
 
-    // ── CHAT / GUESS ───────────────────────────────────
+    // ── CHAT / GUESS ───────────────────────────────────────────────────────────
+    // FIX: userId always read from payload — never from socket fields
+    // FIX: server is single source of truth — client does NOT add messages locally
     socket.on('chat-message', ({ roomCode, message, userId, nickname }) => {
       const gs = gameState[roomCode]
-      if (!gs) return
+      if (!gs || !userId || !message) return
 
       const isCorrect = (
         gs.currentWord &&
@@ -132,46 +132,71 @@ module.exports = (io) => {
 
       if (isCorrect) {
         gs.guessedPlayers.push(userId)
+
         const pointsEarned = 100 + Math.floor(gs.timeLeft * 2)
         const player = gs.players.find(p => p.userId === userId)
-        if (player) player.score += pointsEarned
+        if (player) { player.score += pointsEarned; player.hasGuessed = true }
         const drawer = gs.players.find(p => p.userId === gs.currentDrawer?.userId)
         if (drawer) drawer.score += 40
 
         io.to(roomCode).emit('correct-guess', { userId, nickname, pointsEarned })
         io.to(roomCode).emit('players-updated', gs.players)
+        // Only tell the guesser privately — not broadcast as a chat message
         socket.emit('you-guessed', { word: gs.currentWord, points: pointsEarned })
 
-        // All guessed?
         const nonDrawers = gs.players.filter(p => p.userId !== gs.currentDrawer?.userId)
         if (gs.guessedPlayers.length >= nonDrawers.length) {
           endRound(io, roomCode)
         }
+
       } else {
-        // Censor if close
-        const display = (gs.currentWord && message.toLowerCase().includes(gs.currentWord.slice(0,3).toLowerCase()))
-          ? '🤫 (almost!)' : message
+        // Censor near-miss guesses during active game
+        const censor = (
+          gs.status === 'playing' &&
+          gs.currentWord &&
+          message.toLowerCase().includes(gs.currentWord.slice(0, 3).toLowerCase())
+        )
+        const display = censor ? '🤫 (almost!)' : message
+
+        // Broadcast to ALL — client must NOT add locally to avoid duplicates
         io.to(roomCode).emit('chat-message', { userId, nickname, message: display, isSystem: false })
       }
     })
 
-    // ── DISCONNECT ─────────────────────────────────────
+    // ── DISCONNECT ─────────────────────────────────────────────────────────────
     socket.on('disconnect', () => {
       const { roomCode, userId, nickname } = socket
       if (!roomCode || !gameState[roomCode]) return
       console.log(`❌ ${nickname} disconnected from ${roomCode}`)
+
       const gs = gameState[roomCode]
-      gs.players = gs.players.filter(p => p.userId !== userId)
+      const wasDrawer = gs.currentDrawer?.userId === userId
+
+      gs.players        = gs.players.filter(p => p.userId !== userId)
+      gs.guessedPlayers = gs.guessedPlayers.filter(id => id !== userId)
+
       io.to(roomCode).emit('player-left', { userId, nickname })
       io.to(roomCode).emit('players-updated', gs.players)
-      if (gs.currentDrawer?.userId === userId && gs.status === 'playing') {
-        io.to(roomCode).emit('chat-message', { message: `${nickname} (drawer) left — skipping turn`, isSystem: true })
+
+      if (wasDrawer && gs.status === 'playing') {
+        io.to(roomCode).emit('chat-message', {
+          message:  `${nickname} (drawer) disconnected — skipping turn`,
+          isSystem: true,
+        })
         endRound(io, roomCode)
+      }
+
+      // Empty room cleanup
+      if (gs.players.length === 0) {
+        clearInterval(gs.timer)
+        clearTimeout(gs.wordChoiceTimer)
+        delete gameState[roomCode]
+        console.log(`🗑️ Room ${roomCode} removed`)
       }
     })
   })
 
-  // ── Next turn ──────────────────────────────────────
+  // ── startNextTurn ──────────────────────────────────────────────────────────
   function startNextTurn(io, roomCode) {
     const gs = gameState[roomCode]
     if (!gs) return
@@ -184,10 +209,11 @@ module.exports = (io) => {
       return
     }
 
-    const drawerIdx    = (gs.roundNum - 1) % gs.players.length
-    gs.currentDrawer   = gs.players[drawerIdx]
-    gs.currentWord     = null
-    gs.guessedPlayers  = []
+    const drawerIdx   = (gs.roundNum - 1) % gs.players.length
+    gs.currentDrawer  = gs.players[drawerIdx]
+    gs.currentWord    = null
+    gs.guessedPlayers = []
+    gs.players.forEach(p => { p.hasGuessed = false })
 
     const words = getRandomWords(gs.category, 3)
     gs.wordOptions = words
@@ -199,10 +225,9 @@ module.exports = (io) => {
       drawerName:  gs.currentDrawer.nickname,
     })
 
-    // Clear canvas for everyone at start of new turn
     io.to(roomCode).emit('clear-canvas')
 
-    // Send word choices to drawer's socket
+    // Find drawer socket by userId (set in join-room)
     const drawerSocket = [...io.sockets.sockets.values()]
       .find(s => s.userId === gs.currentDrawer.userId && s.roomCode === roomCode)
 
@@ -210,20 +235,21 @@ module.exports = (io) => {
       console.log(`📋 Sending word choices to ${gs.currentDrawer.nickname}`)
       drawerSocket.emit('choose-word', { words })
     } else {
-      console.warn(`⚠️ Drawer socket not found for ${gs.currentDrawer.nickname}`)
-      // Auto skip if drawer socket not found
+      console.warn(`⚠️ Drawer socket not found for ${gs.currentDrawer.nickname} — auto-picking`)
       gs.currentWord = words[0]
-      const hint = words[0].split('').map(c => c === ' ' ? ' ' : '_').join(' ')
-      io.to(roomCode).emit('word-hint', { hint, length: words[0].length })
+      const hint = gs.currentWord.split('').map(c => c === ' ' ? ' ' : '_').join(' ')
+      io.to(roomCode).emit('word-hint', { hint, length: gs.currentWord.length })
       startTimer(io, roomCode)
     }
 
-    // Auto pick word after 15s
+    // Auto-pick word after 15s if drawer hasn't chosen
     gs.wordChoiceTimer = setTimeout(() => {
       if (!gs.currentWord && gs.wordOptions.length > 0) {
         gs.currentWord = gs.wordOptions[0]
         console.log(`⏰ Auto-picked word: ${gs.currentWord}`)
-        if (drawerSocket) drawerSocket.emit('your-word', { word: gs.currentWord })
+        const drawerSock = [...io.sockets.sockets.values()]
+          .find(s => s.userId === gs.currentDrawer?.userId && s.roomCode === roomCode)
+        if (drawerSock) drawerSock.emit('your-word', { word: gs.currentWord })
         const hint = gs.currentWord.split('').map(c => c === ' ' ? ' ' : '_').join(' ')
         io.to(roomCode).emit('word-hint', { hint, length: gs.currentWord.length })
         startTimer(io, roomCode)
@@ -231,7 +257,7 @@ module.exports = (io) => {
     }, 15000)
   }
 
-  // ── Timer ──────────────────────────────────────────
+  // ── startTimer ─────────────────────────────────────────────────────────────
   function startTimer(io, roomCode) {
     const gs = gameState[roomCode]
     if (!gs) return
@@ -248,7 +274,7 @@ module.exports = (io) => {
     }, 1000)
   }
 
-  // ── End round ──────────────────────────────────────
+  // ── endRound ───────────────────────────────────────────────────────────────
   function endRound(io, roomCode) {
     const gs = gameState[roomCode]
     if (!gs) return
@@ -264,7 +290,7 @@ module.exports = (io) => {
     setTimeout(() => startNextTurn(io, roomCode), 5000)
   }
 
-  // ── End game ───────────────────────────────────────
+  // ── endGame ────────────────────────────────────────────────────────────────
   async function endGame(io, roomCode) {
     const gs = gameState[roomCode]
     if (!gs) return
@@ -273,7 +299,10 @@ module.exports = (io) => {
 
     const sorted = [...gs.players].sort((a, b) => b.score - a.score)
     const finalScores = sorted.map((p, i) => ({
-      userId: p.userId, nickname: p.nickname, score: p.score, rank: i + 1,
+      userId:   p.userId,
+      nickname: p.nickname,
+      score:    p.score,
+      rank:     i + 1,
     }))
 
     console.log(`🏆 Game over in ${roomCode}:`, finalScores)
@@ -281,9 +310,18 @@ module.exports = (io) => {
 
     try {
       await Promise.all(finalScores.map(s =>
-        ScribbleScore.create({ userId: s.userId, nickname: s.nickname, roomCode, totalScore: s.score, rank: s.rank })
+        ScribbleScore.create({
+          userId:     s.userId,
+          nickname:   s.nickname,
+          roomCode,
+          totalScore: s.score,
+          rank:       s.rank,
+        })
       ))
-      await ScribbleRoom.findOneAndUpdate({ roomCode }, { finalScores, status: 'finished', endedAt: new Date() })
+      await ScribbleRoom.findOneAndUpdate(
+        { roomCode },
+        { finalScores, status: 'finished', endedAt: new Date() }
+      )
     } catch (err) {
       console.error('Save error:', err.message)
     }

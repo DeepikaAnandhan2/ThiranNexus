@@ -139,9 +139,9 @@ export default function Dashboard() {
   const greeting = user?.name ? user.name.split(' ')[0] : 'Student';
 
   return (
-    <div className="tn-dash-container">
+    <div className={`tn-dash-container ${tab !== 'overview' ? 'no-aside' : ''}`}>
       {/* tn-dash-main style adjusts if there's no sidebar to ensure a clean layout */}
-      <main className="tn-dash-main" style={{ width: tab === 'overview' ? '' : '100%', maxWidth: tab === 'overview' ? '' : '1200px' }}>
+      <main className="tn-dash-main">
         <header className="tn-hero-banner">
           <div>
             <h1 className="tn-welcome-text">Hi {greeting}, ready to learn?</h1>
