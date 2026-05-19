@@ -1,23 +1,49 @@
-Register.jsx
-import { useState } from "react";
+// frontend/src/pages/Register.jsx
+import { useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/Register.css";
 import learningImg from "../assets/learning2.png";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import VoiceMicButton from "../components/VoiceMicButton";
 
 export default function Register() {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
-    name: "", email: "", password: "", role: "student",
-    udid: "", linkedStudentUDID: "", state: "",
-    disabilityType: "", disabilityDetails: "",
+    name: "", 
+    email: "", 
+    password: "", 
+    confirmPassword: "",
+    role: "student",
+    udid: "", 
+    linkedStudentUDID: "", 
+    state: "",
+    disabilityType: "", 
+    disabilityDetails: "",
   });
+
   const [udidVerified, setUdidVerified] = useState(false);
   const [udidMsg, setUdidMsg] = useState('');
   const [childVerified, setChildVerified] = useState(false);
   const [childPreview, setChildPreview] = useState(null);
   const [verifying, setVerifying] = useState(false);
+
+  const { listeningField, startListening, stopListening } = useSpeechRecognition();
+
+  // Refs for navigation
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
+  const continueBtnRef = useRef(null);
+  
+  const udidRef = useRef(null);
+  const verifyUdidBtnRef = useRef(null);
+  const linkedStudentUdidRef = useRef(null);
+  const verifyChildUdidBtnRef = useRef(null);
+  const completeBtnRef = useRef(null);
 
   const set = (k, v) => setFormData(p => ({ ...p, [k]: v }));
 
@@ -44,6 +70,11 @@ export default function Register() {
         setUdidMsg(`✅ Verified: ${typeLabel}`);
         set('disabilityType', typeLabel);
         set('disabilityDetails', res.data.disabilityDetails || `Registered UDID: ${cleanUdid}`);
+        
+        // Auto-navigate to complete registration button
+        setTimeout(() => {
+          if (completeBtnRef.current) completeBtnRef.current.focus();
+        }, 1000);
       } else {
         setUdidVerified(false);
         setUdidMsg("❌ Invalid UDID format or not found.");
@@ -63,7 +94,12 @@ export default function Register() {
       const res = await axios.get(`http://localhost:5000/api/auth/verify-udid/${formData.linkedStudentUDID.trim()}?mode=parent`);
       if (res.data.valid) { 
         setChildVerified(true); 
-        setChildPreview({ name: res.data.studentName, disabilityType: res.data.disabilityType }); 
+        setChildPreview({ name: res.data.studentName, disabilityType: res.data.disabilityType });
+        
+        // Auto-navigate to complete registration button
+        setTimeout(() => {
+          if (completeBtnRef.current) completeBtnRef.current.focus();
+        }, 1000);
       }
     } catch (err) {
       alert(err.response?.data?.error || "No student found with that UDID");
@@ -107,6 +143,22 @@ export default function Register() {
     }
   };
 
+  const handleContinue = () => {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      alert("Fill all fields ⚠️");
+      return;
+    }
+    if (formData.password.length < 6) {
+      alert("Password must be 6+ characters ⚠️");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match ⚠️");
+      return;
+    }
+    setStep(2);
+  };
+
   return (
     <div className="reg-container">
       <div className="reg-left">
@@ -139,30 +191,77 @@ export default function Register() {
 
           <div className="reg-form">
             {step === 1 && (<>
-              <input 
-                type="text" 
-                placeholder="Full Name" 
-                aria-label="Full Name"
-                className="reg-input" 
-                value={formData.name} 
-                onChange={e => set('name', e.target.value)} 
-              />
-              <input 
-                type="email" 
-                placeholder="Email Address" 
-                aria-label="Email Address"
-                className="reg-input" 
-                value={formData.email} 
-                onChange={e => set('email', e.target.value)} 
-              />
-              <input 
-                type="password" 
-                placeholder="Password" 
-                aria-label="Password"
-                className="reg-input" 
-                value={formData.password} 
-                onChange={e => set('password', e.target.value)} 
-              />
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%', marginBottom: '1rem' }}>
+                <input 
+                  type="text" 
+                  ref={nameRef}
+                  placeholder="Full Name" 
+                  aria-label="Full Name"
+                  className="reg-input" 
+                  value={formData.name} 
+                  onChange={e => set('name', e.target.value)} 
+                  style={{ flex: 1, paddingRight: '45px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
+                />
+                <VoiceMicButton 
+                  isListening={listeningField === 'name'}
+                  onClick={() => listeningField === 'name' ? stopListening(emailRef) : startListening('Full Name', 'name', formData.name, v => set('name', v), emailRef)}
+                  label="Voice input for full name"
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%', marginBottom: '1rem' }}>
+                <input 
+                  type="email" 
+                  ref={emailRef}
+                  placeholder="Email Address" 
+                  aria-label="Email Address"
+                  className="reg-input" 
+                  value={formData.email} 
+                  onChange={e => set('email', e.target.value)} 
+                  style={{ flex: 1, paddingRight: '45px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
+                />
+                <VoiceMicButton 
+                  isListening={listeningField === 'email'}
+                  onClick={() => listeningField === 'email' ? stopListening(passwordRef) : startListening('Email Address', 'email', formData.email, v => set('email', v), passwordRef)}
+                  label="Voice input for email"
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%', marginBottom: '1rem' }}>
+                <input 
+                  type="password" 
+                  ref={passwordRef}
+                  placeholder="Password" 
+                  aria-label="Password"
+                  className="reg-input" 
+                  value={formData.password} 
+                  onChange={e => set('password', e.target.value)} 
+                  style={{ flex: 1, paddingRight: '45px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
+                />
+                <VoiceMicButton 
+                  isListening={listeningField === 'password'}
+                  onClick={() => listeningField === 'password' ? stopListening(confirmPasswordRef) : startListening('Password', 'password', formData.password, v => set('password', v), confirmPasswordRef)}
+                  label="Voice input for password"
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%', marginBottom: '1rem' }}>
+                <input 
+                  type="password" 
+                  ref={confirmPasswordRef}
+                  placeholder="Confirm Password" 
+                  aria-label="Confirm Password"
+                  className="reg-input" 
+                  value={formData.confirmPassword} 
+                  onChange={e => set('confirmPassword', e.target.value)} 
+                  style={{ flex: 1, paddingRight: '45px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
+                />
+                <VoiceMicButton 
+                  isListening={listeningField === 'confirmPassword'}
+                  onClick={() => listeningField === 'confirmPassword' ? stopListening(continueBtnRef) : startListening('Confirm Password', 'password', formData.confirmPassword, v => set('confirmPassword', v), continueBtnRef, handleContinue)}
+                  label="Voice input for confirm password"
+                />
+              </div>
 
               <select 
                 className="reg-input" 
@@ -191,13 +290,10 @@ export default function Register() {
               )}
 
               <button 
+                ref={continueBtnRef}
                 className="reg-btn" 
                 aria-label="Continue to next step"
-                onClick={() => {
-                  if (!formData.name || !formData.email || !formData.password) return alert("Fill all fields");
-                  if (formData.password.length < 6) return alert("Password must be 6+ characters");
-                  setStep(2);
-                }}
+                onClick={handleContinue}
               >
                 CONTINUE →
               </button>
@@ -209,15 +305,25 @@ export default function Register() {
               </div>
 
               <div className="reg-udid-row">
-                <input 
-                  type="text" 
-                  placeholder="Enter UDID"
-                  aria-label="Enter your UDID number"
-                  className="reg-input udid-field" 
-                  value={formData.udid}
-                  onChange={e => { set('udid', e.target.value.toUpperCase()); setUdidVerified(false); setUdidMsg(''); }} 
-                />
+                <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flex: 1 }}>
+                  <input 
+                    type="text" 
+                    ref={udidRef}
+                    placeholder="Enter UDID"
+                    aria-label="Enter your UDID number"
+                    className="reg-input udid-field" 
+                    value={formData.udid}
+                    onChange={e => { set('udid', e.target.value.toUpperCase()); setUdidVerified(false); setUdidMsg(''); }} 
+                    style={{ paddingRight: '45px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
+                  />
+                  <VoiceMicButton 
+                    isListening={listeningField === 'udid'}
+                    onClick={() => listeningField === 'udid' ? stopListening(verifyUdidBtnRef) : startListening('UDID', 'udid', formData.udid, v => set('udid', v.toUpperCase()), verifyUdidBtnRef, verifyStudentUDID)}
+                    label="Voice input for UDID"
+                  />
+                </div>
                 <button 
+                  ref={verifyUdidBtnRef}
                   className="reg-verify-btn" 
                   aria-label="Verify UDID button"
                   onClick={verifyStudentUDID} 
@@ -243,21 +349,36 @@ export default function Register() {
 
               <div className="reg-action-row" style={{ marginTop: 20 }}>
                 <button className="reg-secondary-btn" aria-label="Go back" onClick={() => setStep(1)}>← BACK</button>
-                <button className="reg-btn" aria-label="Complete Registration" onClick={handleRegister} disabled={!udidVerified}>COMPLETE</button>
+                <button ref={completeBtnRef} className="reg-btn" aria-label="Complete Registration" onClick={handleRegister} disabled={!udidVerified}>COMPLETE</button>
               </div>
             </>)}
 
             {step === 2 && formData.role === 'parent' && (<>
                <div className="reg-udid-row">
-                <input 
-                  type="text" 
-                  placeholder="Child's UDID"
-                  aria-label="Enter your child's UDID number"
-                  className="reg-input udid-field" 
-                  value={formData.linkedStudentUDID}
-                  onChange={e => { set('linkedStudentUDID', e.target.value.toUpperCase()); setChildVerified(false); }} 
-                />
-                <button className="reg-verify-btn" aria-label="Verify child's UDID" onClick={verifyChildUDID} disabled={verifying}>
+                <div style={{ display: 'flex', alignItems: 'center', position: 'relative', flex: 1 }}>
+                  <input 
+                    type="text" 
+                    ref={linkedStudentUdidRef}
+                    placeholder="Child's UDID"
+                    aria-label="Enter your child's UDID number"
+                    className="reg-input udid-field" 
+                    value={formData.linkedStudentUDID}
+                    onChange={e => { set('linkedStudentUDID', e.target.value.toUpperCase()); setChildVerified(false); }} 
+                    style={{ paddingRight: '45px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
+                  />
+                  <VoiceMicButton 
+                    isListening={listeningField === 'linkedStudentUDID'}
+                    onClick={() => listeningField === 'linkedStudentUDID' ? stopListening(verifyChildUdidBtnRef) : startListening("Child's UDID", 'udid', formData.linkedStudentUDID, v => set('linkedStudentUDID', v.toUpperCase()), verifyChildUdidBtnRef, verifyChildUDID)}
+                    label="Voice input for child's UDID"
+                  />
+                </div>
+                <button 
+                  ref={verifyChildUdidBtnRef}
+                  className="reg-verify-btn" 
+                  aria-label="Verify child's UDID" 
+                  onClick={verifyChildUDID} 
+                  disabled={verifying}
+                >
                   {verifying ? "..." : "Verify"}
                 </button>
               </div>
@@ -273,7 +394,7 @@ export default function Register() {
 
               <div className="reg-action-row" style={{ marginTop: 20 }}>
                 <button className="reg-secondary-btn" aria-label="Go back" onClick={() => setStep(1)}>← BACK</button>
-                <button className="reg-btn" aria-label="Complete Registration" onClick={handleRegister} disabled={!childVerified}>COMPLETE</button>
+                <button ref={completeBtnRef} className="reg-btn" aria-label="Complete Registration" onClick={handleRegister} disabled={!childVerified}>COMPLETE</button>
               </div>
             </>)}
           </div>

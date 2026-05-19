@@ -1,20 +1,26 @@
-// frontend/src/pages/Login.jsx  ← REPLACE ENTIRE FILE
-// Only change from original: after login, role === 'parent' → /pdashboard
-import { useState } from "react";
+// frontend/src/pages/Login.jsx
+import { useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import learningImg from "../assets/learning.png";
 import { useAuth } from "../context/AuthContext";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import VoiceMicButton from "../components/VoiceMicButton";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const submitRef = useRef(null);
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const { listeningField, startListening, stopListening } = useSpeechRecognition();
+
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!email || !password) { alert("Please enter email and password ⚠️"); return; }
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
@@ -55,14 +61,46 @@ export default function Login() {
           <h2 className="login-title">ThiranNexus</h2>
           <p className="login-subtitle">Login to your learning dashboard</p>
           <div className="input-group">
-            <input type="email" placeholder="Email Address" className="login-input" value={email} onChange={e => setEmail(e.target.value)} required />
-            <input type="password" placeholder="Password" className="login-input" value={password} onChange={e => setPassword(e.target.value)} required />
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
+              <input 
+                type="email" 
+                ref={emailRef} 
+                placeholder="Email Address" 
+                className="login-input" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                required 
+                style={{ flex: 1, paddingRight: '45px', width: '100%', boxSizing: 'border-box' }} 
+              />
+              <VoiceMicButton 
+                isListening={listeningField === 'email'}
+                onClick={() => listeningField === 'email' ? stopListening(passwordRef) : startListening('email', 'email', email, setEmail, passwordRef)}
+                label="Voice input for email"
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
+              <input 
+                type="password" 
+                ref={passwordRef} 
+                placeholder="Password" 
+                className="login-input" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                required 
+                style={{ flex: 1, paddingRight: '45px', width: '100%', boxSizing: 'border-box' }} 
+              />
+              <VoiceMicButton 
+                isListening={listeningField === 'password'}
+                onClick={() => listeningField === 'password' ? stopListening(submitRef) : startListening('password', 'password', password, setPassword, submitRef, handleLogin)}
+                label="Voice input for password"
+              />
+            </div>
           </div>
           <div className="login-options">
             <label className="remember-me"><input type="checkbox" /> Remember me</label>
             <span className="forgot-link">Forgot Password?</span>
           </div>
-          <button type="submit" className="login-btn">LOGIN</button>
+          <button type="submit" ref={submitRef} className="login-btn">LOGIN</button>
           <p className="join-text">New to the mission? <span onClick={() => navigate("/register")}>Join the cause</span></p>
         </form>
       </div>
