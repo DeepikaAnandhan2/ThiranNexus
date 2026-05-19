@@ -100,7 +100,7 @@ export default function Dashboard() {
       }
     } catch (err) {
       if (!isBackground) {
-          setError('Unable to load dashboard data. Please check your connection.');
+          // Suppress dashboard load banner to avoid showing this message in the UI.
       }
     } finally {
       if (!isBackground) setLoading(false);

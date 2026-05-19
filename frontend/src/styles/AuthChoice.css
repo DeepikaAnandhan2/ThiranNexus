@@ -1,0 +1,131 @@
+.auth-choice-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.auth-choice-card {
+  width: min(980px, 100%);
+  background: white;
+  padding: 3rem;
+  border-radius: 28px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+.auth-choice-card h1 {
+  font-size: clamp(2rem, 2.4vw, 2.8rem);
+  margin-bottom: 0.6rem;
+  color: #312e81;
+}
+
+.auth-choice-card p {
+  color: #4b5563;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  max-width: 680px;
+}
+
+.auth-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.auth-choice-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  border-radius: 24px;
+  text-decoration: none;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: #f8fafc;
+  color: inherit;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.auth-choice-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.auth-choice-icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
+  font-size: 1.4rem;
+}
+
+.auth-choice-item h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1f2937;
+}
+
+.auth-choice-item p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.auth-choice-footer {
+  margin-top: 2rem;
+  text-align: right;
+}
+
+.auth-choice-footer a {
+  color: #4338ca;
+  font-weight: 700;
+}
+
+.auth-choice-admin-register {
+  text-align: center;
+}
+
+.auth-choice-note {
+  margin: 1.5rem 0;
+  color: #52525b;
+  font-size: 1rem;
+}
+
+.auth-choice-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.auth-choice-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.95rem 1.6rem;
+  border-radius: 999px;
+  background: #4338ca;
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  transition: background 0.2s ease;
+}
+
+.auth-choice-button:hover {
+  background: #3730a3;
+}
+
+.auth-choice-button.secondary {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.auth-choice-button.secondary:hover {
+  background: #e0e7ff;
+}
