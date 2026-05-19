@@ -13,9 +13,12 @@ import Topbar from './components/Topbar';
 
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
+import ChooseLogin from './pages/ChooseLogin';
 import Login from './pages/Login';
 import AdminLogin from './admin/Login';
+import ChooseRegister from './pages/ChooseRegister';
 import Register from './pages/Register';
+import AdminRegister from './pages/AdminRegister';
 import Games from './pages/Games';
 import Education from './pages/Education';
 import Schemes from './pages/Schemes';
@@ -92,8 +95,11 @@ export default function App() {
 
               {/* 🔓 PUBLIC ROUTES */}
               <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<ChooseLogin />} />
+              <Route path="/login/user" element={<Login />} />
+              <Route path="/register" element={<ChooseRegister />} />
+              <Route path="/register/user" element={<Register />} />
+              <Route path="/admin/register" element={<AdminRegister />} />
               <Route path="/admin/login" element={<AdminLogin />} />
 
               {/* ✅ NEW: UDID HELP PAGE */}
