@@ -217,7 +217,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2024 ThiranNexus. All rights reserved.</p>
+            <p>&copy; 2026 ThiranNexus. All rights reserved.</p>
           </div>
         </div>
       </footer>

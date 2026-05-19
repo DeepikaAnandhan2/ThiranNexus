@@ -1,8 +1,7 @@
-// ─── Scribble Game Page ───────────────────────────────────
-// Lobby → Word Selection → Game → Scoreboard
-// Uses Socket.IO for real-time drawing + guessing
-// FIXED: Correct backend payload keys (userId, nickname as flat fields)
-// FIXED: Full UI restored from original
+// ─── pages/Scribble.jsx ───────────────────────────────────────────────────────
+// FIX: sendMessage() no longer adds messages to local state.
+//      Server broadcasts to everyone (including sender) via io.to(roomCode).
+//      This eliminates duplicate messages for the sender.
 
 import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
@@ -21,37 +20,39 @@ const SOCKET_URL = 'http://localhost:5000'
 
 const AVATARS = ['😊','😎','🤩','😜','🥳','😇','🤓','😏','🥸','😈','👻','🤖','🦊','🐼','🦁','🐸']
 
-export default function Scribble() {
-  // ── User identity (FIXED: safe JSON parse) ─────────────
-  const [myId] = useState(() => {
-    try {
-      const saved = localStorage.getItem('tn_user')
-      if (saved) return JSON.parse(saved).id || `guest_${Date.now()}`
-    } catch {}
-    return `guest_${Date.now()}`
-  })
+// Read fresh from localStorage every render — prevents stale guest_ IDs
+function getStoredUser() {
+  try {
+    const saved = localStorage.getItem('tn_user')
+    if (saved) return JSON.parse(saved)
+  } catch {}
+  return null
+}
 
-  const [nickname, setNickname] = useState(() => {
-    try {
-      const saved = localStorage.getItem('tn_user')
-      if (saved) return JSON.parse(saved).name || `User${Math.floor(Math.random()*9000)+1000}`
-    } catch {}
-    return `User${Math.floor(Math.random()*9000)+1000}`
-  })
+export default function Scribble() {
+  // ── User identity ──────────────────────────────────────────────────────────
+  // Read directly (not via useState) so it's always the real DB _id
+  const storedUser = getStoredUser()
+  const myId       = storedUser?._id || storedUser?.id || `guest_${Date.now()}`
+
+  const [nickname, setNickname] = useState(
+    storedUser?.name || storedUser?.nickname || storedUser?.username ||
+    `User${Math.floor(Math.random()*9000)+1000}`
+  )
 
   const [avatar, setAvatar] = useState('😊')
 
-  // ── Screen state ───────────────────────────────────────
+  // ── Screen state ───────────────────────────────────────────────────────────
   const [screen, setScreen] = useState('lobby') // lobby | waiting | wordpick | game | gameover
 
-  // ── Room state ─────────────────────────────────────────
+  // ── Room state ─────────────────────────────────────────────────────────────
   const [roomCode,     setRoomCode]     = useState('')
   const [joinCode,     setJoinCode]     = useState('')
   const [players,      setPlayers]      = useState([])
   const [isHost,       setIsHost]       = useState(false)
   const [roomSettings, setRoomSettings] = useState({ totalRounds: 3, timePerRound: 80, wordCategory: 'general' })
 
-  // ── Game state ─────────────────────────────────────────
+  // ── Game state ─────────────────────────────────────────────────────────────
   const [amDrawing,     setAmDrawing]     = useState(false)
   const [currentDrawer, setCurrentDrawer] = useState(null)
   const [wordOptions,   setWordOptions]   = useState([])
@@ -70,14 +71,20 @@ export default function Scribble() {
 
   const socketRef = useRef(null)
 
-  // ── Socket setup ───────────────────────────────────────
+  // ── Socket setup ───────────────────────────────────────────────────────────
   useEffect(() => {
     const socket = io(SOCKET_URL, { transports: ['websocket'] })
     socketRef.current = socket
 
     socket.on('players-updated', (p) => setPlayers(p))
-    socket.on('player-joined',   ({ nickname }) => addSystemMsg(`${nickname} joined the room!`))
-    socket.on('player-left',     ({ nickname }) => addSystemMsg(`${nickname} left.`))
+
+    // System messages — only from server events, not local sends
+    socket.on('player-joined', ({ nickname }) =>
+      addSystemMsg(`${nickname} joined the room!`)
+    )
+    socket.on('player-left', ({ nickname }) =>
+      addSystemMsg(`${nickname} left.`)
+    )
 
     socket.on('room-state', ({ players, status, roundNum, totalRounds, timeLeft }) => {
       setPlayers(players)
@@ -123,8 +130,7 @@ export default function Scribble() {
     socket.on('timer', ({ timeLeft }) => setTimeLeft(timeLeft))
 
     socket.on('correct-guess', ({ nickname, pointsEarned }) => {
-      const msg = `✅ ${nickname} guessed the word! +${pointsEarned} pts`
-      addSystemMsg(msg)
+      addSystemMsg(`✅ ${nickname} guessed the word! +${pointsEarned} pts`)
     })
 
     socket.on('you-guessed', ({ word }) => {
@@ -132,6 +138,9 @@ export default function Scribble() {
       setCurrentWord(word)
     })
 
+    // FIX: server is the single source of truth for all chat messages.
+    // This fires for ALL players including the sender — so sendMessage()
+    // must NOT also add the message locally (that caused duplicates).
     socket.on('chat-message', (msg) => {
       addMessage(msg)
       addAnswer(msg)
@@ -161,12 +170,12 @@ export default function Scribble() {
   const addAnswer = (msg) =>
     setAnswers(prev => [...prev, msg])
 
-  // ── Create room (FIXED: flat payload keys) ─────────────
+  // ── Create room ────────────────────────────────────────────────────────────
   const createRoom = async () => {
     try {
       const payload = {
         userId:       myId,
-        nickname:     nickname,
+        nickname,
         avatar,
         totalRounds:  roomSettings.totalRounds,
         timePerRound: roomSettings.timePerRound,
@@ -177,7 +186,7 @@ export default function Scribble() {
       setIsHost(true)
       setPlayers(res.data.room.players)
       socketRef.current?.emit('join-room', {
-        roomCode: res.data.roomCode, userId: myId, nickname, avatar
+        roomCode: res.data.roomCode, userId: myId, nickname, avatar,
       })
       setScreen('waiting')
     } catch (err) {
@@ -185,7 +194,7 @@ export default function Scribble() {
     }
   }
 
-  // ── Join room (FIXED: flat payload keys) ───────────────
+  // ── Join room ──────────────────────────────────────────────────────────────
   const joinRoom = async () => {
     if (!joinCode.trim()) return
     try {
@@ -200,7 +209,7 @@ export default function Scribble() {
       setIsHost(false)
       setPlayers(res.data.room.players)
       socketRef.current?.emit('join-room', {
-        roomCode: res.data.room.roomCode, userId: myId, nickname, avatar
+        roomCode: res.data.room.roomCode, userId: myId, nickname, avatar,
       })
       setScreen('waiting')
     } catch (err) {
@@ -208,12 +217,12 @@ export default function Scribble() {
     }
   }
 
-  // ── Start game ─────────────────────────────────────────
+  // ── Start game ─────────────────────────────────────────────────────────────
   const startGame = () => {
     socketRef.current?.emit('start-game', { roomCode })
   }
 
-  // ── Choose word ────────────────────────────────────────
+  // ── Choose word ────────────────────────────────────────────────────────────
   const chooseWord = (word) => {
     socketRef.current?.emit('word-chosen', { roomCode, word })
     setCurrentWord(word)
@@ -221,14 +230,21 @@ export default function Scribble() {
     setScreen('game')
   }
 
-  // ── Send chat message ──────────────────────────────────
+  // ── Send chat message ──────────────────────────────────────────────────────
+  // FIX: do NOT add message to local state here.
+  //      The server echoes it back via 'chat-message' event to everyone,
+  //      which the listener above handles — preventing duplicates.
   const sendMessage = (message) => {
-    socketRef.current?.emit('chat-message', { roomCode, message, userId: myId, nickname })
-    addMessage({ nickname: 'You', message, isSystem: false })
-    addAnswer({ nickname: 'You', message, isSystem: false })
+    socketRef.current?.emit('chat-message', {
+      roomCode,
+      message,
+      userId:   myId,
+      nickname,
+    })
+    // ❌ REMOVED: addMessage / addAnswer calls that caused duplicate messages
   }
 
-  // ── Copy room code ─────────────────────────────────────
+  // ── Copy room code ─────────────────────────────────────────────────────────
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode)
     setCopied(true)
@@ -238,9 +254,9 @@ export default function Scribble() {
   const timerPct   = (timeLeft / (roomSettings.timePerRound || 80)) * 100
   const timerColor = timeLeft <= 10 ? '#EF4444' : timeLeft <= 30 ? '#FF8C42' : '#8B5CF6'
 
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   // LOBBY SCREEN
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   if (screen === 'lobby') return (
     <div className="scribble-lobby">
       <div className="lobby-bg" aria-hidden="true">
@@ -248,14 +264,12 @@ export default function Scribble() {
       </div>
 
       <div className="lobby-card">
-        {/* Header */}
         <div className="lobby-header">
           <FaPencilAlt className="lobby-header-icon" />
           <h1 className="lobby-title">Scribble</h1>
           <p className="lobby-subtitle">Draw • Guess • Win</p>
         </div>
 
-        {/* Avatar picker */}
         <div className="lobby-avatar-section">
           <div className="lobby-avatar-display">{avatar}</div>
           <div className="lobby-avatar-grid">
@@ -265,7 +279,6 @@ export default function Scribble() {
           </div>
         </div>
 
-        {/* Nickname */}
         <div className="lobby-field">
           <label className="lobby-label">Nickname</label>
           <input
@@ -280,7 +293,6 @@ export default function Scribble() {
         <div className="lobby-divider"><span>or</span></div>
 
         <div className="lobby-actions">
-          {/* Create */}
           <div className="lobby-create">
             <h3 className="lobby-section-title"><FaCog /> Room Settings</h3>
             <div className="lobby-settings-row">
@@ -321,7 +333,6 @@ export default function Scribble() {
 
           <div className="lobby-or">OR</div>
 
-          {/* Join */}
           <div className="lobby-join">
             <h3 className="lobby-section-title"><FaDoorOpen /> Join Room</h3>
             <input
@@ -340,15 +351,14 @@ export default function Scribble() {
     </div>
   )
 
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   // WAITING ROOM
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   if (screen === 'waiting') return (
     <div className="scribble-waiting">
       <div className="waiting-card">
         <h2 className="waiting-title"><FaUserFriends /> Waiting Room</h2>
 
-        {/* Room code */}
         <div className="waiting-code-wrap">
           <p className="waiting-code-label">Room Code</p>
           <div className="waiting-code-row">
@@ -361,7 +371,6 @@ export default function Scribble() {
           <p className="waiting-code-hint">Share this code with friends to join!</p>
         </div>
 
-        {/* Players */}
         <div className="waiting-players">
           <p className="waiting-players-label">{players.length} player{players.length !== 1 ? 's' : ''} in room</p>
           <div className="waiting-player-grid">
@@ -395,9 +404,9 @@ export default function Scribble() {
     </div>
   )
 
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   // WORD PICK SCREEN
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   if (screen === 'wordpick') return (
     <div className="scribble-wordpick">
       <div className="wordpick-card">
@@ -415,9 +424,9 @@ export default function Scribble() {
     </div>
   )
 
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   // GAME OVER SCREEN
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   if (screen === 'gameover') return (
     <div className="scribble-gameover">
       <div className="gameover-card">
@@ -451,13 +460,12 @@ export default function Scribble() {
     </div>
   )
 
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   // GAME SCREEN
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
   return (
     <div className="scribble-game">
 
-      {/* ── Top bar ── */}
       <div className="game-topbar">
         <div className="topbar-left">
           <FaPencilAlt className="topbar-icon" />
@@ -483,13 +491,10 @@ export default function Scribble() {
         </div>
 
         <div className="topbar-right">
-          <div className="topbar-timer" style={{ color: timerColor }}>
-            {timeLeft}s
-          </div>
+          <div className="topbar-timer" style={{ color: timerColor }}>{timeLeft}s</div>
         </div>
       </div>
 
-      {/* ── Timer bar ── */}
       <div className="game-timer-bar">
         <div
           className="game-timer-fill"
@@ -497,7 +502,6 @@ export default function Scribble() {
         />
       </div>
 
-      {/* ── Round end overlay ── */}
       {showRoundEnd && (
         <div className="round-end-overlay">
           <div className="round-end-card">
@@ -507,9 +511,7 @@ export default function Scribble() {
         </div>
       )}
 
-      {/* ── Main game layout ── */}
       <div className="game-layout">
-        {/* Left: Player list */}
         <div className="game-players">
           <PlayerList
             players={players}
@@ -518,7 +520,6 @@ export default function Scribble() {
           />
         </div>
 
-        {/* Center: Canvas */}
         <div className="game-canvas-wrap">
           <DrawingCanvas
             socket={socketRef.current}
@@ -527,7 +528,6 @@ export default function Scribble() {
           />
         </div>
 
-        {/* Right: Chat */}
         <div className="game-chat">
           <ChatPanel
             messages={messages}

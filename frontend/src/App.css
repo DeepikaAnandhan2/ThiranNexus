@@ -208,10 +208,10 @@ button:focus-visible {
   background: var(--bg);
   border-radius: 32px 32px 0 0;
   margin-top: -2.5rem;
-  padding: 2rem 1.25rem 2.5rem;
+  padding: 2rem 2rem 2.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;      /* changed from center → stretch */
   gap: 1.5rem;
   flex: 1;
   position: relative;
@@ -229,11 +229,11 @@ button:focus-visible {
 
 /* Game cards */
 .game-nav {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1rem;
   width: 100%;
-  max-width: 440px;
+  max-width: none;           /* removed the 440px cap */
 }
 
 .game-card {
@@ -1095,9 +1095,7 @@ button:focus-visible {
 
 
 /* Layout */
-.app-shell {
-  display: flex;
-}
+.app-shell { display: flex; width: 100%; min-height: 100vh; overflow-x: hidden; }
 
 /* Sidebar already fixed */
 .sidebar {
@@ -1109,10 +1107,9 @@ button:focus-visible {
 }
 
 /* Right side */
-.content-area {
-  margin-left: 240px;
-  width: calc(100% - 240px);
-}
+.content-area { margin-left: 240px; width: calc(100% - 240px);
+   flex: 1; min-width: 0; display: flex;
+    flex-direction: column; }
 
 /* Topbar stays normal */
 .content-area > *:first-child {
@@ -1127,12 +1124,9 @@ button:focus-visible {
 }
 
 
-.page-inner {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0 40px;
-}
+.page-inner { width: 100%; max-width: none; 
+  margin: 0; padding: 0 32px; 
+  box-sizing: border-box; } 
 
 /* 🔥 FORCE FULL WIDTH FIX */
 .page-inner * {
@@ -1171,4 +1165,50 @@ button:focus-visible {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
+}
+/* ── Dashboard context overrides ── */
+.content-area .home-container,
+.content-area .game-container {
+  width: 100%;
+  min-height: auto;
+  overflow: visible;
+}
+
+.content-area .home-hero,
+.content-area .game-banner {
+  border-radius: 0;
+  width: 100%;
+}
+
+.content-area .home-body,
+.content-area .game-body {
+  max-width: none;
+  padding: 1.5rem 2rem 2rem;
+  align-items: flex-start;
+}
+
+/* Fix card grid — responsive columns */
+.content-area .game-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  max-width: none;
+}
+
+.content-area .game-card {
+  width: 100%;
+}
+
+/* Remove mobile-only max-widths inside dashboard */
+.content-area .features-row,
+.content-area .gesture-guide {
+  max-width: none;
+}
+
+/* remove max-width caps on all inner home elements */
+.home-body .section-label,
+.home-body .features-row,
+.home-body .gesture-guide,
+.home-body .home-footer {
+  max-width: none;
+  width: 100%;
 }

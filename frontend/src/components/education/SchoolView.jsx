@@ -30,6 +30,11 @@ const SUBJECTS = [
   'History','Geography','Computer Science',
 ]
 
+const normalizeChapterList = (response) => {
+  const payload = response?.data?.data || response?.data?.chapters || response?.data?.results || []
+  return Array.isArray(payload) ? payload : []
+}
+
 // ── Markdown renderer ─────────────────────────────────────
 function RenderContent({ text }) {
   if (!text) return null
@@ -188,7 +193,7 @@ export default function SchoolView({ user }) {
         params: { grade, subject },
         headers: headers(),
       })
-      setChapters(res.data.chapters || res.data.results || [])
+      setChapters(normalizeChapterList(res))
       setVideos(res.data.videos || [])
     } catch {
       setChapters([])

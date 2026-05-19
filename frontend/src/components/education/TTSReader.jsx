@@ -1,111 +1,166 @@
-// ─── TTS Reader Component ─────────────────────────────────
-// Reads any text content aloud with controls
-// Used by: SchoolView, CollegeView
-
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import './TTSReader.css'
 import { FaPlay, FaPause, FaStop } from 'react-icons/fa'
 
-export default function TTSReader({ text, autoPlay = false }) {
-  const [playing,  setPlaying]  = useState(false)
-  const [paused,   setPaused]   = useState(false)
-  const [rate,     setRate]     = useState(0.9)
+export default function TTSReader({ text }) {
+  const [playing, setPlaying] = useState(false)
+  const [paused, setPaused] = useState(false)
+  const [rate, setRate] = useState(0.9)
+  const [voices, setVoices] = useState([])
+  const [selectedVoice, setSelectedVoice] = useState(null)
+
   const utterRef = useRef(null)
 
-  const speak = useCallback((textToRead) => {
-    if (!window.speechSynthesis) return
-    window.speechSynthesis.cancel()
+  // 🔊 Load voices properly (important fix)
+ useEffect(() => {
+  const loadVoices = () => {
+    const allVoices = window.speechSynthesis.getVoices()
 
-    const utter   = new SpeechSynthesisUtterance(textToRead)
-    utter.rate    = rate
-    utter.lang    = 'en-US'
-    utter.pitch   = 1
+    if (allVoices.length > 0) {
+      setVoices(allVoices)
 
-    utter.onstart = () => { setPlaying(true); setPaused(false) }
-    utter.onend   = () => { setPlaying(false); setPaused(false) }
-    utter.onerror = () => { setPlaying(false); setPaused(false) }
+      // Better fallback logic
+      const female = allVoices.find(v =>
+        v.name.toLowerCase().includes('female') ||
+        v.name.toLowerCase().includes('zira')
+      )
 
-    utterRef.current = utter
-    window.speechSynthesis.speak(utter)
-  }, [rate])
+      const male = allVoices.find(v =>
+        v.name.toLowerCase().includes('male') ||
+        v.name.toLowerCase().includes('david')
+      )
+
+      setSelectedVoice(female || male || allVoices[0])
+    }
+  }
+
+  loadVoices()
+
+  window.speechSynthesis.onvoiceschanged = loadVoices
+
+  return () => {
+    window.speechSynthesis.onvoiceschanged = null
+  }
+}, [])
+
+const speak = useCallback(() => {
+  if (!window.speechSynthesis) return
+
+  window.speechSynthesis.cancel()
+
+  const utter = new SpeechSynthesisUtterance(text)
+
+  // 🔥 Detect Tamil text
+  const isTamil = /[\u0B80-\u0BFF]/.test(text)
+
+  // ✅ Set language properly
+  utter.lang = isTamil ? 'ta-IN' : 'en-US'
+
+  utter.rate = rate
+  utter.pitch = 1
+
+  // 🔥 Pick correct voice based on language
+  if (isTamil) {
+    const tamilVoice = voices.find(v => v.lang.includes('ta'))
+    if (tamilVoice) {
+      utter.voice = tamilVoice
+    }
+  } else {
+    utter.voice = selectedVoice
+  }
+
+  utter.onstart = () => {
+    setPlaying(true)
+    setPaused(false)
+  }
+
+  utter.onend = () => {
+    setPlaying(false)
+    setPaused(false)
+  }
+
+  utter.onerror = () => {
+    setPlaying(false)
+    setPaused(false)
+  }
+
+  utterRef.current = utter
+  window.speechSynthesis.speak(utter)
+}, [text, rate, selectedVoice, voices])
+
 
   const handlePlay = () => {
     if (paused) {
       window.speechSynthesis.resume()
-      setPaused(false); setPlaying(true)
+      setPaused(false)
+      setPlaying(true)
     } else {
-      speak(text)
+      speak()
     }
   }
 
   const handlePause = () => {
     window.speechSynthesis.pause()
-    setPaused(true); setPlaying(false)
+    setPaused(true)
+    setPlaying(false)
   }
 
   const handleStop = () => {
     window.speechSynthesis.cancel()
-    setPlaying(false); setPaused(false)
+    setPlaying(false)
+    setPaused(false)
   }
 
   return (
-    <div className="tts-wrap" aria-label="Text to Speech controls">
+    <div className="tts-wrap">
       <div className="tts-label">🔊 Read Aloud</div>
 
       <div className="tts-controls">
+
         {!playing ? (
-          <button
-            className="tts-btn tts-play"
-            onClick={handlePlay}
-            aria-label={paused ? 'Resume reading' : 'Start reading'}
-          >
+          <button className="tts-btn tts-play" onClick={handlePlay}>
             <FaPlay /> Play
           </button>
         ) : (
-          <button
-            className="tts-btn tts-pause"
-            onClick={handlePause}
-            aria-label="Pause reading"
-          >
-             <FaPause /> Pause
+          <button className="tts-btn tts-pause" onClick={handlePause}>
+            <FaPause /> Pause
           </button>
         )}
 
-        <button
-          className="tts-btn tts-stop"
-          onClick={handleStop}
-          disabled={!playing && !paused}
-          aria-label="Stop reading"
-        >
-            <FaStop /> Stop
-
-
+        <button className="tts-btn tts-stop" onClick={handleStop}>
+          <FaStop /> Stop
         </button>
 
-        {/* Speed control */}
-        <div className="tts-speed" aria-label="Reading speed">
-          <span className="tts-speed-label">Speed</span>
+        {/* 🔥 Voice Selection */}
+        
+        <select
+          className="tts-voice-select"
+          value={selectedVoice?.name || ''}
+          onChange={(e) => {
+            const v = voices.find(v => v.name === e.target.value)
+            setSelectedVoice(v)
+          }}
+        >
+          {voices.map(v => (
+            <option key={v.name} value={v.name}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Speed */}
+        <div className="tts-speed">
           {[0.7, 0.9, 1.1, 1.3].map(r => (
             <button
               key={r}
-              className={`tts-speed-btn ${rate === r ? 'tts-speed-active' : ''}`}
+              className={rate === r ? 'tts-speed-active' : ''}
               onClick={() => setRate(r)}
-              aria-pressed={rate === r}
             >
               {r === 0.7 ? 'Slow' : r === 0.9 ? 'Normal' : r === 1.1 ? 'Fast' : 'Faster'}
             </button>
           ))}
         </div>
       </div>
-
-      {playing && (
-        <div className="tts-playing-indicator" aria-label="Currently reading">
-          <span className="tts-wave" />
-          <span className="tts-wave" />
-          <span className="tts-wave" />
-          <span>Reading…</span>
-        </div>
-      )}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 /* --- Global Theme --- */
 .logic-game-wrapper {
   min-height: 100vh;
-  background: #0d1117; /* Keeping the page background dark to make white cards pop */
+  background: #0d1117;
   color: #fff;
   font-family: 'Inter', sans-serif;
   padding: 20px;
@@ -58,12 +58,12 @@
 .sequential-layout {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
 }
 
-/* --- WHITE CARD LAYOUT (Clues) --- */
+/* --- Clues Card --- */
 .clues-section {
-  background: #ffffff; /* WHITE BOX */
+  background: #ffffff;
   border: 1px solid #e1e4e8;
   border-radius: 24px;
   padding: 35px;
@@ -76,10 +76,10 @@
   margin-bottom: 25px;
 }
 
-.section-title-black { 
-  margin: 0; 
-  color: #5856d6; /* Purple accent */
-  font-size: 24px; 
+.section-title-black {
+  margin: 0;
+  color: #5856d6;
+  font-size: 24px;
   font-weight: 800;
 }
 
@@ -114,16 +114,55 @@
   flex-shrink: 0;
 }
 
-.clue-text-black { 
-  margin: 0; 
-  color: #1c1c1e; /* BLACK TEXT */
-  font-size: 18px; 
-  font-weight: 500; 
+.clue-text-black {
+  margin: 0;
+  color: #1c1c1e;
+  font-size: 18px;
+  font-weight: 500;
 }
 
-/* --- WHITE CARD LAYOUT (Game Area) --- */
+/* --- Color Legend --- */
+.color-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border: 1px solid #e1e4e8;
+  border-radius: 16px;
+}
+
+.legend-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8e8e93;
+  letter-spacing: 0.5px;
+}
+
+.legend-dots {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1c1e;
+}
+
+.legend-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+}
+
+/* --- Tap-to-Color Game Area --- */
 .input-section {
-  background: #ffffff; /* WHITE BOX */
+  background: #ffffff;
   border: 1px solid #e1e4e8;
   border-radius: 24px;
   padding: 35px;
@@ -131,9 +170,9 @@
 
 .section-label {
   text-align: center;
-  margin-bottom: 30px;
-  color: #007aff; /* Blue accent */
-  font-size: 14px;
+  margin-bottom: 20px;
+  color: #007aff;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 2px;
 }
@@ -141,47 +180,101 @@
 .rows-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
+/* Each row — clickable */
 .answer-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: #f8f9fa; /* Light gray row */
-  padding: 15px 25px;
+  gap: 14px;
+  padding: 14px 20px;
   border-radius: 16px;
-  border: 1px solid #f1f3f5;
-}
-
-.row-number { 
-  font-weight: 800; 
-  font-size: 16px; 
-  color: #8e8e93; /* Subtle black/gray */
-}
-
-.logic-select {
-  width: 180px;
-  padding: 10px;
-  background: #ffffff;
-  border: 2px solid #e5e5ea;
-  color: #1c1c1e; /* BLACK TEXT */
-  border-radius: 12px;
-  font-weight: 800;
+  border: 2px solid transparent;
   cursor: pointer;
-  appearance: none;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+  background: #f8f9fa;
+  user-select: none;
 }
 
-/* Color visual indicators for the dropdowns */
-.logic-select.green { border-color: #34c759; color: #1c1c1e; }
-.logic-select.yellow { border-color: #ffcc00; color: #1c1c1e; }
-.logic-select.blue { border-color: #007aff; color: #1c1c1e; }
-.logic-select.orange { border-color: #ff9500; color: #1c1c1e; }
+.answer-row:active {
+  transform: scale(0.98);
+}
+
+/* Row background tint when a color is selected */
+.color-row-green  { background: #eaf3de; border-color: #97c459; }
+.color-row-yellow { background: #faeeda; border-color: #ef9f27; }
+.color-row-orange { background: #faece7; border-color: #d85a30; }
+.color-row-blue   { background: #e6f1fb; border-color: #378add; }
+.color-row-none   { background: #f8f9fa; border-color: transparent; }
+
+.row-number {
+  font-weight: 800;
+  font-size: 15px;
+  color: #8e8e93;
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+/* The big colored fill bar */
+.color-bar-fill {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+}
+
+.color-fill-none   { background: #ececec; color: #aaa; border-color: #ddd; }
+.color-fill-green  { background: #34c759; color: #fff; border-color: #2aad4a; }
+.color-fill-yellow { background: #ffcc00; color: #6b4f00; border-color: #d4a900; }
+.color-fill-orange { background: #ff9500; color: #fff; border-color: #cc7700; }
+.color-fill-blue   { background: #007aff; color: #fff; border-color: #005ecc; }
+
+/* Quick-pick dots */
+.dot-picker {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.pick-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.1s, border-color 0.1s;
+  display: block;
+}
+
+.pick-dot:hover {
+  transform: scale(1.2);
+}
+
+.pick-dot.dot-active {
+  border-color: #1c1c1e;
+  transform: scale(1.25);
+}
+
+/* Dot colors */
+.dot-green  { background: #34c759; }
+.dot-yellow { background: #ffcc00; }
+.dot-orange { background: #ff9500; }
+.dot-blue   { background: #007aff; }
 
 /* --- Footer --- */
 .action-footer {
   text-align: center;
   padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .submit-btn {
@@ -194,27 +287,77 @@
   font-size: 20px;
   font-weight: 900;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .submit-btn:hover { background: #5856d6; }
 
+.reset-btn {
+  background: none;
+  border: none;
+  color: #8e8e93;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .message-banner {
-  margin-top: 25px;
   padding: 18px;
   border-radius: 15px;
   font-weight: 800;
+  font-size: 16px;
 }
 
 .message-banner.success { background: #e2f9ec; color: #008a44; }
-.message-banner.retry { background: #ffeceb; color: #d70015; }
+.message-banner.retry   { background: #ffeceb; color: #d70015; }
 
-/* --- Setup/Difficulty Card --- */
-.setup-card { background: #ffffff; padding: 50px; border-radius: 24px; text-align: center; color: #1c1c1e; }
-.setup-title { margin-bottom: 30px; font-weight: 900; }
-.difficulty-row { display: flex; gap: 15px; margin-bottom: 30px; }
-.diff-btn { 
-  flex: 1; padding: 20px; border-radius: 15px; background: #f2f2f7; 
-  color: #1c1c1e; border: 2px solid transparent; cursor: pointer; font-weight: 800; 
+/* --- Setup / Difficulty Card --- */
+.setup-card {
+  background: #ffffff;
+  padding: 50px;
+  border-radius: 24px;
+  text-align: center;
+  color: #1c1c1e;
 }
-.diff-btn.active { border-color: #5856d6; background: #f5f3ff; color: #5856d6; }
-.start-btn { width: 100%; padding: 20px; background: #00d26a; border: none; color: white; border-radius: 15px; font-weight: 900; cursor: pointer; }
+
+.setup-title {
+  margin-bottom: 30px;
+  font-weight: 900;
+}
+
+.difficulty-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.diff-btn {
+  flex: 1;
+  padding: 20px;
+  border-radius: 15px;
+  background: #f2f2f7;
+  color: #1c1c1e;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.diff-btn.active {
+  border-color: #5856d6;
+  background: #f5f3ff;
+  color: #5856d6;
+}
+
+.start-btn {
+  width: 100%;
+  padding: 20px;
+  background: #00d26a;
+  border: none;
+  color: white;
+  border-radius: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 16px;
+}
