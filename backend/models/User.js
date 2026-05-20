@@ -30,10 +30,10 @@ const UserSchema = new mongoose.Schema({
 
   // ── Disability Info (auto-filled from UDID or manual) ─
   disabilityType: {
-  type: String,
-  enum: ['visual', 'hearing', 'cognitive', 'motor', 'speech', 'multiple', 'other', 'none'],
-  default: 'none'
-},
+    type: String,
+    enum: ['visual', 'hearing', 'cognitive', 'motor', 'speech', 'multiple', 'other', 'none'],
+    default: 'none'
+  },
 
   disabilityDetails: { type: String, default: '' },
 
@@ -59,12 +59,16 @@ const UserSchema = new mongoose.Schema({
   // If role is parent, link to student's UDID
   linkedStudentUDID: { type: String, default: '' },
 
+  // ── Explicit Parent Details (For Student Profiles) ─────
+  parentName:  { type: String, default: '' },
+  parentEmail: { type: String, default: '' },
+  parentMobile:{ type: String, default: '' }
+
   // ── Timestamps ─────────────────────────────────────────
 }, { timestamps: true })
 
 UserSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-  const bcrypt = require('bcryptjs');
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
@@ -74,4 +78,4 @@ UserSchema.methods.matchPassword = async function (entered) {
   return await bcrypt.compare(entered, this.password)
 }
 
-module.exports = mongoose.model('User', UserSchema)
+module.exports = mongoose.models.User || mongoose.model('User', UserSchema)

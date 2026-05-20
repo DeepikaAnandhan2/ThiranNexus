@@ -12,6 +12,7 @@ const seedSchemes    = require('./data/seedSchemes')
 const parentRoutes   = require('./routes/parentRoutes')
 const education2Routes = require('./routes/education2')
 const adminRoutes    = require('./routes/adminRoutes')
+const User           = require('./models/user') // Imported to handle profile endpoints
 
 const app    = express()
 const PORT   = process.env.PORT || 5000
@@ -48,6 +49,49 @@ app.use('/api/admin',         adminRoutes)
 app.use('/api/game',          require('./routes/gameRoutes'))
 app.use('/api/word',          require('./routes/words'))
 
+// ── 5b. Embedded Profile Endpoints ──────────────────────────────────────────
+// Fetch user data for the profile screen
+app.get('/api/users/profile/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User profile not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    res.status(500).json({ error: 'Server error pulling profile data' });
+  }
+});
+
+// Update user parent information details
+app.put('/api/users/profile/update/:id', async (req, res) => {
+  try {
+    const { parentName, parentEmail, parentMobile } = req.body;
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          parentName: parentName,
+          parentEmail: parentEmail,
+          parentMobile: parentMobile
+        }
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User data layer target missing' });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ error: 'Failed updating profile document configurations' });
+  }
+});
+
 // ── 6. Health check ────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) =>
   res.json({ status: 'ok', service: 'ThiranNexus API' })
@@ -82,17 +126,17 @@ app.get('/api/add-test-data', async (req, res) => {
 
 // ── 8. Game logic (Twisters & Math) ───────────────────────────────────────
 const twisters = [
-  { id: 1,  text: 'She sells seashells by the seashore.',                                                          difficulty: 'easy'   },
-  { id: 2,  text: 'Peter Piper picked a peck of pickled peppers.',                                                 difficulty: 'easy'   },
+  { id: 1,  text: 'She sells seashells by the seashore.',                                                                     difficulty: 'easy'   },
+  { id: 2,  text: 'Peter Piper picked a peck of pickled peppers.',                                                                difficulty: 'easy'   },
   { id: 3,  text: 'How much wood would a woodchuck chuck if a woodchuck could chuck wood?',                        difficulty: 'medium' },
-  { id: 4,  text: 'Red lorry, yellow lorry, red lorry, yellow lorry.',                                             difficulty: 'medium' },
-  { id: 5,  text: 'I scream, you scream, we all scream for ice cream.',                                            difficulty: 'easy'   },
-  { id: 6,  text: 'Fuzzy Wuzzy was a bear. Fuzzy Wuzzy had no hair.',                                             difficulty: 'medium' },
-  { id: 7,  text: 'Six slippery snails slid slowly seaward.',                                                     difficulty: 'hard'   },
+  { id: 4,  text: 'Red lorry, yellow lorry, red lorry, yellow lorry.',                                                            difficulty: 'medium' },
+  { id: 5,  text: 'I scream, you scream, we all scream for ice cream.',                                                           difficulty: 'easy'   },
+  { id: 6,  text: 'Fuzzy Wuzzy was a bear. Fuzzy Wuzzy had no hair.',                                                             difficulty: 'medium' },
+  { id: 7,  text: 'Six slippery snails slid slowly seaward.',                                                                    difficulty: 'hard'   },
   { id: 8,  text: 'The thirty-three thieves thought that they thrilled the throne throughout Thursday.',            difficulty: 'hard'   },
-  { id: 9,  text: 'Betty Botter bought some butter, but the butter was bitter.',                                   difficulty: 'medium' },
-  { id: 10, text: 'A skunk sat on a stump and thunk the stump stunk.',                                            difficulty: 'hard'   },
-  { id: 11, text: 'Toy boat, toy boat, toy boat.',                                                                difficulty: 'easy'   },
+  { id: 9,  text: 'Betty Botter bought some butter, but the butter was bitter.',                                                   difficulty: 'medium' },
+  { id: 10, text: 'A skunk sat on a stump and thunk the stump stunk.',                                                            difficulty: 'hard'   },
+  { id: 11, text: 'Toy boat, toy boat, toy boat.',                                                                              difficulty: 'easy'   },
   { id: 12, text: 'Unique New York, unique New York, you know you need unique New York.',                          difficulty: 'hard'   },
 ]
 
