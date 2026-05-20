@@ -25,6 +25,7 @@ import Schemes from './pages/Schemes';
 import SchemeDetails from './pages/SchemeDetails';
 import SavedApplied from './pages/SavedApplied';
 import Scribble from './pages/Scribble';
+import Profile from './pages/Profile'; // ✅ IMPORTED STUDENT PROFILE PAGE
 
 import Dashboard from './pages/Dashboard';
 import ParentDashboard from "./pages/ParentDashboard/ParentDashboard";
@@ -128,6 +129,7 @@ export default function App() {
                 <Route path="/schemes" element={<SchemesWithAuth />} />
                 <Route path="/scheme/:id" element={<SchemeDetails />} />
                 <Route path="/saved" element={<SavedApplied />} />
+                <Route path="/profile" element={<Profile />} /> {/* ✅ REGISTERED STUDENT PROFILE ROUTE PATH */}
                 <Route path="/feedback" element={<FeedbackPage />} />
               </Route>
 

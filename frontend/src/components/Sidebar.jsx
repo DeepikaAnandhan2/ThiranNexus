@@ -1,13 +1,16 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FaHome, FaBook, FaGamepad, FaTrophy,
-  FaSignOutAlt, FaEdit, FaComments, FaGraduationCap
+  FaSignOutAlt, FaEdit, FaComments, FaGraduationCap,
+  FaUser // ✅ Imported user icon for profile decoration
 } from 'react-icons/fa';
 import { useListNavigation } from '../hooks/useListNavigation';
+import { useAuth } from '../context/AuthContext'; // ✅ Added to track real-time avatar naming
 import './Sidebar.css';
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { user } = useAuth(); // ✅ Fetch current user metadata
 
   const menu = [
     { icon: <FaHome />, label: 'Home', path: '/dashboard' },
@@ -16,6 +19,7 @@ export default function Sidebar() {
     { icon: <FaGamepad />, label: 'Games', path: '/games' },
     { icon: <FaEdit />, label: 'Scribble', path: '/scribble' },
     { icon: <FaTrophy />, label: 'Schemes', path: '/schemes' },
+    { icon: <FaUser />, label: 'My Profile', path: '/profile' }, // ✅ Integrated cleanly into list array matrix
     { icon: <FaComments />, label: 'Help & Support', path: '/feedback' },
   ];
 
@@ -50,10 +54,11 @@ export default function Sidebar() {
           <span className="label">Logout</span>
         </div>
 
-        <div className="profile-section">
+        {/* ✅ Clicking the avatar will also direct the user straight to their profile screen */}
+        <div className="profile-section" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
           <img
-            src="https://api.dicebear.com/7.x/adventurer/svg?seed=user"
-            alt="user"
+            src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${user?.name || 'user'}`}
+            alt="user profile shortcut link"
           />
         </div>
       </div>
