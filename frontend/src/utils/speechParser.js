@@ -1,59 +1,119 @@
-export const parseSpeech = (transcript, fieldType = 'text') => {
-  let text = transcript.trim();
+// frontend/src/utils/speechParser.js
 
-  // Handle special commands (case insensitive)
-  const lowerText = text.toLowerCase();
-  if (lowerText === "next" || lowerText === "next field") {
-    return { command: "next", text: "" };
-  }
-  if (lowerText === "clear" || lowerText === "clear field") {
-    return { command: "clear", text: "" };
-  }
-  if (lowerText === "submit" || lowerText === "submit form") {
-    return { command: "submit", text: "" };
+/**
+ * Symbol words → actual characters
+ */
+const SYMBOL_MAP = {
+  'at': '@', 'at sign': '@',
+  'dot': '.', 'period': '.', 'full stop': '.',
+  'underscore': '_', 'under score': '_',
+  'dash': '-', 'hyphen': '-', 'minus': '-',
+  'star': '*', 'asterisk': '*',
+  'hash': '#', 'hashtag': '#',
+  'exclamation': '!', 'exclamation mark': '!',
+  'plus': '+',
+  'equals': '=', 'equal': '=',
+  'percent': '%',
+  'dollar': '$', 'dollar sign': '$',
+  'space': ' ',
+  'zero': '0', 'oh': '0',
+  'one': '1',
+  'two': '2', 'to': '2', 'too': '2',
+  'three': '3',
+  'four': '4', 'for': '4',
+  'five': '5',
+  'six': '6',
+  'seven': '7',
+  'eight': '8',
+  'nine': '9',
+};
+
+/**
+ * Parse one spoken result into { char, command }.
+ *
+ * Called once per SpeechRecognition final result.
+ * Since continuous=true, interimResults=false, each result
+ * is one word/letter the user said before a brief pause.
+ */
+export const parseSpokenChunk = (raw, fieldType = 'text') => {
+  const trimmed = raw.trim();
+  const lower = trimmed.toLowerCase();
+
+  // ── Commands ────────────────────────────────────────────────────────────
+  if (['next', 'next field', 'skip'].includes(lower))
+    return { char: null, command: 'next' };
+  if (['clear', 'clear field', 'erase', 'reset'].includes(lower))
+    return { char: null, command: 'clear' };
+  if (['submit', 'submit form', 'login', 'sign in', 'done', 'finish'].includes(lower))
+    return { char: null, command: 'submit' };
+  if (['delete', 'backspace', 'remove last'].includes(lower))
+    return { char: null, command: 'delete' };
+
+  // ── "capital X" → uppercase ─────────────────────────────────────────────
+  const capMatch = lower.match(/^capital\s+([a-z])$/);
+  if (capMatch) {
+    return { char: capMatch[1].toUpperCase(), command: null };
   }
 
-  // Handle "capital X" -> "X"
-  text = text.replace(/\b[Cc]apital ([a-zA-Z])\b/g, (match, p1) => p1.toUpperCase());
+  // ── Exact symbol word ────────────────────────────────────────────────────
+  if (SYMBOL_MAP[lower] !== undefined) {
+    return { char: SYMBOL_MAP[lower], command: null };
+  }
 
-  // Symbol mappings (case insensitive)
-  text = text.replace(/\b[Aa]t\b/g, "@");
-  text = text.replace(/\b[Dd]ot\b/g, ".");
-  text = text.replace(/\b[Uu]nderscore\b/g, "_");
-  text = text.replace(/\b[Dd]ash\b/g, "-");
-  text = text.replace(/\b[Hh]yphen\b/g, "-");
-  text = text.replace(/\b[Ss]tar\b/g, "*");
+  // ── Single letter/digit/char ─────────────────────────────────────────────
+  if (trimmed.length === 1) {
+    let ch = trimmed;
+    if (fieldType === 'email') ch = ch.toLowerCase();
+    if (fieldType === 'udid') ch = ch.toUpperCase();
+    return { char: ch, command: null };
+  }
+
+  // ── Multi-word: apply substitutions then strip spaces for structured fields
+  let processed = trimmed
+    .replace(/\bcapital\s+([a-z])\b/gi, (_, p1) => p1.toUpperCase())
+    .replace(/\bat\b/gi, '@')
+    .replace(/\bdot\b/gi, '.')
+    .replace(/\bunderscore\b/gi, '_')
+    .replace(/\bdash\b/gi, '-')
+    .replace(/\bhyphen\b/gi, '-')
+    .replace(/\bstar\b/gi, '*')
+    .replace(/\bspace\b/gi, ' ');
 
   if (['email', 'password', 'username', 'udid'].includes(fieldType)) {
-     // Remove all whitespace for these fields
-     text = text.replace(/\s+/g, '');
-     
-     if (fieldType === 'email') {
-         text = text.toLowerCase();
-     }
-  } else {
-     // For Name, collapse single spaced letters into words
-     let words = text.split(/\s+/);
-     let processedWords = [];
-     
-     for (let i = 0; i < words.length; i++) {
-       let word = words[i];
-       if (word === "") continue;
-       
-       // If it's a single letter and next is also a single letter, combine them
-       if (word.length === 1 && i < words.length - 1 && words[i+1].length === 1) {
-         let combined = word;
-         while (i + 1 < words.length && words[i+1].length === 1) {
-           combined += words[i+1];
-           i++;
-         }
-         processedWords.push(combined);
-       } else {
-         processedWords.push(word);
-       }
-     }
-     text = processedWords.join(" ");
+    processed = processed.replace(/\s+/g, '');
+    if (fieldType === 'email') processed = processed.toLowerCase();
+    if (fieldType === 'udid') processed = processed.toUpperCase();
   }
 
-  return { text, command: null };
+  return { char: processed || null, command: null };
+};
+
+/**
+ * What to speak back after a character is entered.
+ * Password fields only say "Got it" — never reveal the character.
+ */
+export const buildEchoMessage = (char, fieldType) => {
+  if (!char) return null;
+  if (fieldType === 'password') return 'Got it';
+
+  // Named symbol feedback
+  if (char === '@') return 'at';
+  if (char === '.') return 'dot';
+  if (char === '_') return 'underscore';
+  if (char === '-') return 'dash';
+  if (char === '*') return 'star';
+  if (char === ' ') return 'space';
+  if (char === '#') return 'hash';
+  if (char === '!') return 'exclamation';
+
+  // Single character: just say it
+  if (char.length === 1) {
+    if (char >= 'A' && char <= 'Z') {
+      return `capital ${char}`;
+    }
+    return char;
+  }
+
+  // Multi-char word: say the whole word
+  return char;
 };

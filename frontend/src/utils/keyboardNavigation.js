@@ -82,7 +82,14 @@ class KeyboardNavigation {
   /**
    * Handle keyboard shortcuts
    */
+
+  /**
+   * Handle keyboard shortcuts
+   */
   handleShortcut(e) {
+    // 🛡️ Guard Clause: Ensure e.key exists and is a valid string
+    if (!e || typeof e.key !== 'string') return false;
+
     const key = e.key.toLowerCase();
     const ctrl = e.ctrlKey;
     const alt = e.altKey;
