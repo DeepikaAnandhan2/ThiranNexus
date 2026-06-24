@@ -10,6 +10,7 @@ import './styles/accessibility.css'; // Global Color Accessibility Stylesheet
 
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
+import VoiceAssistant from './components/VoiceAssistant';
 
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
@@ -53,6 +54,7 @@ const AppLayout = () => {
           </div>
         </main>
       </div>
+      <VoiceAssistant />
     </div>
   );
 };
