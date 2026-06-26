@@ -98,4 +98,40 @@ const generateFullContent = async ({ title, grade, subject }) => {
   }
 };
 
-module.exports = { simplifyContent, generateQuiz, answerQuestion, generateFullContent };
+// ── 5. Generate ISL Gloss and Simplified Definition ──────────
+const generateISLGloss = async (word, definition) => {
+  try {
+    const model = getModel();
+    const prompt = `You are an expert Indian Sign Language (ISL) translator.
+For the educational vocabulary term "${word}" and its dictionary definition "${definition}":
+1. Create a very simple, direct one-sentence explanation suitable for a young hearing-impaired student (under 10 words).
+2. Convert that simplified explanation into a sequence of simple ISL gloss terms (root words in all lowercase, e.g. ["plant", "sunlight", "use", "food", "make"]). Keep the sequence length to 3-6 essential words. Do not include articles (a, an, the), helper words, or auxiliary verbs.
+
+Return ONLY a valid JSON object matching this structure (no markdown formatting, no other text):
+{
+  "simplifiedDefinition": "Plants use sunlight to make food.",
+  "islGloss": ["plant", "sunlight", "use", "food", "make"]
+}`;
+
+    const result = await model.generateContent(prompt);
+    const raw    = result.response.text();
+    const clean  = raw.replace(/```json|```/g, '').trim();
+    try {
+      return JSON.parse(clean);
+    } catch (parseErr) {
+      console.error('Failed to parse Gemini JSON response:', clean);
+      throw parseErr;
+    }
+  } catch (err) {
+    console.error('Gemini ISL gloss generation error:', err.message);
+    // Fallback: simplified definition is just the first sentence of the definition, and gloss is the individual words
+    const simplified = (definition || '').split('.')[0] + '.';
+    const gloss = word.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(Boolean);
+    return {
+      simplifiedDefinition: simplified || `${word} is an important concept.`,
+      islGloss: gloss
+    };
+  }
+};
+
+module.exports = { simplifyContent, generateQuiz, answerQuestion, generateFullContent, generateISLGloss };
