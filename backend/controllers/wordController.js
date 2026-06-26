@@ -1,5 +1,6 @@
 const axios = require('axios');
 const WordExplanation = require('../models/WordExplanation');
+const { generateISLGloss } = require('../services/geminiService');
 
 // 🚫 Stop words (won't be stored in DB)
 const STOP_WORDS = ["the", "and", "is", "was", "of", "to", "a", "in", "on", "for", "am", "are", "as", "with", "by", "that", "this", "it", "from", "at", "be", "or", "he", "she", "they", "we", "you", "his", "her", "their", "my", "your", "its"];
@@ -118,17 +119,21 @@ const getWordExplanation = async (req, res) => {
       return res.json({
         word,
         definition: "This is a commonly used word in sentences.",
+        simplifiedDefinition: "This is a common word.",
+        islGloss: [word],
         example: "",
         subject: "general",
         level: "easy",
         color: "#64748b",
         animationUrl: "",
-        videoUrl: ""
+        videoUrl: "",
+        directSignUrl: ""
       });
     }
 
     // ── 1. Cache check ───────────────────────────────────────────────────────
     // Invalidate cache if the image looks like the old bad loremflickr fallback
+    // or if the new avatar fields are missing
     const cached = await WordExplanation.findOne({ word });
     if (cached) {
       const badImage =
@@ -137,11 +142,13 @@ const getWordExplanation = async (req, res) => {
         cached.animationUrl.includes('loremflickr.com') ||      // ← invalidate old bad images
         cached.animationUrl.includes('pollinations.ai');
 
-      if (!badImage) {
+      const missingAvatarFields = !cached.simplifiedDefinition || !cached.islGloss || cached.islGloss.length === 0;
+
+      if (!badImage && !missingAvatarFields) {
         console.log(`✅ Cache hit: '${word}'`);
         return res.json(cached);
       }
-      console.log(`⚠ Cache hit for '${word}' but image needs update, refetching…`);
+      console.log(`⚠ Cache hit for '${word}' but fields need update, refetching…`);
     }
 
     console.log(`🔍 Fetching data for: '${word}'`);
@@ -167,6 +174,19 @@ const getWordExplanation = async (req, res) => {
       }
     } catch (e) {
       console.log('Dictionary miss:', e.message);
+    }
+
+    // ── 2b. Gemini ISL Gloss & Simplified Definition ──────────────────────────
+    let simplifiedDefinition = '';
+    let islGloss = [];
+    try {
+      const geminiRes = await generateISLGloss(word, definition);
+      simplifiedDefinition = geminiRes.simplifiedDefinition;
+      islGloss = geminiRes.islGloss || [];
+    } catch (geminiErr) {
+      console.error('Failed to generate ISL Gloss with Gemini, using fallback:', geminiErr.message);
+      simplifiedDefinition = definition.split('.')[0] + '.';
+      islGloss = word.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(Boolean);
     }
 
     // ── 3. Visual (Wikimedia / Wikipedia image) ──────────────────────────────
@@ -205,7 +225,19 @@ const getWordExplanation = async (req, res) => {
     // ── 5. Save to DB ────────────────────────────────────────────────────────
     const doc = await WordExplanation.findOneAndUpdate(
       { word },
-      { word, definition, example, subject, level, color, animationUrl, videoUrl },
+      { 
+        word, 
+        definition, 
+        simplifiedDefinition, 
+        islGloss, 
+        directSignUrl: '', 
+        example, 
+        subject, 
+        level, 
+        color, 
+        animationUrl, 
+        videoUrl 
+      },
       { new: true, upsert: true }
     );
 

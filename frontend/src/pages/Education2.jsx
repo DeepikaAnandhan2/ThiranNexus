@@ -217,7 +217,7 @@ const STYLES = `
   .sl-popup {
     background: #1a1a2e; border-radius: 20px;
     border: 1.5px solid var(--sl-popup-accent, #7c3aed);
-    width: 100%; max-width: 540px; max-height: 82vh; overflow-y: auto;
+    width: 100%; max-width: 800px; max-height: 82vh; overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0,0,0,.5);
     animation: sl-slideup .3s ease;
   }
@@ -258,6 +258,177 @@ const STYLES = `
 
   @keyframes sl-slideup { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   @keyframes sl-fadein  { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── Sign Language Avatar Split Layout ── */
+  .sl-popup__split {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .sl-popup__avatar-pane {
+    width: 40%;
+    border-right: 1px solid rgba(255,255,255,.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.2);
+    justify-content: space-between;
+  }
+
+  .sl-popup__content-pane {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sl-avatar-character {
+    width: 140px;
+    height: 140px;
+    background: #09090e;
+    border-radius: 50%;
+    border: 2px solid var(--sl-popup-accent, #7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .sl-avatar-character__svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .sl-avatar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .sl-avatar-controls__row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .sl-avatar-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .sl-avatar-btn:hover {
+    background: var(--sl-popup-accent, #7c3aed);
+    border-color: var(--sl-popup-accent, #7c3aed);
+  }
+
+  .sl-avatar-btn[aria-pressed="true"] {
+    background: var(--sl-popup-accent, #7c3aed);
+    border-color: var(--sl-popup-accent, #7c3aed);
+  }
+
+  .sl-avatar-speed {
+    background: #111;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    padding: 6px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+  }
+
+  .sl-avatar-gloss-bar {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 12px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,.05);
+  }
+
+  .sl-avatar-gloss-label {
+    font-size: 9px;
+    color: #666;
+    letter-spacing: .08em;
+    display: block;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .sl-avatar-gloss-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .sl-avatar-gloss-item {
+    font-size: 0.72rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #888;
+    background: rgba(255,255,255,0.02);
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+
+  .sl-avatar-gloss-item.active {
+    color: #fff;
+    background: var(--sl-popup-accent, #7c3aed);
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 640px) {
+    .sl-popup__split {
+      flex-direction: column;
+    }
+    .sl-popup__avatar-pane {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 12px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+    .sl-avatar-character {
+      width: 90px;
+      height: 90px;
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+    .sl-avatar-controls {
+      flex: 1;
+      margin-top: 0;
+      min-width: 150px;
+    }
+    .sl-avatar-gloss-bar {
+      width: 100%;
+      margin-top: 6px;
+    }
+    .sl-popup__content-pane {
+      width: 100%;
+    }
+  }
 `;
 
 function useGlobalStyle(css) {
@@ -270,7 +441,226 @@ function useGlobalStyle(css) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// WORD EXPLANATION POPUP
+// SIGN LANGUAGE AVATAR
+// ══════════════════════════════════════════════════════════════
+function SignLanguageAvatar({ word, islGloss = [], simplifiedDefinition = '', accent = '#7c3aed' }) {
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [currentGlossIndex, setCurrentGlossIndex] = useState(0);
+  const [speed, setSpeed] = useState(1.0);
+  const [tick, setTick] = useState(0);
+  const [mode, setMode] = useState('gloss'); // 'gloss' or 'spelling'
+  const [spellingIndex, setSpellingIndex] = useState(0);
+
+  const glossList = (islGloss && islGloss.length > 0) ? islGloss : [word];
+  const isSpelling = mode === 'spelling';
+
+  // Tick timer for arm/face animations
+  useEffect(() => {
+    if (!isPlaying) return;
+    const timer = setInterval(() => {
+      setTick(t => t + 1);
+    }, 100 / speed);
+    return () => clearInterval(timer);
+  }, [isPlaying, speed]);
+
+  // Main playback manager for cycling through gloss list / spelling letters
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const duration = isSpelling ? (600 / speed) : (1500 / speed);
+
+    const timer = setTimeout(() => {
+      if (isSpelling) {
+        if (spellingIndex < word.length - 1) {
+          setSpellingIndex(i => i + 1);
+        } else {
+          setSpellingIndex(0);
+        }
+      } else {
+        if (currentGlossIndex < glossList.length - 1) {
+          setCurrentGlossIndex(i => i + 1);
+        } else {
+          setCurrentGlossIndex(0);
+        }
+      }
+    }, duration);
+
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentGlossIndex, spellingIndex, mode, glossList, word, speed]);
+
+  const currentToken = isSpelling ? word[spellingIndex] : glossList[currentGlossIndex];
+  const isBlinking = (tick % 24) < 2;
+
+  // Compute SVG paths dynamically for gestures
+  let mouthPath = "M 44 46 Q 50 49 56 46"; // gentle smile
+  let leftArmPath = "M 32 80 Q 20 80 25 90";
+  let rightArmPath = "M 68 80 Q 80 80 75 90";
+
+  if (isSpelling) {
+    leftArmPath = "M 32 80 Q 22 85 28 92";
+    const wave = Math.sin(tick * 0.8) * 4;
+    rightArmPath = `M 68 80 Q 64 55 58 ${42 + wave}`;
+    mouthPath = "M 46 47 Q 50 45 54 47"; // focused
+  } else {
+    const bounce = Math.sin(tick * 0.6) * 4;
+    switch (currentToken.toLowerCase()) {
+      case 'plant':
+        leftArmPath = `M 32 80 Q 22 60 32 ${45 + bounce}`;
+        rightArmPath = `M 68 80 Q 78 60 68 ${45 - bounce}`;
+        mouthPath = "M 44 45 Q 50 48 56 45";
+        break;
+      case 'sunlight':
+        leftArmPath = `M 32 80 Q 20 45 32 ${30 + bounce}`;
+        rightArmPath = `M 68 80 Q 80 45 68 ${30 - bounce}`;
+        mouthPath = "M 44 46 Q 50 43 56 46";
+        break;
+      case 'use':
+        leftArmPath = `M 32 80 Q 15 72 30 ${60 + bounce}`;
+        rightArmPath = `M 68 80 Q 85 72 70 ${60 - bounce}`;
+        break;
+      case 'food':
+        leftArmPath = "M 32 80 Q 22 85 28 92";
+        rightArmPath = `M 68 80 Q 62 55 52 ${40 + bounce / 2}`;
+        mouthPath = "M 47 47 Q 50 50 53 47";
+        break;
+      case 'make':
+        leftArmPath = `M 32 80 Q 38 65 48 ${52 + bounce}`;
+        rightArmPath = `M 68 80 Q 62 65 52 ${52 - bounce}`;
+        break;
+      default:
+        leftArmPath = `M 32 80 Q 22 75 30 ${65 + bounce}`;
+        rightArmPath = `M 68 80 Q 78 75 70 ${65 - bounce}`;
+        mouthPath = "M 44 46 Q 50 49 56 46";
+        break;
+    }
+  }
+
+  function togglePlay() {
+    setIsPlaying(p => !p);
+  }
+
+  function handleReplay() {
+    setCurrentGlossIndex(0);
+    setSpellingIndex(0);
+    setIsPlaying(true);
+    setTick(0);
+  }
+
+  return (
+    <div className="sl-popup__avatar-pane" style={{ '--sl-popup-accent': accent }}>
+      {/* SVG Avatar Character */}
+      <div className="sl-avatar-character">
+        <svg viewBox="0 0 100 100" className="sl-avatar-character__svg">
+          {/* Torso */}
+          <path d="M 20 100 C 20 72 80 72 80 100 Z" fill={accent} opacity="0.85" />
+          {/* Neck */}
+          <rect x="46" y="58" width="8" height="12" fill="#ffd1a9" rx="2" />
+          {/* Head */}
+          <circle cx="50" cy="42" r="16" fill="#ffd1a9" />
+          {/* Hair */}
+          <path d="M 33 40 C 33 22 67 22 67 40 C 60 38 40 38 33 40 Z" fill="#1e293b" />
+          {/* Eyes */}
+          <ellipse cx="44" cy="40" rx="1.8" ry={isBlinking ? 0.2 : 1.8} fill="#0f172a" />
+          <ellipse cx="56" cy="40" rx="1.8" ry={isBlinking ? 0.2 : 1.8} fill="#0f172a" />
+          {/* Nose */}
+          <path d="M 50 42 L 50 44" stroke="#e0a97c" strokeWidth="1.5" strokeLinecap="round" />
+          {/* Mouth */}
+          <path d={mouthPath} stroke="#0f172a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          
+          {/* Left Arm & Hand */}
+          <path d={leftArmPath} fill="none" stroke="#ffd1a9" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Right Arm & Hand */}
+          <path d={rightArmPath} fill="none" stroke="#ffd1a9" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+
+          {/* Spell letter display over hand when fingerspelling */}
+          {isSpelling && (
+            <g transform="translate(70, 35)">
+              <circle cx="0" cy="0" r="10" fill="#2563eb" />
+              <text x="0" y="4" fill="#fff" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="var(--sl-font)">
+                {currentToken.toUpperCase()}
+              </text>
+            </g>
+          )}
+        </svg>
+      </div>
+
+      {/* Mode Selectors */}
+      <div className="sl-avatar-controls__row" style={{ marginBottom: '6px' }}>
+        <button 
+          className="sl-avatar-btn" 
+          aria-pressed={!isSpelling}
+          onClick={() => { setMode('gloss'); handleReplay(); }}
+          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+        >
+          🤟 Sign Sentence
+        </button>
+        <button 
+          className="sl-avatar-btn" 
+          aria-pressed={isSpelling}
+          onClick={() => { setMode('spelling'); handleReplay(); }}
+          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+        >
+          🔤 Spell Word
+        </button>
+      </div>
+
+      {/* Playback Controls */}
+      <div className="sl-avatar-controls">
+        <div className="sl-avatar-controls__row">
+          <button className="sl-avatar-btn" onClick={togglePlay} aria-label={isPlaying ? "Pause avatar" : "Play avatar"}>
+            {isPlaying ? '⏸ Pause' : '▶ Play'}
+          </button>
+          <button className="sl-avatar-btn" onClick={handleReplay} aria-label="Replay avatar animation">
+            🔄 Replay
+          </button>
+        </div>
+
+        <div className="sl-avatar-controls__row">
+          <select 
+            className="sl-avatar-speed" 
+            value={speed} 
+            onChange={e => setSpeed(parseFloat(e.target.value))}
+            aria-label="Playback speed"
+          >
+            <option value="0.5">Speed: 0.5x</option>
+            <option value="0.75">Speed: 0.75x</option>
+            <option value="1.0">Speed: 1.0x</option>
+            <option value="1.25">Speed: 1.25x</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Gloss Highlight Indicator */}
+      <div className="sl-avatar-gloss-bar">
+        <span className="sl-avatar-gloss-label">{isSpelling ? "Fingerspelling Track" : "Indian Sign Language Gloss"}</span>
+        <div className="sl-avatar-gloss-list">
+          {isSpelling ? (
+            word.split('').map((letter, idx) => (
+              <span 
+                key={idx} 
+                className={`sl-avatar-gloss-item ${idx === spellingIndex ? 'active' : ''}`}
+              >
+                {letter.toUpperCase()}
+              </span>
+            ))
+          ) : (
+            glossList.map((token, idx) => (
+              <span 
+                key={idx} 
+                className={`sl-avatar-gloss-item ${idx === currentGlossIndex ? 'active' : ''}`}
+              >
+                {token}
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// WORD EXPLANATION POPUP (Split-Pane with Avatar)
 // ══════════════════════════════════════════════════════════════
 function ExplanationPopup({ data, onDismiss }) {
   const [activeTab, setActiveTab] = useState('definition');
@@ -285,7 +675,7 @@ function ExplanationPopup({ data, onDismiss }) {
     setImgError(false);
     prevFocus.current = document.activeElement;        // save focus origin
     setTimeout(() => closeRef.current?.focus(), 50);   // move focus into popup
-    timerRef.current = setTimeout(handleDismiss, 12000);
+    timerRef.current = setTimeout(handleDismiss, 20000); // Expanded timer (20s) to allow reading + sign processing
     return () => clearTimeout(timerRef.current);
   }, [data]);
 
@@ -295,7 +685,6 @@ function ExplanationPopup({ data, onDismiss }) {
     onDismiss();
   }
 
-  // Trap Tab inside popup (2.1.2 – no keyboard trap, but keep focus inside modal)
   function handleKeyDown(e) {
     if (e.key === 'Escape') handleDismiss();
   }
@@ -348,97 +737,123 @@ function ExplanationPopup({ data, onDismiss }) {
 
         <h2 className="sl-popup__word">{data.word}</h2>
 
-        {/* Tab bar */}
-        {tabs.length > 1 && (
-          <div className="sl-popup__tabs" role="tablist" aria-label="Explanation sections">
-            {tabs.map((t, i) => (
-              <button
-                key={t.key}
-                className="sl-popup__tab"
-                role="tab"
-                aria-selected={activeTab === t.key}
-                aria-controls={`popup-panel-${t.key}`}
-                id={`popup-tab-${t.key}`}
-                onClick={() => setActiveTab(t.key)}
-                onKeyDown={e => {
-                  if (e.key === 'ArrowRight') setActiveTab(tabs[(i + 1) % tabs.length].key);
-                  if (e.key === 'ArrowLeft')  setActiveTab(tabs[(i - 1 + tabs.length) % tabs.length].key);
-                }}
-                tabIndex={activeTab === t.key ? 0 : -1}
-              >{t.label}</button>
-            ))}
-          </div>
-        )}
+        {/* Split Layout Body */}
+        <div className="sl-popup__split">
+          
+          {/* Left Column: Sign Language Avatar */}
+          <SignLanguageAvatar 
+            word={data.word}
+            islGloss={data.islGloss}
+            simplifiedDefinition={data.simplifiedDefinition}
+            accent={accent}
+          />
 
-        <div className="sl-popup__body">
-          {/* Definition panel */}
-          <div
-            id="popup-panel-definition"
-            role="tabpanel"
-            aria-labelledby="popup-tab-definition"
-            hidden={activeTab !== 'definition'}
-          >
-            <p className="sl-popup__def-text">{data.definition}</p>
-            {data.example && (
-              <div className="sl-popup__example">
-                <span className="sl-popup__example-label">EXAMPLE</span>
-                <p className="sl-popup__example-text">"{data.example}"</p>
+          {/* Right Column: Content and Navigation */}
+          <div className="sl-popup__content-pane">
+            {/* Tab bar */}
+            {tabs.length > 1 && (
+              <div className="sl-popup__tabs" role="tablist" aria-label="Explanation sections">
+                {tabs.map((t, i) => (
+                  <button
+                    key={t.key}
+                    className="sl-popup__tab"
+                    role="tab"
+                    aria-selected={activeTab === t.key}
+                    aria-controls={`popup-panel-${t.key}`}
+                    id={`popup-tab-${t.key}`}
+                    onClick={() => setActiveTab(t.key)}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowRight') setActiveTab(tabs[(i + 1) % tabs.length].key);
+                      if (e.key === 'ArrowLeft')  setActiveTab(tabs[(i - 1 + tabs.length) % tabs.length].key);
+                    }}
+                    tabIndex={activeTab === t.key ? 0 : -1}
+                  >{t.label}</button>
+                ))}
               </div>
             )}
-          </div>
 
-          {/* Visual panel */}
-          <div
-            id="popup-panel-diagram"
-            role="tabpanel"
-            aria-labelledby="popup-tab-diagram"
-            hidden={activeTab !== 'diagram'}
-          >
-            <div className="sl-popup__media">
-              {data.animationUrl && !imgError
-                ? <>
-                    <img
-                      src={data.animationUrl}
-                      alt={`Visual representation of ${data.word}`}
-                      className="sl-popup__image"
-                      onError={() => setImgError(true)}
-                    />
-                    <p className="sl-popup__caption">Visual: {data.word}</p>
-                  </>
-                : <div className="sl-popup__no-media" role="status">
-                    <span aria-hidden="true">🔬</span>
-                    <p>No visual available yet.</p>
-                  </div>
-              }
-            </div>
-          </div>
-
-          {/* Video panel */}
-          <div
-            id="popup-panel-video"
-            role="tabpanel"
-            aria-labelledby="popup-tab-video"
-            hidden={activeTab !== 'video'}
-          >
-            <div className="sl-popup__media">
-              <div className="sl-popup__video-preview" aria-hidden="true">
-                <span style={{ fontSize: '2rem', color: '#FF0000' }}>▶</span>
-                <p className="sl-popup__video-title">{data.word} — video explanation</p>
-              </div>
-              <p className="sl-popup__video-desc">A short educational video explaining "{data.word}".</p>
-              <button
-                className="sl-popup__watch-btn"
-                onClick={() => window.open(data.videoUrl, '_blank', 'noopener,noreferrer')}
-                aria-label={`Watch ${data.word} explanation on YouTube (opens new tab)`}
+            <div className="sl-popup__body">
+              {/* Definition panel */}
+              <div
+                id="popup-panel-definition"
+                role="tabpanel"
+                aria-labelledby="popup-tab-definition"
+                hidden={activeTab !== 'definition'}
               >
-                ▶ &nbsp;Open in YouTube
-              </button>
-              <p className="sl-popup__video-hint" aria-live="polite">Opens in a new tab</p>
+                {/* Simplified child-friendly definition box */}
+                {data.simplifiedDefinition && (
+                  <div style={{ marginBottom: '14px', background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: '8px', borderLeft: `3px solid ${accent}` }}>
+                    <span style={{ fontSize: '10px', color: '#888', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: '3px' }}>SIMPLE ISL TEXT</span>
+                    <p className="sl-popup__def-text" style={{ fontSize: '15px', color: '#fff', fontWeight: 600, margin: 0, lineHeight: 1.5 }}>{data.simplifiedDefinition}</p>
+                  </div>
+                )}
+                
+                <span style={{ fontSize: '10px', color: '#666', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: '6px' }}>FULL DICTIONARY DEFINITION</span>
+                <p className="sl-popup__def-text">{data.definition}</p>
+                
+                {data.example && (
+                  <div className="sl-popup__example">
+                    <span className="sl-popup__example-label">EXAMPLE</span>
+                    <p className="sl-popup__example-text">"{data.example}"</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Visual panel */}
+              <div
+                id="popup-panel-diagram"
+                role="tabpanel"
+                aria-labelledby="popup-tab-diagram"
+                hidden={activeTab !== 'diagram'}
+              >
+                <div className="sl-popup__media">
+                  {data.animationUrl && !imgError
+                    ? <>
+                        <img
+                          src={data.animationUrl}
+                          alt={`Visual representation of ${data.word}`}
+                          className="sl-popup__image"
+                          onError={() => setImgError(true)}
+                        />
+                        <p className="sl-popup__caption">Visual: {data.word}</p>
+                      </>
+                    : <div className="sl-popup__no-media" role="status">
+                        <span aria-hidden="true">🔬</span>
+                        <p>No visual available yet.</p>
+                      </div>
+                  }
+                </div>
+              </div>
+
+              {/* Video panel */}
+              <div
+                id="popup-panel-video"
+                role="tabpanel"
+                aria-labelledby="popup-tab-video"
+                hidden={activeTab !== 'video'}
+              >
+                <div className="sl-popup__media">
+                  <div className="sl-popup__video-preview" aria-hidden="true">
+                    <span style={{ fontSize: '2rem', color: '#FF0000' }}>▶</span>
+                    <p className="sl-popup__video-title">{data.word} — video explanation</p>
+                  </div>
+                  <p className="sl-popup__video-desc">A short educational video explaining "{data.word}".</p>
+                  <button
+                    className="sl-popup__watch-btn"
+                    onClick={() => window.open(data.videoUrl, '_blank', 'noopener,noreferrer')}
+                    aria-label={`Watch ${data.word} explanation on YouTube (opens new tab)`}
+                  >
+                    ▶ &nbsp;Open in YouTube
+                  </button>
+                  <p className="sl-popup__video-hint" aria-live="polite">Opens in a new tab</p>
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
 
-        <p className="sl-popup__hint" aria-hidden="true">Auto-closes in 12s · Esc to close</p>
+        <p className="sl-popup__hint" aria-hidden="true">Auto-closes in 20s · Esc to close</p>
       </div>
     </div>
   );
