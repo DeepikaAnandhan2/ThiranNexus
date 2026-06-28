@@ -215,3 +215,13 @@ app.post('/api/validate/math', (req, res) => {
 server.listen(PORT, () => {
   console.log(`ThiranNexus running on port ${PORT} 🚀`)
 })
+
+// Graceful error handling for server startup
+server.on('error', (err) => {
+  if (err && err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please free the port or set a different PORT in environment.`)
+    process.exit(1)
+  }
+  console.error('Server error:', err)
+  process.exit(1)
+})
