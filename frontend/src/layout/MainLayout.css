@@ -1,39 +1,81 @@
-/* Reset spacing (important to avoid hidden gaps) */
-* {
+/* Ensure the body expands fully without standard document offsets */
+body, html {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* ==========================================================================
+   Structural Alignment for AppLayout (.app-shell, .content-area, .page-inner)
+   ========================================================================== */
+.app-shell {
+  display: flex;
+  width: 100%; /* Changed from 100vw to prevent layout calculation bugs with scrollbars */
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content-area {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Instructs main frame to occupy all remaining width space */
+  width: 100%;
+  height: 100%;
+  min-width: 0; /* Prevents flex items from breaking grid/flex wrappers inside */
+}
+
+.app-shell .page-content {
+  flex-grow: 1;
+  width: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 0 !important; /* CRITICAL: Removed padding so pages can stretch completely edge-to-edge */
+}
+
+/* Strips any layout engine caps or auto margins causing side gaps */
+.page-inner {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important; /* CRITICAL: Removed constraint padding */
   box-sizing: border-box;
 }
 
-/* src/styles/MainLayout.css */
+/* ==========================================================================
+   Structural Alignment for MainLayout (.layout, .main, .page-content)
+   ========================================================================== */
 .layout {
   display: flex;
-  width: 100vw;
+  width: 100%; /* Changed from 100vw to prevent layout calculation bugs with scrollbars */
   height: 100vh;
-  background-color: #F3F0FF; /* Soft Lavender background like the sample */
-  margin: 0;
-  padding: 0;
   overflow: hidden;
 }
 
 .main {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  flex-grow: 1; /* Eliminates white margins on screens using standard components */
+  width: 100%;
+  height: 100%;
+  min-width: 0; /* Prevents flex items from breaking grid/flex wrappers inside */
 }
 
-.page-content {
-  flex: 1;
-  padding: 20px;
+.layout .page-content {
+  flex-grow: 1;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important; /* CRITICAL: Removed padding so page headers/banners sit completely tight to the layout */
   overflow-y: auto;
-  /* This ensures the dashboard stretches to the edges */
-  width: 100%;
   box-sizing: border-box;
 }
 
-/* When sidebar expands */
-.layout:has(.sidebar.expanded) .main {
-  margin-left: 220px;
-  width: calc(100% - 220px);
+/* Fallback fix to ensure target container elements adapt accurately */
+#root {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }

@@ -8,12 +8,12 @@
 
 /* MAIN CONTAINER */
 .edu-container,
-.education-container {
-  background-color: var(--bg-soft-purple);
-  min-height: 100vh;
-  font-family: 'Inter', sans-serif;
-  color: var(--text-dark);
-  width: 100%;
+.education-container{
+    width:100%;
+    max-width:100%;
+    margin:0;
+    padding:24px;
+    box-sizing:border-box;
 }
 
 /* CENTER CONTENT */
