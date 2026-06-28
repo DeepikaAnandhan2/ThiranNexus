@@ -93,6 +93,7 @@ export default function Login() {
               <input
                 type="email" ref={emailRef}
                 placeholder="Email Address" aria-label="Email Address"
+                autoComplete="email"
                 className="login-input" value={email}
                 onChange={e => setEmail(e.target.value)} required
                 style={{ width:'100%', paddingRight:48, boxSizing:'border-box' }}
@@ -111,6 +112,7 @@ export default function Login() {
               <input
                 type="password" ref={passwordRef}
                 placeholder="Password" aria-label="Password"
+                autoComplete="current-password"
                 className="login-input" value={password}
                 onChange={e => setPassword(e.target.value)} required
                 style={{ width:'100%', paddingRight:48, boxSizing:'border-box' }}
