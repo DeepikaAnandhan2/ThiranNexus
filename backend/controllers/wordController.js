@@ -25,14 +25,16 @@ const CUSTOM_IMAGES = {
 // ── Wikimedia Commons image lookup ───────────────────────────────────────────
 // Uses the Wikipedia REST API to find the main image for a topic.
 // Completely free, no API key, returns high-quality encyclopedic images.
-async function fetchWikimediaImage(word) {
+async function fetchWikimediaImage(word, subject) {
+  const userAgent = 'ThiranNexus/1.0 (educational platform)';
+
   try {
     // Step 1: Get the Wikipedia page summary — it includes the lead image
     const summaryRes = await axios.get(
       `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`,
       {
         timeout: 5000,
-        headers: { 'User-Agent': 'ThiranNexus/1.0 (educational platform)' }
+        headers: { 'User-Agent': userAgent }
       }
     );
 
@@ -48,66 +50,81 @@ async function fetchWikimediaImage(word) {
     console.log(`Wikimedia miss for '${word}':`, e.message);
   }
 
-  // Step 2: If no lead image, try Wikimedia Commons search for a relevant image
-  try {
-    const searchRes = await axios.get(
-      'https://commons.wikimedia.org/w/api.php',
-      {
-        params: {
-          action: 'query',
-          generator: 'search',
-          gsrsearch: `${word} biology science`,
-          gsrnamespace: 6,           // File namespace only
-          gsrlimit: 5,
-          prop: 'imageinfo',
-          iiprop: 'url|mime',
-          iiurlwidth: 500,
-          format: 'json',
-          origin: '*'
-        },
-        timeout: 5000
-      }
-    );
+  // Helper for commons search
+  const searchCommons = async (searchQuery) => {
+    try {
+      const searchRes = await axios.get(
+        'https://commons.wikimedia.org/w/api.php',
+        {
+          params: {
+            action: 'query',
+            generator: 'search',
+            gsrsearch: searchQuery,
+            gsrnamespace: 6,           // File namespace only
+            gsrlimit: 5,
+            prop: 'imageinfo',
+            iiprop: 'url|mime',
+            iiurlwidth: 500,
+            format: 'json',
+            origin: '*'
+          },
+          headers: { 'User-Agent': userAgent },
+          timeout: 5000
+        }
+      );
 
-    const pages = Object.values(searchRes.data?.query?.pages || {});
-    // Filter to images only (no audio/video)
-    const imgPage = pages.find(p => {
-      const mime = p.imageinfo?.[0]?.mime || '';
-      return mime.startsWith('image/');
-    });
+      const pages = Object.values(searchRes.data?.query?.pages || {});
+      const imgPage = pages.find(p => {
+        const mime = p.imageinfo?.[0]?.mime || '';
+        return mime.startsWith('image/');
+      });
 
-    const thumbUrl = imgPage?.imageinfo?.[0]?.thumburl;
-    if (thumbUrl) {
-      console.log(`🖼 Commons search image found for '${word}'`);
-      return thumbUrl;
+      return imgPage?.imageinfo?.[0]?.thumburl;
+    } catch (e) {
+      console.log(`Commons search error for '${searchQuery}':`, e.message);
+      return null;
     }
-  } catch (e) {
-    console.log(`Commons search miss for '${word}':`, e.message);
+  };
+
+  // Step 2: Try Wikimedia Commons search with context
+  if (subject && subject !== 'general') {
+    const contextualUrl = await searchCommons(`${word} ${subject}`);
+    if (contextualUrl) {
+      console.log(`🖼 Commons contextual image found for '${word} ${subject}'`);
+      return contextualUrl;
+    }
+  }
+
+  // Step 3: Fallback to just the word itself on Commons
+  const basicUrl = await searchCommons(word);
+  if (basicUrl) {
+    console.log(`🖼 Commons basic image found for '${word}'`);
+    return basicUrl;
   }
 
   return null;
 }
 
 // ── Main image resolver ───────────────────────────────────────────────────────
-async function getEducationalImageUrl(word) {
+async function getEducationalImageUrl(word, subject) {
   // 1. Check hardcoded curated images first (fastest)
   if (CUSTOM_IMAGES[word]) {
     return CUSTOM_IMAGES[word];
   }
 
   // 2. Try Wikimedia / Wikipedia (free, accurate, no API key)
-  const wikiImage = await fetchWikimediaImage(word);
+  const wikiImage = await fetchWikimediaImage(word, subject);
   if (wikiImage) return wikiImage;
 
-  // 3. Final fallback — generic science illustration via Unsplash source
-  //    (topic-based, not random — "science" and "biology" are valid Unsplash topics)
-  return `https://source.unsplash.com/500x300/?${encodeURIComponent(word)},biology,science`;
+  // 3. Deprecated Unsplash removed. Return null to let frontend display "No Visual Available" gracefully
+  return null;
 }
 
 
 const getWordExplanation = async (req, res) => {
   try {
     let word = req.params.word.toLowerCase().trim();
+    const reqSubject = req.query.subject || 'general';
 
     // clean word (remove symbols like -, . , etc.)
     word = word.replace(/[^a-z]/g, '');
@@ -151,12 +168,12 @@ const getWordExplanation = async (req, res) => {
       console.log(`⚠ Cache hit for '${word}' but fields need update, refetching…`);
     }
 
-    console.log(`🔍 Fetching data for: '${word}'`);
+    console.log(`🔍 Fetching data for: '${word}', Context: '${reqSubject}'`);
 
     // ── 2. Definition ────────────────────────────────────────────────────────
     let definition = `${word} is an important concept.`;
     let example = '';
-    let subject = 'general';
+    let subject = reqSubject;
     let level = 'medium';
     let color = '#7c3aed';
 
@@ -190,7 +207,7 @@ const getWordExplanation = async (req, res) => {
     }
 
     // ── 3. Visual (Wikimedia / Wikipedia image) ──────────────────────────────
-    const animationUrl = await getEducationalImageUrl(word);
+    const animationUrl = await getEducationalImageUrl(word, reqSubject);
     console.log(`🖼 Image URL for '${word}': ${animationUrl}`);
 
     // ── 4. YouTube Video ─────────────────────────────────────────────────────

@@ -1198,7 +1198,7 @@ export default function Education2() {
     setPopupLoading(true);
     announce(`Looking up: ${word}`);
     try {
-      const { data } = await axios.get(`${WAPI}/${encodeURIComponent(word.toLowerCase())}`);
+      const { data } = await axios.get(`${WAPI}/${encodeURIComponent(word.toLowerCase())}?subject=${encodeURIComponent(activeSubject || 'general')}`);
       setPopupData(data);
     } catch (e) {
       console.error('Word lookup failed:', e);
