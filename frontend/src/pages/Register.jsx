@@ -225,6 +225,7 @@ export default function Register() {
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%', marginBottom: '0.4rem' }}>
                 <input
                   type="email" ref={emailRef} placeholder="Email Address" aria-label="Email Address"
+                  autoComplete="email"
                   className="reg-input" value={formData.email}
                   onChange={e => set('email', e.target.value)}
                   style={{ flex: 1, paddingRight: '48px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
@@ -241,6 +242,7 @@ export default function Register() {
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%', marginBottom: '0.4rem' }}>
                 <input
                   type="password" ref={passwordRef} placeholder="Password" aria-label="Password"
+                  autoComplete="new-password"
                   className="reg-input" value={formData.password}
                   onChange={e => set('password', e.target.value)}
                   style={{ flex: 1, paddingRight: '48px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
@@ -257,6 +259,7 @@ export default function Register() {
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%', marginBottom: '0.4rem' }}>
                 <input
                   type="password" ref={confirmPasswordRef} placeholder="Confirm Password" aria-label="Confirm Password"
+                  autoComplete="new-password"
                   className="reg-input" value={formData.confirmPassword}
                   onChange={e => set('confirmPassword', e.target.value)}
                   style={{ flex: 1, paddingRight: '48px', width: '100%', boxSizing: 'border-box', marginBottom: 0 }}
