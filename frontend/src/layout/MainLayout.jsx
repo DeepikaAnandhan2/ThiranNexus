@@ -1,6 +1,7 @@
-import Sidebar from '../components/Sidebar'
-import Topbar from '../components/Topbar'
-import './MainLayout.css'
+import React from 'react';
+import Sidebar from '../components/Sidebar';
+import Topbar from '../components/Topbar';
+import './MainLayout.css';
 
 export default function MainLayout({ children, user }) {
   return (
@@ -15,5 +16,5 @@ export default function MainLayout({ children, user }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

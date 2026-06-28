@@ -6,24 +6,25 @@
 }
 
 .tn-dash-container {
-  display: grid;
-  grid-template-columns: 100%; /* Split into 2 columns */
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
-  padding: 24px;
-  background-color: var(--bg-lavender);
-  min-height: 100vh;
+  background: transparent;
+  min-height: auto;
   font-family: 'Inter', sans-serif;
 }
 
-/* ── Left Content Layout ── */
-.tn-hero-banner {
-  background: linear-gradient(135deg, #FFF4E1 0%, #FFE9D0 100%);
-  padding: 40px;
-  border-radius: 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+.tn-hero-banner,
+.tn-bento-stats,
+.tn-grid-2,
+.tn-view-panel,
+.tn-glass-card {
+  width: 100%;
+  max-width: 100%;
 }
 
 .tn-welcome-text {
@@ -142,8 +143,10 @@
   background: white;
   padding: 8px;
   border-radius: 20px;
-  width: fit-content;
+  width: 100%;
+  max-width: none;
   margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .tn-nav-btn {

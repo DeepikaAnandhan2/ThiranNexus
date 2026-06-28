@@ -1,19 +1,39 @@
 /* --- Global Theme --- */
 .logic-game-wrapper {
+  width: 100%;
+  max-width: none;
   min-height: 100vh;
   background: #0d1117;
   color: #fff;
   font-family: 'Inter', sans-serif;
-  padding: 20px;
+  padding: 24px;
+  margin: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+.page-content > .page-inner > .logic-game-wrapper {
+  width: calc(100% + 80px);
+  max-width: none;
+  margin: 0 -40px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
 .game-header {
   width: 100%;
-  max-width: 800px;
-  margin-bottom: 30px;
+  max-width: none;
+  margin: 0 0 30px;
+  box-sizing: border-box;
+}
+
+.game-content {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  padding: 0;
 }
 
 .header-nav {
@@ -52,7 +72,8 @@
 /* --- Content Container --- */
 .game-content {
   width: 100%;
-  max-width: 800px;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 .sequential-layout {

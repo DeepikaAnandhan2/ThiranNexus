@@ -1,9 +1,29 @@
 /* ─── Page Container ───────────────────────────────────── */
 .page-container {
-  padding: 30px;
+  width: 100%;
+  max-width: none;
+  padding: 24px;
+  margin: 0;
+  box-sizing: border-box;
   background: #f4f7fe;
   min-height: 100vh;
   font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.page-content > .page-inner > .page-container {
+  width: calc(100% + 400px);
+  max-width: none;
+  margin: 0 -40px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.page-container > * {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* ─── Header Section ───────────────────────────────────── */
@@ -77,8 +97,10 @@
 
 /* ─── Detail Page ─────────────────────────────────────── */
 .detail-card {
-  max-width: 900px;
-  margin: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .detail-title {

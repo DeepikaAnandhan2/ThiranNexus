@@ -5,10 +5,14 @@
 
 /* ── LOBBY ─────────────────────────────────────────────── */
 .scribble-lobby {
+  width: 100%;
+  max-width: none;
   min-height: 100vh;
   background: #f4f4f7;
   display: flex; align-items: center; justify-content: center;
-  padding: 2rem;
+  padding: 24px;
+  margin: 0;
+  box-sizing: border-box;
   position: relative; overflow: hidden;
   font-family: 'Poppins', sans-serif;
 }
@@ -52,8 +56,10 @@
   background: #16213E;
   border: 1.5px solid rgba(139,92,246,0.25);
   border-radius: 24px;
-  padding: 2.5rem;
-  width: 100%; max-width: 860px;
+  padding: 24px;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
   position: relative; z-index: 1;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(139,92,246,0.1);
 }
@@ -222,13 +228,15 @@
 
 /* ── WAITING ROOM ──────────────────────────────────────── */
 .scribble-waiting {
+  width: 100%;
+  max-width: none;
   min-height: 100vh; background: #ffffff;
-  display: flex; align-items: center; justify-content: center; padding: 2rem;
+  display: flex; align-items: center; justify-content: center; padding: 24px; margin: 0; box-sizing: border-box;
 }
 
 .waiting-card {
   background: #16213E; border: 1.5px solid rgba(139,92,246,0.25);
-  border-radius: 24px; padding: 2.5rem; width: 100%; max-width: 520px;
+  border-radius: 24px; padding: 24px; width: 100%; max-width: none; box-sizing: border-box;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
 
@@ -364,8 +372,22 @@
 /* ── GAME SCREEN ───────────────────────────────────────── */
 .scribble-game {
   display: flex; flex-direction: column;
-  height: 100vh; background: #0D0D1A;
+  width: 100%; max-width: none;
+  min-height: 100vh; background: #0D0D1A;
   font-family: 'Poppins', sans-serif; overflow: hidden;
+  margin: 0; box-sizing: border-box;
+}
+
+.page-content > .page-inner > .scribble-lobby,
+.page-content > .page-inner > .scribble-waiting,
+.page-content > .page-inner > .scribble-game,
+.page-content > .page-inner > .scribble-gameover,
+.page-content > .page-inner > .scribble-wordpick {
+  width: calc(100% + 400px);
+  max-width:80px;
+  margin: 0 -40px;
+  padding: 50px;
+  box-sizing: border-box;
 }
 
 /* Top bar */

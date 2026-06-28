@@ -3,10 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { AuthProvider, useAuth } from './context/AuthContext';
 import keyboardNavigation from './utils/keyboardNavigation';
 
-// ✅ NEW: Accessibility Helpers for Speech & Color Profiles
+// ✅ Accessibility Helpers for Speech & Color Profiles
 import AccessibilityWrapper from './components/AccessibilityWrapper';
 import { AccessibilityProvider } from './context/AccessibilityContext';
 import './styles/accessibility.css'; // Global Color Accessibility Stylesheet
+import './layout/MainLayout.css';    // Layout CSS applied globally
 
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
@@ -41,13 +42,13 @@ import UdidHelp from './pages/UdidHelp';
 
 import Education2 from './pages/Education2';
 
-// 🔹 Layout Wrapper
+// 🔹 Layout Wrapper Fixed
 const AppLayout = () => {
   return (
     <div className="app-shell">
       <Sidebar />
       <div className="content-area">
-        <Topbar /> {/* ✅ Clean layout execution context handles tracking internally */}
+        <Topbar /> 
         <main className="page-content">
           <div className="page-inner">
             <Outlet />
@@ -90,7 +91,6 @@ export default function App() {
 
   return (
     <AuthProvider>
-      {/* ✅ Wrap the app tree layers inside accessibility contexts cleanly */}
       <AccessibilityProvider>
         <AccessibilityWrapper>
           <BrowserRouter>
@@ -110,7 +110,7 @@ export default function App() {
 
               {/* 🔐 STUDENT ROUTES */}
               <Route
-                element={
+                element = {
                   <ProtectedRoute>
                     <AppLayout />
                   </ProtectedRoute>
@@ -131,7 +131,7 @@ export default function App() {
                 <Route path="/schemes" element={<SchemesWithAuth />} />
                 <Route path="/scheme/:id" element={<SchemeDetails />} />
                 <Route path="/saved" element={<SavedApplied />} />
-                <Route path="/profile" element={<Profile />} /> {/* ✅ REGISTERED STUDENT PROFILE ROUTE PATH */}
+                <Route path="/profile" element={<Profile />} /> 
                 <Route path="/feedback" element={<FeedbackPage />} />
               </Route>
 
