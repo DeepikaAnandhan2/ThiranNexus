@@ -68,6 +68,7 @@ export default function AdminLogin() {
           <div className="input-group">
             <input 
               type="email" 
+              autoComplete="email"
               placeholder="Admin Email"
               className="login-input"
               value={email}
@@ -76,6 +77,7 @@ export default function AdminLogin() {
             />
             <input 
               type="password" 
+              autoComplete="current-password"
               placeholder="Admin Password"
               className="login-input"
               value={password}

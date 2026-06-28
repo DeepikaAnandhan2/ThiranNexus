@@ -42,11 +42,8 @@ export default function Dashboard() {
    */
   const loadLeaderboard = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get('/api/users/leaderboard', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setLeaderboard(res.data || []);
+      const data = await dashboardService.getLeaderboard();
+      setLeaderboard(data?.leaderboard || []);
     } catch (err) {
       console.error("Leaderboard background sync failed:", err);
     }
@@ -61,16 +58,13 @@ export default function Dashboard() {
         setError(null); 
     }
 
-    const token = localStorage.getItem("token");
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-
     try {
       if (selectedTab === 'overview') {
         const data = await dashboardService.getSummary();
         setSummary(data || {});
 
-        const gameRes = await axios.get('/api/games/history', config);
-        const history = gameRes.data || [];
+        const gameData = await dashboardService.getGames();
+        const history = gameData?.history || [];
         setGameStats({
           played: history.length,
           wins: history.filter(g => g.result === "Correct").length
@@ -78,23 +72,31 @@ export default function Dashboard() {
       } 
       
       if (selectedTab === 'education') {
+        const token = localStorage.getItem("token") || localStorage.getItem('tn_token');
         const grade = user?.grade || 'Class 12'; 
-        const res = await axios.get(`/api/education2/subjects?className=${grade}`, config);
+        const res = await axios.get(`/api/education2/subjects?className=${grade}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setEducation(prev => ({ ...prev, subjects: res.data.subjects || [] }));
       }
 
       if (selectedTab === 'games') {
-        const gameRes = await axios.get('/api/games/history', config);
-        setGameHistory(gameRes.data || []);
+        const gameData = await dashboardService.getGames();
+        setGameHistory(gameData?.history || []);
       }
 
       if (selectedTab === 'schemes') {
+        const token = localStorage.getItem("token") || localStorage.getItem('tn_token');
         const disabilityType = user?.disabilityType || "none";
-        const recommendedRes = await axios.get(`/api/schemes/recommended?disabilityType=${disabilityType}`, config);
+        const recommendedRes = await axios.get(`/api/schemes/recommended?disabilityType=${disabilityType}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setSchemes(recommendedRes.data || []);
 
         if (user?._id) {
-          const userRes = await axios.get(`/api/schemes/user/${user._id}`, config);
+          const userRes = await axios.get(`/api/schemes/user/${user._id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
           setUserSchemes(userRes.data || { saved: [], applied: [] });
         }
       }
@@ -300,17 +302,17 @@ export default function Dashboard() {
             </div>
             <div className="tn-leaderboard-list">
               {leaderboard.length > 0 ? leaderboard.slice(0, 5).map((player, index) => (
-                <div key={player._id} style={{ 
+                <div key={player.userId || index} style={{ 
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', 
                   borderBottom: index !== 4 ? '1px solid #f3f4f6' : 'none' 
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontWeight: 'bold', width: '20px', color: index === 0 ? '#F59E0B' : '#9CA3AF' }}>{index + 1}</span>
-                    <span style={{ fontSize: '14px', fontWeight: player._id === user?._id ? '700' : '500' }}>
-                      {player.name} {player._id === user?._id && '(You)'}
+                    <span style={{ fontSize: '14px', fontWeight: player.userId === user?._id ? '700' : '500' }}>
+                      {player.name} {player.userId === user?._id && '(You)'}
                     </span>
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#7C3AED' }}>{player.points || 0} pts</div>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#7C3AED' }}>{player.totalScore || 0} pts</div>
                 </div>
               )) : <p style={{ fontSize: '12px', color: '#9CA3AF' }}>No rankings available.</p>}
             </div>
