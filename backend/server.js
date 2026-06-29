@@ -12,7 +12,7 @@ const seedSchemes    = require('./data/seedSchemes')
 const parentRoutes   = require('./routes/parentRoutes')
 const education2Routes = require('./routes/education2')
 const adminRoutes    = require('./routes/adminRoutes')
-const User           = require('./models/user') // Imported to handle profile endpoints
+const User           = require('./models/User') // Imported to handle profile endpoints
 
 const app    = express()
 const PORT   = process.env.PORT || 5000
