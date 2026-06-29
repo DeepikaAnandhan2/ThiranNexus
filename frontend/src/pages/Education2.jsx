@@ -3,10 +3,8 @@ import axios from 'axios';
 import TTSReader from '../components/education/TTSReader'
 import '../components/education/TTSReader.css'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// WCAG 2.1 Level AA compliant – see inline comments throughout
-// NEW: Word Explanation Popup (tap any bold term to learn more)
-// ─────────────────────────────────────────────────────────────────────────────
+import SignAvatarPlayer from './SignAvatarPlayer';
+import { resolveSignStrategy } from './SignAnimationController';
 
 const srOnly = {
   position: 'absolute', width: '1px', height: '1px', padding: 0,
@@ -14,7 +12,6 @@ const srOnly = {
   whiteSpace: 'nowrap', border: 0,
 };
 
-// ── CSS ───────────────────────────────────────────────────────────────────────
 const STYLES = `
   :root {
     --sl-bg: #ffffff;
@@ -107,24 +104,9 @@ const STYLES = `
   .sl-text-content p { margin-bottom: 0.75rem; }
   .sl-text-content ul, .sl-text-content ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
 
-  /* ── Clickable terms ── */
-  .sl-clickable-term {
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    border-radius: 2px;
-    padding: 0 1px;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .sl-clickable-term:hover { 
-    background: #ede9fe; 
-    border-bottom-color: var(--sl-accent2);
-  }
-  .sl-click-hint {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    font-size: 0.78rem; color: var(--sl-accent2);
-    background: #ede9fe; border-radius: 999px;
-    padding: 3px 10px; margin-bottom: 0.75rem;
-  }
+  .sl-clickable-term { cursor: pointer; border-bottom: 2px solid transparent; border-radius: 2px; padding: 0 1px; transition: background 0.15s, border-color 0.15s; }
+  .sl-clickable-term:hover { background: #ede9fe; border-bottom-color: var(--sl-accent2); }
+  .sl-click-hint { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: var(--sl-accent2); background: #ede9fe; border-radius: 999px; padding: 3px 10px; margin-bottom: 0.75rem; }
 
   .sl-video__toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
   .sl-video__frame-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: var(--sl-radius-sm); overflow: hidden; }
@@ -192,34 +174,25 @@ const STYLES = `
     .sl-select { width: 100%; }
   }
 
-  /* ══════════════════════════════════════════════════════════
-     WORD EXPLANATION POPUP
-     ══════════════════════════════════════════════════════════ */
-
-  /* Loading toast */
+  /* ══ POPUP ══════════════════════════════════════════════════════════════════ */
   .sl-word-toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
     background: #1e1b4b; color: #fff; padding: 10px 20px; border-radius: 30px;
     font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 10px;
-    z-index: 9998; box-shadow: 0 4px 20px rgba(0,0,0,.3);
-    animation: sl-fadein .2s ease;
+    z-index: 9998; box-shadow: 0 4px 20px rgba(0,0,0,.3); animation: sl-fadein .2s ease;
   }
   .sl-word-toast .sl-spinner { width: 16px; height: 16px; border-width: 2px; }
 
-  /* Overlay */
   .sl-popup-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 9999;
     display: flex; align-items: flex-end; justify-content: center;
     padding: 0 12px 20px; animation: sl-fadein .2s ease;
   }
-
-  /* Popup card */
   .sl-popup {
     background: #1a1a2e; border-radius: 20px;
     border: 1.5px solid var(--sl-popup-accent, #7c3aed);
     width: 100%; max-width: 800px; max-height: 82vh; overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,.5);
-    animation: sl-slideup .3s ease;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5); animation: sl-slideup .3s ease;
   }
   .sl-popup__strip { height: 4px; width: 100%; border-radius: 20px 20px 0 0; }
   .sl-popup__header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 4px; }
@@ -230,8 +203,8 @@ const STYLES = `
   .sl-popup__close:hover { background: rgba(255,255,255,.18); color: #fff; }
   .sl-popup__word { font-size: 1.6rem; font-weight: 800; color: #fff; padding: 6px 16px 10px; text-transform: capitalize; margin: 0; }
 
-  .sl-popup__tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.08); padding: 0 16px; }
-  .sl-popup__tab { padding: 8px 16px 10px; background: none; border: none; border-bottom: 2px solid transparent; color: #666; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; margin-right: 4px; }
+  .sl-popup__tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.08); padding: 0 16px; flex-wrap: wrap; }
+  .sl-popup__tab { padding: 8px 16px 10px; background: none; border: none; border-bottom: 2px solid transparent; color: #666; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; margin-right: 4px; white-space: nowrap; }
   .sl-popup__tab:hover { color: #aaa; }
   .sl-popup__tab[aria-selected="true"] { color: var(--sl-popup-accent, #7c3aed); border-bottom-color: var(--sl-popup-accent, #7c3aed); }
 
@@ -240,194 +213,175 @@ const STYLES = `
   .sl-popup__example { border-left: 3px solid var(--sl-popup-accent, #7c3aed); padding-left: 12px; margin-bottom: 8px; }
   .sl-popup__example-label { font-size: 10px; color: #666; letter-spacing: .08em; display: block; margin-bottom: 3px; }
   .sl-popup__example-text  { font-size: 14px; color: #9fe1cb; font-style: italic; margin: 0; }
-
   .sl-popup__media { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .sl-popup__image { width: 100%; max-height: 220px; object-fit: contain; border-radius: 10px; background: #0d0d0d; }
   .sl-popup__caption { font-size: 12px; color: #555; text-transform: capitalize; }
   .sl-popup__no-media { text-align: center; padding: 20px; color: #555; }
   .sl-popup__no-media span { font-size: 2rem; display: block; margin-bottom: 8px; }
-
-  .sl-popup__video-preview { width: 100%; background: #0d0d0d; border-radius: 12px; padding: 24px; text-align: center; border: 1px solid rgba(255,0,0,.25); }
-  .sl-popup__video-title { color: #aaa; font-size: 13px; text-transform: capitalize; margin: 6px 0 0; }
-  .sl-popup__video-desc  { color: #666; font-size: 13px; text-align: center; line-height: 1.5; margin: 0; }
   .sl-popup__watch-btn { background: #FF0000; color: #fff; border: none; border-radius: 10px; padding: 11px 28px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; transition: opacity .15s; }
   .sl-popup__watch-btn:hover { opacity: .85; }
   .sl-popup__video-hint { font-size: 11px; color: #444; margin: 0; }
-
   .sl-popup__hint { font-size: 11px; color: #333; text-align: right; padding: 8px 16px 12px; }
 
   @keyframes sl-slideup { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   @keyframes sl-fadein  { from { opacity: 0; } to { opacity: 1; } }
 
-  /* ── Sign Language Avatar Split Layout ── */
-  .sl-popup__split {
+  /* ══ SPLIT LAYOUT (Definition / Visual / Video tabs) ══════════════════════ */
+  .sl-popup__split { display: flex; flex-direction: row; width: 100%; }
+  .sl-popup__avatar-pane {
+    width: 40%; border-right: 1px solid rgba(255,255,255,.08);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 16px; background: rgba(0,0,0,0.2); gap: 10px;
+  }
+  .sl-popup__content-pane { width: 60%; display: flex; flex-direction: column; }
+
+  /* ══ ISL SIGN TAB — side by side layout ═══════════════════════════════════ */
+  .sl-isl-tab {
     display: flex;
     flex-direction: row;
+    gap: 0;
     width: 100%;
+    min-height: 320px;
   }
 
-  .sl-popup__avatar-pane {
-    width: 40%;
+  /* Left: avatar pane (reuses existing styles) */
+  .sl-isl-tab__avatar {
+    width: 42%;
     border-right: 1px solid rgba(255,255,255,.08);
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 16px;
-    background: rgba(0, 0, 0, 0.2);
-    justify-content: space-between;
+    background: rgba(0,0,0,0.15);
+    gap: 10px;
   }
 
-  .sl-popup__content-pane {
-    width: 60%;
+  /* Right: YouTube ISL video pane */
+  .sl-isl-tab__video {
+    width: 58%;
     display: flex;
     flex-direction: column;
+    padding: 16px;
+    gap: 10px;
   }
 
-  .sl-avatar-character {
-    width: 140px;
-    height: 140px;
-    background: #09090e;
-    border-radius: 50%;
-    border: 2px solid var(--sl-popup-accent, #7c3aed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .sl-isl-tab__video-label {
+    font-size: 9px;
+    color: #555;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .sl-isl-tab__video-frame-wrap {
     position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    background: #000;
+    border-radius: 10px;
     overflow: hidden;
-    margin-bottom: 12px;
+    flex-shrink: 0;
   }
 
-  .sl-avatar-character__svg {
+  .sl-isl-tab__video-frame {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
+    border: none;
   }
 
-  .sl-avatar-controls {
+  .sl-isl-tab__no-video {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #444;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .sl-isl-tab__note {
+    font-size: 10px;
+    color: #444;
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+
+  /* -- Google Images fallback (when no ISL video found) -- */
+  .sl-isl-tab__fallback {
     display: flex;
     flex-direction: column;
     gap: 8px;
     width: 100%;
-    margin-top: 10px;
+    height: 100%;
   }
-
-  .sl-avatar-controls__row {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
+  .sl-isl-tab__fallback-frame-wrap {
+    position: relative;
     width: 100%;
+    flex: 1;
+    min-height: 260px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: #fff;
   }
-
-  .sl-avatar-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 0.78rem;
+  .sl-isl-tab__fallback-frame {
+    position: absolute;
+    inset: 0;
+    width: 109%;
+    height: 109%;
+    border: none;
+    transform: scale(0.92);
+    transform-origin: top left;
+  }
+  .sl-isl-tab__fallback-link {
+    font-size: 11px;
     font-weight: 700;
-    cursor: pointer;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    transition: background 0.2s, border-color 0.2s;
+    padding: 5px 0;
+    opacity: 0.8;
+    transition: opacity 0.15s;
   }
+  .sl-isl-tab__fallback-link:hover { opacity: 1; }
 
-  .sl-avatar-btn:hover {
-    background: var(--sl-popup-accent, #7c3aed);
-    border-color: var(--sl-popup-accent, #7c3aed);
+  /* ══ Avatar component styles ══════════════════════════════════════════════ */
+  .sl-avatar-character {
+    width: 140px; height: 140px; background: transparent; border: none;
+    display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 12px;
   }
-
-  .sl-avatar-btn[aria-pressed="true"] {
-    background: var(--sl-popup-accent, #7c3aed);
-    border-color: var(--sl-popup-accent, #7c3aed);
+  @keyframes sl-avatar-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
   }
-
-  .sl-avatar-speed {
-    background: #111;
-    color: #fff;
-    border: 1px solid rgba(255,255,255,.15);
-    border-radius: 6px;
-    font-size: 0.75rem;
-    padding: 6px;
-    cursor: pointer;
-    width: 100%;
-    text-align: center;
+  .sl-avatar-character--animating img { animation: sl-avatar-bounce 0.6s infinite ease-in-out; }
+  .sl-avatar-controls { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px; }
+  .sl-avatar-controls__row { display: flex; gap: 6px; justify-content: center; width: 100%; }
+  .sl-avatar-btn {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: #fff; border-radius: 6px; padding: 6px 12px; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: background 0.2s, border-color 0.2s;
   }
-
-  .sl-avatar-gloss-bar {
-    width: 100%;
-    background: rgba(0,0,0,0.4);
-    border-radius: 8px;
-    padding: 8px;
-    margin-top: 12px;
-    text-align: center;
-    border: 1px solid rgba(255,255,255,.05);
-  }
-
-  .sl-avatar-gloss-label {
-    font-size: 9px;
-    color: #666;
-    letter-spacing: .08em;
-    display: block;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-  }
-
-  .sl-avatar-gloss-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-  }
-
-  .sl-avatar-gloss-item {
-    font-size: 0.72rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #888;
-    background: rgba(255,255,255,0.02);
-    font-weight: 700;
-    transition: all 0.2s;
-  }
-
-  .sl-avatar-gloss-item.active {
-    color: #fff;
-    background: var(--sl-popup-accent, #7c3aed);
-    transform: scale(1.05);
-  }
+  .sl-avatar-btn:hover { background: var(--sl-popup-accent, #7c3aed); border-color: var(--sl-popup-accent, #7c3aed); }
+  .sl-avatar-gloss-bar { width: 100%; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 8px; margin-top: 12px; text-align: center; border: 1px solid rgba(255,255,255,.05); }
+  .sl-avatar-gloss-label { font-size: 9px; color: #666; letter-spacing: .08em; display: block; margin-bottom: 4px; text-transform: uppercase; }
+  .sl-avatar-gloss-list { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+  .sl-avatar-gloss-item { font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; color: #888; background: rgba(255,255,255,0.02); font-weight: 700; transition: all 0.2s; }
+  .sl-avatar-gloss-item.active { color: #fff; background: var(--sl-popup-accent, #7c3aed); transform: scale(1.05); }
 
   @media (max-width: 640px) {
-    .sl-popup__split {
-      flex-direction: column;
-    }
-    .sl-popup__avatar-pane {
-      width: 100%;
-      border-right: none;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      padding: 12px;
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px;
-    }
-    .sl-avatar-character {
-      width: 90px;
-      height: 90px;
-      margin-bottom: 0;
-      flex-shrink: 0;
-    }
-    .sl-avatar-controls {
-      flex: 1;
-      margin-top: 0;
-      min-width: 150px;
-    }
-    .sl-avatar-gloss-bar {
-      width: 100%;
-      margin-top: 6px;
-    }
-    .sl-popup__content-pane {
-      width: 100%;
-    }
+    .sl-popup__split, .sl-isl-tab { flex-direction: column; }
+    .sl-popup__avatar-pane { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,.08); padding: 12px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .sl-isl-tab__avatar { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,.08); flex-direction: row; flex-wrap: wrap; }
+    .sl-isl-tab__video  { width: 100%; }
+    .sl-avatar-character { width: 90px; height: 90px; margin-bottom: 0; flex-shrink: 0; }
+    .sl-avatar-controls { flex: 1; margin-top: 0; min-width: 150px; }
+    .sl-popup__content-pane { width: 100%; }
   }
 `;
 
@@ -441,278 +395,145 @@ function useGlobalStyle(css) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// SIGN LANGUAGE AVATAR
+// ISL SIGN TAB — avatar (left) + YouTube ISL video (right)
 // ══════════════════════════════════════════════════════════════
-function SignLanguageAvatar({ word, islGloss = [], simplifiedDefinition = '', accent = '#7c3aed' }) {
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [currentGlossIndex, setCurrentGlossIndex] = useState(0);
-  const [speed, setSpeed] = useState(1.0);
-  const [tick, setTick] = useState(0);
-  const [mode, setMode] = useState('gloss'); // 'gloss' or 'spelling'
-  const [spellingIndex, setSpellingIndex] = useState(0);
-
-  const glossList = (islGloss && islGloss.length > 0) ? islGloss : [word];
-  const isSpelling = mode === 'spelling';
-
-  // Tick timer for arm/face animations
-  useEffect(() => {
-    if (!isPlaying) return;
-    const timer = setInterval(() => {
-      setTick(t => t + 1);
-    }, 100 / speed);
-    return () => clearInterval(timer);
-  }, [isPlaying, speed]);
-
-  // Main playback manager for cycling through gloss list / spelling letters
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const duration = isSpelling ? (600 / speed) : (1500 / speed);
-
-    const timer = setTimeout(() => {
-      if (isSpelling) {
-        if (spellingIndex < word.length - 1) {
-          setSpellingIndex(i => i + 1);
-        } else {
-          setSpellingIndex(0);
-        }
-      } else {
-        if (currentGlossIndex < glossList.length - 1) {
-          setCurrentGlossIndex(i => i + 1);
-        } else {
-          setCurrentGlossIndex(0);
-        }
-      }
-    }, duration);
-
-    return () => clearTimeout(timer);
-  }, [isPlaying, currentGlossIndex, spellingIndex, mode, glossList, word, speed]);
-
-  const currentToken = isSpelling ? word[spellingIndex] : glossList[currentGlossIndex];
-  const isBlinking = (tick % 24) < 2;
-
-  // Compute SVG paths dynamically for gestures
-  let mouthPath = "M 44 46 Q 50 49 56 46"; // gentle smile
-  let leftArmPath = "M 32 80 Q 20 80 25 90";
-  let rightArmPath = "M 68 80 Q 80 80 75 90";
-
-  if (isSpelling) {
-    leftArmPath = "M 32 80 Q 22 85 28 92";
-    const wave = Math.sin(tick * 0.8) * 4;
-    rightArmPath = `M 68 80 Q 64 55 58 ${42 + wave}`;
-    mouthPath = "M 46 47 Q 50 45 54 47"; // focused
-  } else {
-    const bounce = Math.sin(tick * 0.6) * 4;
-    switch (currentToken.toLowerCase()) {
-      case 'plant':
-        leftArmPath = `M 32 80 Q 22 60 32 ${45 + bounce}`;
-        rightArmPath = `M 68 80 Q 78 60 68 ${45 - bounce}`;
-        mouthPath = "M 44 45 Q 50 48 56 45";
-        break;
-      case 'sunlight':
-        leftArmPath = `M 32 80 Q 20 45 32 ${30 + bounce}`;
-        rightArmPath = `M 68 80 Q 80 45 68 ${30 - bounce}`;
-        mouthPath = "M 44 46 Q 50 43 56 46";
-        break;
-      case 'use':
-        leftArmPath = `M 32 80 Q 15 72 30 ${60 + bounce}`;
-        rightArmPath = `M 68 80 Q 85 72 70 ${60 - bounce}`;
-        break;
-      case 'food':
-        leftArmPath = "M 32 80 Q 22 85 28 92";
-        rightArmPath = `M 68 80 Q 62 55 52 ${40 + bounce / 2}`;
-        mouthPath = "M 47 47 Q 50 50 53 47";
-        break;
-      case 'make':
-        leftArmPath = `M 32 80 Q 38 65 48 ${52 + bounce}`;
-        rightArmPath = `M 68 80 Q 62 65 52 ${52 - bounce}`;
-        break;
-      default:
-        leftArmPath = `M 32 80 Q 22 75 30 ${65 + bounce}`;
-        rightArmPath = `M 68 80 Q 78 75 70 ${65 - bounce}`;
-        mouthPath = "M 44 46 Q 50 49 56 46";
-        break;
-    }
-  }
-
-  function togglePlay() {
-    setIsPlaying(p => !p);
-  }
-
-  function handleReplay() {
-    setCurrentGlossIndex(0);
-    setSpellingIndex(0);
-    setIsPlaying(true);
-    setTick(0);
-  }
+function ISLSignTab({ data, accent }) {
+  const strategy = resolveSignStrategy(data.word, data);
 
   return (
-    <div className="sl-popup__avatar-pane" style={{ '--sl-popup-accent': accent }}>
-      {/* SVG Avatar Character */}
-      <div className="sl-avatar-character">
-        <svg viewBox="0 0 100 100" className="sl-avatar-character__svg">
-          {/* Torso */}
-          <path d="M 20 100 C 20 72 80 72 80 100 Z" fill={accent} opacity="0.85" />
-          {/* Neck */}
-          <rect x="46" y="58" width="8" height="12" fill="#ffd1a9" rx="2" />
-          {/* Head */}
-          <circle cx="50" cy="42" r="16" fill="#ffd1a9" />
-          {/* Hair */}
-          <path d="M 33 40 C 33 22 67 22 67 40 C 60 38 40 38 33 40 Z" fill="#1e293b" />
-          {/* Eyes */}
-          <ellipse cx="44" cy="40" rx="1.8" ry={isBlinking ? 0.2 : 1.8} fill="#0f172a" />
-          <ellipse cx="56" cy="40" rx="1.8" ry={isBlinking ? 0.2 : 1.8} fill="#0f172a" />
-          {/* Nose */}
-          <path d="M 50 42 L 50 44" stroke="#e0a97c" strokeWidth="1.5" strokeLinecap="round" />
-          {/* Mouth */}
-          <path d={mouthPath} stroke="#0f172a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-          
-          {/* Left Arm & Hand */}
-          <path d={leftArmPath} fill="none" stroke="#ffd1a9" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-          {/* Right Arm & Hand */}
-          <path d={rightArmPath} fill="none" stroke="#ffd1a9" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+    <div className="sl-isl-tab">
 
-          {/* Spell letter display over hand when fingerspelling */}
-          {isSpelling && (
-            <g transform="translate(70, 35)">
-              <circle cx="0" cy="0" r="10" fill="#2563eb" />
-              <text x="0" y="4" fill="#fff" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="var(--sl-font)">
-                {currentToken.toUpperCase()}
-              </text>
-            </g>
-          )}
-        </svg>
+      {/* ── LEFT: Avatar with gloss track ── */}
+      <div className="sl-isl-tab__avatar" style={{ '--sl-popup-accent': accent }}>
+        <span style={{ fontSize: 9, color: '#555', letterSpacing: '0.08em', fontWeight: 700 }}>
+          ISL GLOSS TRACK
+        </span>
+        <SignAvatarPlayer
+          strategy={strategy}
+          accent={accent}
+          speed={1.0}
+        />
       </div>
 
-      {/* Mode Selectors */}
-      <div className="sl-avatar-controls__row" style={{ marginBottom: '6px' }}>
-        <button 
-          className="sl-avatar-btn" 
-          aria-pressed={!isSpelling}
-          onClick={() => { setMode('gloss'); handleReplay(); }}
-          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-        >
-          🤟 Sign Sentence
-        </button>
-        <button 
-          className="sl-avatar-btn" 
-          aria-pressed={isSpelling}
-          onClick={() => { setMode('spelling'); handleReplay(); }}
-          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-        >
-          🔤 Spell Word
-        </button>
-      </div>
+      {/* ── RIGHT: YouTube ISL video ── */}
+      <div className="sl-isl-tab__video">
+        <span className="sl-isl-tab__video-label">ISL SIGN VIDEO</span>
 
-      {/* Playback Controls */}
-      <div className="sl-avatar-controls">
-        <div className="sl-avatar-controls__row">
-          <button className="sl-avatar-btn" onClick={togglePlay} aria-label={isPlaying ? "Pause avatar" : "Play avatar"}>
-            {isPlaying ? '⏸ Pause' : '▶ Play'}
-          </button>
-          <button className="sl-avatar-btn" onClick={handleReplay} aria-label="Replay avatar animation">
-            🔄 Replay
-          </button>
-        </div>
-
-        <div className="sl-avatar-controls__row">
-          <select 
-            className="sl-avatar-speed" 
-            value={speed} 
-            onChange={e => setSpeed(parseFloat(e.target.value))}
-            aria-label="Playback speed"
-          >
-            <option value="0.5">Speed: 0.5x</option>
-            <option value="0.75">Speed: 0.75x</option>
-            <option value="1.0">Speed: 1.0x</option>
-            <option value="1.25">Speed: 1.25x</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Gloss Highlight Indicator */}
-      <div className="sl-avatar-gloss-bar">
-        <span className="sl-avatar-gloss-label">{isSpelling ? "Fingerspelling Track" : "Indian Sign Language Gloss"}</span>
-        <div className="sl-avatar-gloss-list">
-          {isSpelling ? (
-            word.split('').map((letter, idx) => (
-              <span 
-                key={idx} 
-                className={`sl-avatar-gloss-item ${idx === spellingIndex ? 'active' : ''}`}
-              >
-                {letter.toUpperCase()}
+        {data.islSignVideoUrl ? (
+          <>
+            <div className="sl-isl-tab__video-frame-wrap">
+              <iframe
+                key={data.islSignVideoUrl}
+                src={data.islSignVideoUrl}
+                title={`ISL sign language video for: ${data.word}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="sl-isl-tab__video-frame"
+              />
+            </div>
+            <p className="sl-isl-tab__note">
+              Indian Sign Language video for "{data.word}" via YouTube
+            </p>
+          </>
+        ) : (
+          /* ── Fallback: Google Images ISL sign search ── */
+          <div className="sl-isl-tab__fallback">
+            {/* Label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <span style={{ fontSize: 9, color: '#555', letterSpacing: '0.08em', fontWeight: 700 }}>
+                ISL SIGN IMAGE — GOOGLE SEARCH
               </span>
-            ))
-          ) : (
-            glossList.map((token, idx) => (
-              <span 
-                key={idx} 
-                className={`sl-avatar-gloss-item ${idx === currentGlossIndex ? 'active' : ''}`}
-              >
-                {token}
+              <span style={{ fontSize: 10, color: '#444', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 4 }}>
+                No video found · showing image results
               </span>
-            ))
-          )}
-        </div>
+            </div>
+
+            {/* Google Images iframe — searches "word Indian sign language" */}
+            <div className="sl-isl-tab__fallback-frame-wrap">
+              <iframe
+                key={data.word}
+                src={`https://www.google.com/search?q=${encodeURIComponent(data.word + ' Indian sign language ISL')}&tbm=isch&igu=1`}
+                title={`Google Images: ${data.word} Indian sign language`}
+                className="sl-isl-tab__fallback-frame"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                aria-label={`Image search results for ${data.word} ISL sign`}
+              />
+            </div>
+
+            {/* Open in new tab link — in case iframe is blocked */}
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(data.word + ' Indian sign language ISL')}&tbm=isch`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sl-isl-tab__fallback-link"
+              style={{ color: accent }}
+              aria-label={`Open Google Images search for ${data.word} ISL sign in new tab`}
+            >
+              🔍 Open in Google Images →
+            </a>
+          </div>
+        )}
       </div>
+
     </div>
   );
 }
 
 // ══════════════════════════════════════════════════════════════
-// WORD EXPLANATION POPUP (Split-Pane with Avatar)
+// SIGN LANGUAGE AVATAR (wrapper for non-ISL-tab usage)
+// ══════════════════════════════════════════════════════════════
+function SignLanguageAvatar({ word, popupData, accent = '#7c3aed' }) {
+  const strategy = resolveSignStrategy(word, popupData);
+  return <SignAvatarPlayer strategy={strategy} accent={accent} speed={1.0} />;
+}
+
+// ══════════════════════════════════════════════════════════════
+// WORD EXPLANATION POPUP
 // ══════════════════════════════════════════════════════════════
 function ExplanationPopup({ data, onDismiss }) {
   const [activeTab, setActiveTab] = useState('definition');
   const [imgError,  setImgError]  = useState(false);
-  const timerRef   = useRef(null);
-  const closeRef   = useRef(null);    // focus close btn on open (2.1.1)
-  const prevFocus  = useRef(null);    // restore focus on close (2.1.2)
+  const timerRef  = useRef(null);
+  const closeRef  = useRef(null);
+  const prevFocus = useRef(null);
 
   useEffect(() => {
     if (!data) return;
     setActiveTab('definition');
     setImgError(false);
-    prevFocus.current = document.activeElement;        // save focus origin
-    setTimeout(() => closeRef.current?.focus(), 50);   // move focus into popup
-    timerRef.current = setTimeout(handleDismiss, 20000); // Expanded timer (20s) to allow reading + sign processing
+    prevFocus.current = document.activeElement;
+    setTimeout(() => closeRef.current?.focus(), 50);
+    timerRef.current = setTimeout(handleDismiss, 20000);
     return () => clearTimeout(timerRef.current);
   }, [data]);
 
   function handleDismiss() {
     clearTimeout(timerRef.current);
-    prevFocus.current?.focus();   // 2.1.2 – return focus to trigger
+    prevFocus.current?.focus();
     onDismiss();
   }
 
-  function handleKeyDown(e) {
-    if (e.key === 'Escape') handleDismiss();
-  }
+  function handleKeyDown(e) { if (e.key === 'Escape') handleDismiss(); }
 
   if (!data) return null;
 
   const accent = data.color || '#7c3aed';
   const levelLabel = { easy: 'Basic', medium: 'Intermediate', hard: 'Advanced' }[data.level] || 'Intermediate';
 
+  // ── Tabs: Definition, Visual, Video (if exists), ISL Sign (always shown) ──
   const tabs = [
     { key: 'definition', label: '📖 Definition' },
-    { key: 'diagram', label: '✨ Visual' },
-    data.videoUrl     ? { key: 'video',   label: '🎬 Video'  } : null,
+    { key: 'diagram',    label: '✨ Visual'     },
+    data.videoUrl ? { key: 'video', label: '🎬 Video' } : null,
+    { key: 'isl',        label: '🤟 ISL Sign'  },   // ← NEW TAB
   ].filter(Boolean);
 
   return (
-    // Click overlay to dismiss (same as close button)
-    <div
-      className="sl-popup-overlay"
-      onClick={handleDismiss}
-      role="presentation"
-    >
-      {/* role="dialog" + aria-modal for screen readers (4.1.2) */}
+    <div className="sl-popup-overlay" onClick={handleDismiss} role="presentation">
       <div
         className="sl-popup"
         style={{ '--sl-popup-accent': accent }}
-        role="dialog"
-        aria-modal="true"
+        role="dialog" aria-modal="true"
         aria-label={`Word explanation: ${data.word}`}
         onClick={e => e.stopPropagation()}
         onKeyDown={handleKeyDown}
@@ -726,132 +547,102 @@ function ExplanationPopup({ data, onDismiss }) {
             </span>
             <span className="sl-popup__badge sl-popup__badge--level">{levelLabel}</span>
           </div>
-          {/* Close button is first focusable element (2.4.3) */}
-          <button
-            ref={closeRef}
-            className="sl-popup__close"
-            onClick={handleDismiss}
-            aria-label="Close word explanation"
-          >✕</button>
+          <button ref={closeRef} className="sl-popup__close" onClick={handleDismiss} aria-label="Close word explanation">✕</button>
         </div>
 
         <h2 className="sl-popup__word">{data.word}</h2>
 
-        {/* Split Layout Body */}
-        <div className="sl-popup__split">
-          
-          {/* Left Column: Sign Language Avatar */}
-          <SignLanguageAvatar 
-            word={data.word}
-            islGloss={data.islGloss}
-            simplifiedDefinition={data.simplifiedDefinition}
-            accent={accent}
-          />
+        {/* ── Tab bar ── */}
+        <div className="sl-popup__tabs" role="tablist" aria-label="Explanation sections">
+          {tabs.map((t, i) => (
+            <button
+              key={t.key} className="sl-popup__tab"
+              role="tab" aria-selected={activeTab === t.key}
+              aria-controls={`popup-panel-${t.key}`}
+              id={`popup-tab-${t.key}`}
+              onClick={() => setActiveTab(t.key)}
+              onKeyDown={e => {
+                if (e.key === 'ArrowRight') setActiveTab(tabs[(i + 1) % tabs.length].key);
+                if (e.key === 'ArrowLeft')  setActiveTab(tabs[(i - 1 + tabs.length) % tabs.length].key);
+              }}
+              tabIndex={activeTab === t.key ? 0 : -1}
+            >{t.label}</button>
+          ))}
+        </div>
 
-          {/* Right Column: Content and Navigation */}
-          <div className="sl-popup__content-pane">
-            {/* Tab bar */}
-            {tabs.length > 1 && (
-              <div className="sl-popup__tabs" role="tablist" aria-label="Explanation sections">
-                {tabs.map((t, i) => (
-                  <button
-                    key={t.key}
-                    className="sl-popup__tab"
-                    role="tab"
-                    aria-selected={activeTab === t.key}
-                    aria-controls={`popup-panel-${t.key}`}
-                    id={`popup-tab-${t.key}`}
-                    onClick={() => setActiveTab(t.key)}
-                    onKeyDown={e => {
-                      if (e.key === 'ArrowRight') setActiveTab(tabs[(i + 1) % tabs.length].key);
-                      if (e.key === 'ArrowLeft')  setActiveTab(tabs[(i - 1 + tabs.length) % tabs.length].key);
-                    }}
-                    tabIndex={activeTab === t.key ? 0 : -1}
-                  >{t.label}</button>
-                ))}
-              </div>
-            )}
+        {/* ══ ISL Sign tab — full-width, no inner split needed (has its own layout) ══ */}
+        {activeTab === 'isl' && (
+          <div id="popup-panel-isl" role="tabpanel" aria-labelledby="popup-tab-isl">
+            <ISLSignTab data={data} accent={accent} />
+          </div>
+        )}
 
-            <div className="sl-popup__body">
-              {/* Definition panel */}
-              <div
-                id="popup-panel-definition"
-                role="tabpanel"
-                aria-labelledby="popup-tab-definition"
-                hidden={activeTab !== 'definition'}
-              >
-                {/* Simplified child-friendly definition box */}
-                {data.simplifiedDefinition && (
-                  <div style={{ marginBottom: '14px', background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: '8px', borderLeft: `3px solid ${accent}` }}>
-                    <span style={{ fontSize: '10px', color: '#888', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: '3px' }}>SIMPLE ISL TEXT</span>
-                    <p className="sl-popup__def-text" style={{ fontSize: '15px', color: '#fff', fontWeight: 600, margin: 0, lineHeight: 1.5 }}>{data.simplifiedDefinition}</p>
+        {/* ══ All other tabs use the split layout (avatar left, content right) ══ */}
+        {activeTab !== 'isl' && (
+          <div className="sl-popup__split">
+
+            {/* Left: avatar with gloss track */}
+            <SignLanguageAvatar word={data.word} popupData={data} accent={accent} />
+
+            {/* Right: tab content */}
+            <div className="sl-popup__content-pane">
+              <div className="sl-popup__body">
+
+                {/* Definition */}
+                <div id="popup-panel-definition" role="tabpanel" aria-labelledby="popup-tab-definition" hidden={activeTab !== 'definition'}>
+                  {data.simplifiedDefinition && (
+                    <div style={{ marginBottom: 14, background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: 8, borderLeft: `3px solid ${accent}` }}>
+                      <span style={{ fontSize: 10, color: '#888', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: 3 }}>SIMPLE ISL TEXT</span>
+                      <p className="sl-popup__def-text" style={{ fontSize: 15, color: '#fff', fontWeight: 600, margin: 0, lineHeight: 1.5 }}>{data.simplifiedDefinition}</p>
+                    </div>
+                  )}
+                  <span style={{ fontSize: 10, color: '#666', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: 6 }}>FULL DICTIONARY DEFINITION</span>
+                  <p className="sl-popup__def-text">{data.definition}</p>
+                  {data.example && (
+                    <div className="sl-popup__example">
+                      <span className="sl-popup__example-label">EXAMPLE</span>
+                      <p className="sl-popup__example-text">"{data.example}"</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Visual */}
+                <div id="popup-panel-diagram" role="tabpanel" aria-labelledby="popup-tab-diagram" hidden={activeTab !== 'diagram'}>
+                  <div className="sl-popup__media">
+                    {data.animationUrl && !imgError
+                      ? <>
+                          <img src={data.animationUrl} alt={`Visual representation of ${data.word}`} className="sl-popup__image" onError={() => setImgError(true)} />
+                          <p className="sl-popup__caption">Visual: {data.word}</p>
+                        </>
+                      : <div className="sl-popup__no-media" role="status">
+                          <span aria-hidden="true">🔬</span>
+                          <p>No visual available yet.</p>
+                        </div>
+                    }
                   </div>
-                )}
-                
-                <span style={{ fontSize: '10px', color: '#666', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: '6px' }}>FULL DICTIONARY DEFINITION</span>
-                <p className="sl-popup__def-text">{data.definition}</p>
-                
-                {data.example && (
-                  <div className="sl-popup__example">
-                    <span className="sl-popup__example-label">EXAMPLE</span>
-                    <p className="sl-popup__example-text">"{data.example}"</p>
-                  </div>
-                )}
-              </div>
+                </div>
 
-              {/* Visual panel */}
-              <div
-                id="popup-panel-diagram"
-                role="tabpanel"
-                aria-labelledby="popup-tab-diagram"
-                hidden={activeTab !== 'diagram'}
-              >
-                <div className="sl-popup__media">
-                  {data.animationUrl && !imgError
-                    ? <>
-                        <img
-                          src={data.animationUrl}
-                          alt={`Visual representation of ${data.word}`}
-                          className="sl-popup__image"
-                          onError={() => setImgError(true)}
-                        />
-                        <p className="sl-popup__caption">Visual: {data.word}</p>
-                      </>
-                    : <div className="sl-popup__no-media" role="status">
-                        <span aria-hidden="true">🔬</span>
-                        <p>No visual available yet.</p>
+                {/* Video */}
+                {data.videoUrl && (
+                  <div id="popup-panel-video" role="tabpanel" aria-labelledby="popup-tab-video" hidden={activeTab !== 'video'}>
+                    <div className="sl-popup__media">
+                      <div style={{ width: '100%', background: '#0d0d0d', borderRadius: 12, padding: 24, textAlign: 'center', border: '1px solid rgba(255,0,0,.25)' }} aria-hidden="true">
+                        <span style={{ fontSize: '2rem', color: '#FF0000' }}>▶</span>
+                        <p style={{ color: '#aaa', fontSize: 13, textTransform: 'capitalize', margin: '6px 0 0' }}>{data.word} — video explanation</p>
                       </div>
-                  }
-                </div>
-              </div>
-
-              {/* Video panel */}
-              <div
-                id="popup-panel-video"
-                role="tabpanel"
-                aria-labelledby="popup-tab-video"
-                hidden={activeTab !== 'video'}
-              >
-                <div className="sl-popup__media">
-                  <div className="sl-popup__video-preview" aria-hidden="true">
-                    <span style={{ fontSize: '2rem', color: '#FF0000' }}>▶</span>
-                    <p className="sl-popup__video-title">{data.word} — video explanation</p>
+                      <p style={{ color: '#666', fontSize: 13, textAlign: 'center', margin: 0 }}>A short educational video explaining "{data.word}".</p>
+                      <button className="sl-popup__watch-btn" onClick={() => window.open(data.videoUrl, '_blank', 'noopener,noreferrer')} aria-label={`Watch ${data.word} on YouTube`}>
+                        ▶ &nbsp;Open in YouTube
+                      </button>
+                      <p className="sl-popup__video-hint">Opens in a new tab</p>
+                    </div>
                   </div>
-                  <p className="sl-popup__video-desc">A short educational video explaining "{data.word}".</p>
-                  <button
-                    className="sl-popup__watch-btn"
-                    onClick={() => window.open(data.videoUrl, '_blank', 'noopener,noreferrer')}
-                    aria-label={`Watch ${data.word} explanation on YouTube (opens new tab)`}
-                  >
-                    ▶ &nbsp;Open in YouTube
-                  </button>
-                  <p className="sl-popup__video-hint" aria-live="polite">Opens in a new tab</p>
-                </div>
+                )}
+
               </div>
             </div>
           </div>
-
-        </div>
+        )}
 
         <p className="sl-popup__hint" aria-hidden="true">Auto-closes in 20s · Esc to close</p>
       </div>
@@ -860,40 +651,27 @@ function ExplanationPopup({ data, onDismiss }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// WORD CLICKABLE TEXT — Every word becomes tappable (except stop words)
+// WORD CLICKABLE TEXT
 // ══════════════════════════════════════════════════════════════
 function WordClickableText({ html, onWordClick }) {
   const ref = useRef(null);
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    // Reset DOM to clean state before processing
     el.innerHTML = html || '<p>Content coming soon.</p>';
-
-    const STOP_WORDS = new Set([
-      'the', 'and', 'is', 'was', 'of', 'to', 'a', 'in', 'on', 'for', 'it', 'with', 
-      'as', 'by', 'that', 'this', 'an', 'are', 'at', 'be', 'from', 'or', 'which', 
-      'you', 'your', 'can', 'not', 'will', 'has', 'have', 'but', 'all', 'any', 'we', 'they', 'their'
-    ]);
-
+    const STOP_WORDS = new Set(['the','and','is','was','of','to','a','in','on','for','it','with','as','by','that','this','an','are','at','be','from','or','which','you','your','can','not','will','has','have','but','all','any','we','they','their']);
     const cleanup = [];
-
     function processNode(node) {
       if (node.nodeType === Node.TEXT_NODE) {
         const text = node.nodeValue;
         if (!/[a-zA-Z]/.test(text)) return;
-
         const fragment = document.createDocumentFragment();
         const tokens = text.split(/([a-zA-Z]+)/);
-        
         let hasWord = false;
         tokens.forEach(token => {
           if (/^[a-zA-Z]+$/.test(token)) {
             hasWord = true;
             const cleanWord = token.toLowerCase();
-            
             if (!STOP_WORDS.has(cleanWord) && cleanWord.length > 2) {
               const span = document.createElement('span');
               span.textContent = token;
@@ -901,91 +679,43 @@ function WordClickableText({ html, onWordClick }) {
               span.setAttribute('role', 'button');
               span.setAttribute('tabIndex', '0');
               span.setAttribute('title', 'Click to learn more');
-              
-              const handler = (e) => {
-                e.stopPropagation();
-                onWordClick(cleanWord);
-              };
-              const keyHandler = (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(e); }
-              };
-              
+              const handler = (e) => { e.stopPropagation(); onWordClick(cleanWord); };
+              const keyHandler = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(e); } };
               span.addEventListener('click', handler);
               span.addEventListener('keydown', keyHandler);
-              cleanup.push(() => {
-                span.removeEventListener('click', handler);
-                span.removeEventListener('keydown', keyHandler);
-              });
-              
+              cleanup.push(() => { span.removeEventListener('click', handler); span.removeEventListener('keydown', keyHandler); });
               fragment.appendChild(span);
-            } else {
-              fragment.appendChild(document.createTextNode(token));
-            }
-          } else {
-            fragment.appendChild(document.createTextNode(token));
-          }
+            } else { fragment.appendChild(document.createTextNode(token)); }
+          } else { fragment.appendChild(document.createTextNode(token)); }
         });
-        
-        if (hasWord) {
-          node.parentNode.replaceChild(fragment, node);
-        }
+        if (hasWord) node.parentNode.replaceChild(fragment, node);
       } else if (node.nodeType === Node.ELEMENT_NODE) {
-        if (node.nodeName !== 'SCRIPT' && node.nodeName !== 'STYLE') {
-          Array.from(node.childNodes).forEach(processNode);
-        }
+        if (node.nodeName !== 'SCRIPT' && node.nodeName !== 'STYLE') Array.from(node.childNodes).forEach(processNode);
       }
     }
-
     Array.from(el.childNodes).forEach(processNode);
-
     return () => cleanup.forEach(fn => fn());
   }, [html, onWordClick]);
-
-  return (
-    <article
-      ref={ref}
-      className="sl-text-content"
-      aria-label="Lesson text content"
-      dangerouslySetInnerHTML={{ __html: html || '<p>Content coming soon.</p>' }}
-    />
-  );
+  return <article ref={ref} className="sl-text-content" aria-label="Lesson text content" dangerouslySetInnerHTML={{ __html: html || '<p>Content coming soon.</p>' }} />;
 }
 
 // ══════════════════════════════════════════════════════════════
-// AVATAR
+// AVATAR (quiz state — unchanged)
 // ══════════════════════════════════════════════════════════════
 function Avatar({ state }) {
-  const map = {
-    idle:     { emoji: '😊', msg: 'Ready to start!'      },
-    correct:  { emoji: '🎉', msg: 'Amazing! Keep it up!' },
-    wrong:    { emoji: '💪', msg: "Don't give up!"       },
-    thinking: { emoji: '🤔', msg: 'Good thinking…'       },
-  };
+  const map = { idle: { emoji: '😊', msg: 'Ready to start!' }, correct: { emoji: '🎉', msg: 'Amazing! Keep it up!' }, wrong: { emoji: '💪', msg: "Don't give up!" }, thinking: { emoji: '🤔', msg: 'Good thinking…' } };
   const { emoji, msg } = map[state] || map.idle;
-  return (
-    <div className="sl-avatar" aria-hidden="true">
-      <span className="sl-avatar__face" role="img" aria-label={msg}>{emoji}</span>
-      <p className="sl-avatar__msg">{msg}</p>
-    </div>
-  );
+  return <div className="sl-avatar" aria-hidden="true"><span className="sl-avatar__face" role="img" aria-label={msg}>{emoji}</span><p className="sl-avatar__msg">{msg}</p></div>;
 }
 
 // ══════════════════════════════════════════════════════════════
-// QUIZ TAB
+// QUIZ TAB (unchanged)
 // ══════════════════════════════════════════════════════════════
 function QuizTab({ quiz }) {
-  const [current,  setCurrent]  = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [score,    setScore]    = useState(0);
-  const [done,     setDone]     = useState(false);
-  const [avatarState, setAvatar]  = useState('idle');
-  const [showExplain, setExplain] = useState(false);
-  const liveRef = useRef(null);
-  const nextRef = useRef(null);
-
+  const [current, setCurrent] = useState(0); const [selected, setSelected] = useState(null); const [score, setScore] = useState(0); const [done, setDone] = useState(false); const [avatarState, setAvatar] = useState('idle'); const [showExplain, setExplain] = useState(false);
+  const liveRef = useRef(null); const nextRef = useRef(null);
   const q = quiz[current];
   function announce(msg) { if (liveRef.current) liveRef.current.textContent = msg; }
-
   function handleAnswer(idx) {
     if (selected !== null) return;
     setSelected(idx); setAvatar('thinking');
@@ -997,225 +727,71 @@ function QuizTab({ quiz }) {
       setTimeout(() => nextRef.current?.focus(), 100);
     }, 600);
   }
-
   function handleNext() {
-    if (current + 1 < quiz.length) {
-      setCurrent(c => c + 1); setSelected(null); setAvatar('idle'); setExplain(false);
-      announce(`Question ${current + 2} of ${quiz.length}`);
-    } else { setDone(true); announce(`Quiz complete. Score: ${score} of ${quiz.length}.`); }
+    if (current + 1 < quiz.length) { setCurrent(c => c + 1); setSelected(null); setAvatar('idle'); setExplain(false); announce(`Question ${current + 2} of ${quiz.length}`); }
+    else { setDone(true); announce(`Quiz complete. Score: ${score} of ${quiz.length}.`); }
   }
-
-  function handleRestart() {
-    setCurrent(0); setSelected(null); setScore(0);
-    setDone(false); setAvatar('idle'); setExplain(false);
-    announce('Quiz restarted. Question 1.');
-  }
-
+  function handleRestart() { setCurrent(0); setSelected(null); setScore(0); setDone(false); setAvatar('idle'); setExplain(false); announce('Quiz restarted. Question 1.'); }
   if (!quiz.length) return <p style={{ color: 'var(--sl-text-muted)' }}>No quiz questions available.</p>;
-
   if (done) {
     const pct = Math.round((score / quiz.length) * 100);
     const msg = pct === 100 ? '🏆 Perfect score!' : pct >= 80 ? '⭐ Excellent!' : pct >= 60 ? '👍 Good job!' : '📚 Keep practising!';
-    return (
-      <div className="sl-quiz-done" role="region" aria-label="Quiz results">
-        <div ref={liveRef} role="status" aria-live="polite" style={srOnly} />
-        <Avatar state={pct >= 60 ? 'correct' : 'wrong'} />
-        <h3>Quiz Complete!</h3>
-        <div className="sl-quiz-done__score" aria-label={`Score: ${score} out of ${quiz.length}`}>
-          <span>{score}</span><span className="sl-quiz-done__total"> / {quiz.length}</span>
-        </div>
-        <div className="sl-quiz-done__bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`Score: ${pct}%`}>
-          <div className="sl-quiz-done__bar-fill" style={{ width: `${pct}%` }} />
-        </div>
-        <p className="sl-quiz-done__msg">{msg}</p>
-        <button className="sl-btn sl-btn--primary" onClick={handleRestart}>Try Again</button>
-      </div>
-    );
+    return <div className="sl-quiz-done" role="region" aria-label="Quiz results"><div ref={liveRef} role="status" aria-live="polite" style={srOnly} /><Avatar state={pct >= 60 ? 'correct' : 'wrong'} /><h3>Quiz Complete!</h3><div className="sl-quiz-done__score" aria-label={`Score: ${score} out of ${quiz.length}`}><span>{score}</span><span className="sl-quiz-done__total"> / {quiz.length}</span></div><div className="sl-quiz-done__bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><div className="sl-quiz-done__bar-fill" style={{ width: `${pct}%` }} /></div><p className="sl-quiz-done__msg">{msg}</p><button className="sl-btn sl-btn--primary" onClick={handleRestart}>Try Again</button></div>;
   }
-
   const pct = Math.round((current / quiz.length) * 100);
-  return (
-    <div className="sl-quiz" role="form" aria-label="Quiz">
-      <div ref={liveRef} role="status" aria-live="polite" aria-atomic="true" style={srOnly} />
-      <div className="sl-quiz__meta">
-        <span aria-label={`Question ${current + 1} of ${quiz.length}`}>Question {current + 1} / {quiz.length}</span>
-        <span aria-label={`Score: ${score}`}>Score: {score}</span>
-      </div>
-      <div className="sl-quiz__progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`Progress: ${pct}%`}>
-        <div className="sl-quiz__progress-fill" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="sl-quiz__layout">
-        <div aria-hidden="true"><Avatar state={avatarState} /></div>
-        <div className="sl-quiz__card">
-          <p className="sl-quiz__question" id={`quiz-q-${current}`}>{q.question}</p>
-          <div className="sl-quiz__options" role="group" aria-labelledby={`quiz-q-${current}`}>
-            {q.options.map((opt, idx) => {
-              const letter = ['A','B','C','D'][idx];
-              const isCorrect = idx === q.correctAnswer;
-              const isSelected = idx === selected;
-              let cls = 'sl-quiz__option';
-              let ariaLabel = `Option ${letter}: ${opt}`;
-              if (selected !== null) {
-                if (isCorrect)         { cls += ' sl-quiz__option--correct'; ariaLabel += ' – Correct'; }
-                else if (isSelected)   { cls += ' sl-quiz__option--wrong';   ariaLabel += ' – Incorrect'; }
-              }
-              return (
-                <button key={idx} className={cls} onClick={() => handleAnswer(idx)}
-                  disabled={selected !== null} aria-label={ariaLabel} aria-pressed={isSelected || undefined}>
-                  <span className="sl-quiz__option-letter" aria-hidden="true">{letter}</span>
-                  <span>
-                    {opt}
-                    {selected !== null && isCorrect  && <span aria-hidden="true"> ✔</span>}
-                    {selected !== null && isSelected && !isCorrect && <span aria-hidden="true"> ✘</span>}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {showExplain && q.explanation && (
-            <div className={`sl-quiz__explain sl-quiz__explain--${selected === q.correctAnswer ? 'good' : 'bad'}`} role="alert">
-              <p className="sl-quiz__explain-heading">
-                <span aria-hidden="true">{selected === q.correctAnswer ? '✅' : '❌'}</span>
-                {selected === q.correctAnswer ? ' Correct!' : ' Incorrect!'}
-              </p>
-              <p>{q.explanation}</p>
-            </div>
-          )}
-          {selected !== null && (
-            <button ref={nextRef} className="sl-btn sl-btn--primary sl-quiz__next" onClick={handleNext}>
-              {current + 1 < quiz.length ? 'Next Question →' : 'See Results 🎯'}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="sl-quiz" role="form" aria-label="Quiz"><div ref={liveRef} role="status" aria-live="polite" aria-atomic="true" style={srOnly} /><div className="sl-quiz__meta"><span>Question {current + 1} / {quiz.length}</span><span>Score: {score}</span></div><div className="sl-quiz__progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><div className="sl-quiz__progress-fill" style={{ width: `${pct}%` }} /></div><div className="sl-quiz__layout"><div aria-hidden="true"><Avatar state={avatarState} /></div><div className="sl-quiz__card"><p className="sl-quiz__question" id={`quiz-q-${current}`}>{q.question}</p><div className="sl-quiz__options" role="group" aria-labelledby={`quiz-q-${current}`}>{q.options.map((opt, idx) => { const letter = ['A','B','C','D'][idx]; const isCorrect = idx === q.correctAnswer; const isSelected = idx === selected; let cls = 'sl-quiz__option'; if (selected !== null) { if (isCorrect) cls += ' sl-quiz__option--correct'; else if (isSelected) cls += ' sl-quiz__option--wrong'; } return <button key={idx} className={cls} onClick={() => handleAnswer(idx)} disabled={selected !== null} aria-label={`Option ${letter}: ${opt}`}><span className="sl-quiz__option-letter" aria-hidden="true">{letter}</span><span>{opt}{selected !== null && isCorrect && <span aria-hidden="true"> ✔</span>}{selected !== null && isSelected && !isCorrect && <span aria-hidden="true"> ✘</span>}</span></button>; })}</div>{showExplain && q.explanation && <div className={`sl-quiz__explain sl-quiz__explain--${selected === q.correctAnswer ? 'good' : 'bad'}`} role="alert"><p className="sl-quiz__explain-heading"><span aria-hidden="true">{selected === q.correctAnswer ? '✅' : '❌'}</span>{selected === q.correctAnswer ? ' Correct!' : ' Incorrect!'}</p><p>{q.explanation}</p></div>}{selected !== null && <button ref={nextRef} className="sl-btn sl-btn--primary sl-quiz__next" onClick={handleNext}>{current + 1 < quiz.length ? 'Next Question →' : 'See Results 🎯'}</button>}</div></div></div>;
 }
 
 // ══════════════════════════════════════════════════════════════
-// VIDEO TAB
+// VIDEO TAB (unchanged)
 // ══════════════════════════════════════════════════════════════
 function VideoTab({ videoUrl, signUrl }) {
   const [mode, setMode] = useState('standard');
   const url = mode === 'sign' ? signUrl : videoUrl;
-  return (
-    <div className="sl-video" role="region" aria-label="Lesson video">
-      <div className="sl-video__toggle" role="group" aria-label="Video mode">
-        <button className="sl-btn sl-btn--outline" aria-pressed={mode === 'standard'} onClick={() => setMode('standard')}>
-          <span aria-hidden="true">🎬</span> Standard Video
-        </button>
-        <button className="sl-btn sl-btn--outline" aria-pressed={mode === 'sign'} onClick={() => setMode('sign')}>
-          <span aria-hidden="true">🤟</span> Sign Language
-        </button>
-      </div>
-      <div className="sl-video__frame-wrap">
-        {url
-          ? <iframe key={url} src={url}
-              title={mode === 'sign' ? 'Sign language lesson video' : 'Lesson video'}
-              allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              className="sl-video__frame" />
-          : <div className="sl-video__placeholder" role="status">
-              <span aria-hidden="true">🎥</span><p>Video not available.</p>
-            </div>
-        }
-      </div>
-      <p className="sl-video__caption-notice">
-        <span aria-hidden="true">ℹ️</span>
-        Closed captions available — use player controls or <kbd>C</kbd> to toggle.
-      </p>
-    </div>
-  );
+  return <div className="sl-video" role="region" aria-label="Lesson video"><div className="sl-video__toggle" role="group" aria-label="Video mode"><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'standard'} onClick={() => setMode('standard')}><span aria-hidden="true">🎬</span> Standard Video</button><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'sign'} onClick={() => setMode('sign')}><span aria-hidden="true">🤟</span> Sign Language</button></div><div className="sl-video__frame-wrap">{url ? <iframe key={url} src={url} title={mode === 'sign' ? 'Sign language lesson video' : 'Lesson video'} allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" className="sl-video__frame" /> : <div className="sl-video__placeholder" role="status"><span aria-hidden="true">🎥</span><p>Video not available.</p></div>}</div><p className="sl-video__caption-notice"><span aria-hidden="true">ℹ️</span>Closed captions available — use player controls or <kbd>C</kbd> to toggle.</p></div>;
 }
 
 // ══════════════════════════════════════════════════════════════
-// ACCESSIBILITY TOOLBAR
+// ACCESSIBILITY TOOLBAR (unchanged)
 // ══════════════════════════════════════════════════════════════
 function A11yToolbar({ highContrast, setHighContrast, largeText, setLargeText }) {
-  return (
-    <div className="sl-a11y-bar" role="toolbar" aria-label="Accessibility options">
-      <span className="sl-a11y-bar__label" aria-hidden="true">Accessibility</span>
-      <button className="sl-a11y-btn" aria-pressed={highContrast} onClick={() => setHighContrast(v => !v)}>
-        <span aria-hidden="true">◑</span> High Contrast
-      </button>
-      <button className="sl-a11y-btn" aria-pressed={largeText} onClick={() => setLargeText(v => !v)}>
-        <span aria-hidden="true">A+</span> Large Text
-      </button>
-    </div>
-  );
+  return <div className="sl-a11y-bar" role="toolbar" aria-label="Accessibility options"><span className="sl-a11y-bar__label" aria-hidden="true">Accessibility</span><button className="sl-a11y-btn" aria-pressed={highContrast} onClick={() => setHighContrast(v => !v)}><span aria-hidden="true">◑</span> High Contrast</button><button className="sl-a11y-btn" aria-pressed={largeText} onClick={() => setLargeText(v => !v)}><span aria-hidden="true">A+</span> Large Text</button></div>;
 }
 
-// ══════════════════════════════════════════════════════════════
-// CONSTANTS
-// ══════════════════════════════════════════════════════════════
-const SUBJECT_META = {
-  Biology: { emoji: '🧬', label: 'Biology' },
-  Tamil:   { emoji: '📜', label: 'Tamil'   },
-};
+const SUBJECT_META = { Biology: { emoji: '🧬', label: 'Biology' }, Tamil: { emoji: '📜', label: 'Tamil' } };
 const API  = '/api/education2';
 const WAPI = '/api/word';
-const TABS = [
-  { id: 'text',  label: 'Text',  icon: '📖' },
-  { id: 'video', label: 'Video', icon: '🎥' },
-  { id: 'quiz',  label: 'Quiz',  icon: '🧩' },
-];
+const TABS = [{ id: 'text', label: 'Text', icon: '📖' }, { id: 'video', label: 'Video', icon: '🎥' }, { id: 'quiz', label: 'Quiz', icon: '🧩' }];
 
 // ══════════════════════════════════════════════════════════════
-// MAIN COMPONENT
+// MAIN COMPONENT (unchanged)
 // ══════════════════════════════════════════════════════════════
 export default function Education2() {
   useGlobalStyle(STYLES);
-
-  const [highContrast, setHighContrast] = useState(false);
-  const [largeText,    setLargeText]    = useState(false);
-
-  const [selectedClass, setSelectedClass] = useState('');
-  const [classError,    setClassError]    = useState('');
-  const [fetched,       setFetched]       = useState(false);
-  const [loading,       setLoading]       = useState(false);
-  const [subjects,      setSubjects]      = useState([]);
-  const [activeSubject, setActiveSubject] = useState(null);
-  const [units,         setUnits]         = useState([]);
-  const [activeUnit,    setActiveUnit]    = useState(null);
-  const [unitData,      setUnitData]      = useState(null);
-  const [unitLoading,   setUnitLoading]   = useState(false);
-  const [activeTab,     setActiveTab]     = useState('text');
-  const [fetchError,    setFetchError]    = useState('');
-
-  // Word popup
-  const [popupData,    setPopupData]    = useState(null);
-  const [popupLoading, setPopupLoading] = useState(false);
-
-  const subjectsRef = useRef(null);
-  const contentRef  = useRef(null);
-  const statusRef   = useRef(null);
-
+  const [highContrast, setHighContrast] = useState(false); const [largeText, setLargeText] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(''); const [classError, setClassError] = useState(''); const [fetched, setFetched] = useState(false); const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState([]); const [activeSubject, setActiveSubject] = useState(null); const [units, setUnits] = useState([]); const [activeUnit, setActiveUnit] = useState(null); const [unitData, setUnitData] = useState(null); const [unitLoading, setUnitLoading] = useState(false); const [activeTab, setActiveTab] = useState('text'); const [fetchError, setFetchError] = useState('');
+  const [popupData, setPopupData] = useState(null); const [popupLoading, setPopupLoading] = useState(false);
+  const subjectsRef = useRef(null); const contentRef = useRef(null); const statusRef = useRef(null);
   function announce(msg) { if (statusRef.current) statusRef.current.textContent = msg; }
 
-  // ── Word click handler ──────────────────────────────────────
   const handleWordClick = useCallback(async (word) => {
     if (!word || popupLoading) return;
     if (!/^[a-zA-Z]+$/.test(word) || word.length < 3) return;
-    setPopupLoading(true);
-    announce(`Looking up: ${word}`);
+    setPopupLoading(true); announce(`Looking up: ${word}`);
     try {
       const { data } = await axios.get(`${WAPI}/${encodeURIComponent(word.toLowerCase())}?subject=${encodeURIComponent(activeSubject || 'general')}`);
       setPopupData(data);
-    } catch (e) {
-      console.error('Word lookup failed:', e);
-      announce('Could not load word explanation.');
-    } finally {
-      setPopupLoading(false);
-    }
-  }, [popupLoading]);
+    } catch (e) { console.error('Word lookup failed:', e); announce('Could not load word explanation.'); }
+    finally { setPopupLoading(false); }
+  }, [popupLoading, activeSubject]);
 
-  // ── Data fetching ───────────────────────────────────────────
   async function handleFetch() {
     if (!selectedClass) { setClassError('Please select a class before fetching contents.'); return; }
     setClassError(''); setLoading(true); setFetchError('');
     try {
       const { data } = await axios.get(`${API}/subjects`, { params: { className: selectedClass } });
-      setSubjects(data.subjects || []);
-      setFetched(true); setActiveSubject(null); setUnits([]); setActiveUnit(null); setUnitData(null);
+      setSubjects(data.subjects || []); setFetched(true); setActiveSubject(null); setUnits([]); setActiveUnit(null); setUnitData(null);
       announce(`${data.subjects?.length || 0} subjects loaded.`);
       setTimeout(() => subjectsRef.current?.focus(), 150);
     } catch { setFetchError('Failed to load subjects. Check your connection and try again.'); announce('Error loading subjects.'); }
@@ -1226,8 +802,7 @@ export default function Education2() {
     setActiveSubject(subj); setActiveUnit(null); setUnitData(null);
     try {
       const { data } = await axios.get(`${API}/units`, { params: { className: selectedClass, subjectName: subj } });
-      setUnits(data.units || []);
-      announce(`${data.units?.length || 0} units loaded for ${subj}.`);
+      setUnits(data.units || []); announce(`${data.units?.length || 0} units loaded for ${subj}.`);
     } catch { setFetchError('Failed to load units.'); }
   }
 
@@ -1235,8 +810,7 @@ export default function Education2() {
     setActiveUnit(unit._id); setActiveTab('text'); setUnitLoading(true); setFetchError('');
     try {
       const { data } = await axios.get(`${API}/content/${unit._id}`);
-      setUnitData(data);
-      announce(`Unit ${data.unitNumber}: ${data.unitTitle} loaded.`);
+      setUnitData(data); announce(`Unit ${data.unitNumber}: ${data.unitTitle} loaded.`);
       setTimeout(() => contentRef.current?.focus(), 150);
     } catch { setFetchError('Failed to load unit content. Please try again.'); }
     finally { setUnitLoading(false); }
@@ -1248,151 +822,63 @@ export default function Education2() {
   return (
     <div className={pageClasses}>
       <a href="#sl-main" className="sl-skip-link">Skip to main content</a>
-
-      {/* Global polite live region (4.1.3) */}
       <div ref={statusRef} role="status" aria-live="polite" aria-atomic="true" style={srOnly} />
+      {popupLoading && <div className="sl-word-toast" role="status" aria-live="polite"><div className="sl-spinner" aria-hidden="true" />Looking up word…</div>}
+      {popupData && <ExplanationPopup data={popupData} onDismiss={() => setPopupData(null)} />}
 
-      {/* ── Word popup ── */}
-      {popupLoading && (
-        <div className="sl-word-toast" role="status" aria-live="polite">
-          <div className="sl-spinner" aria-hidden="true" />
-          Looking up word…
-        </div>
-      )}
-      {popupData && (
-        <ExplanationPopup data={popupData} onDismiss={() => setPopupData(null)} />
-      )}
-
-      {/* ── Header ── */}
       <header className="sl-header" role="banner">
-        <div className="sl-header__brand">
-          <h1 className="sl-header__logo">SmartLearn</h1>
-          <p className="sl-header__tagline">Inclusive · Intelligent · Impactful</p>
-        </div>
+        <div className="sl-header__brand"><h1 className="sl-header__logo">SmartLearn</h1><p className="sl-header__tagline">Inclusive · Intelligent · Impactful</p></div>
         <div className="sl-form-group" role="search" aria-label="Class selection">
           <div className="sl-field">
             <label className="sl-label" htmlFor="classSelect">Select Class</label>
-            <select id="classSelect" className="sl-select" value={selectedClass}
-              aria-describedby={classError ? 'class-error' : undefined}
-              aria-invalid={!!classError}
-              onChange={e => { setSelectedClass(e.target.value); setFetched(false); setSubjects([]); setClassError(''); }}>
-              <option value="">— Choose a class —</option>
-              <option value="Class 12">Class 12</option>
+            <select id="classSelect" className="sl-select" value={selectedClass} aria-describedby={classError ? 'class-error' : undefined} aria-invalid={!!classError} onChange={e => { setSelectedClass(e.target.value); setFetched(false); setSubjects([]); setClassError(''); }}>
+              <option value="">— Choose a class —</option><option value="Class 12">Class 12</option>
             </select>
             {classError && <span id="class-error" role="alert" style={{ color: 'var(--sl-error)', fontSize: '0.82rem', marginTop: '0.25rem' }}>{classError}</span>}
           </div>
-          <button className="sl-btn sl-btn--primary" onClick={handleFetch} disabled={loading} aria-busy={loading}>
-            {loading ? 'Loading…' : 'Fetch Contents'}
-          </button>
+          <button className="sl-btn sl-btn--primary" onClick={handleFetch} disabled={loading} aria-busy={loading}>{loading ? 'Loading…' : 'Fetch Contents'}</button>
         </div>
       </header>
 
       <A11yToolbar highContrast={highContrast} setHighContrast={setHighContrast} largeText={largeText} setLargeText={setLargeText} />
 
       <main id="sl-main" className="sl-main" tabIndex={-1}>
-
         {fetchError && <div className="sl-error" role="alert" aria-live="assertive"><strong>Error:</strong> {fetchError}</div>}
 
-        {/* ── Subjects ── */}
         {fetched && subjects.length > 0 && (
           <section className="sl-subjects" aria-label="Available subjects" tabIndex={-1} ref={subjectsRef}>
             <h2 className="sl-section-title">Choose a Subject</h2>
             <div className="sl-subjects__grid" role="list">
-              {subjects.map(subj => {
-                const m = SUBJECT_META[subj] || { emoji: '📘', label: subj };
-                return (
-                  <button key={subj} className="sl-subject-card" role="listitem"
-                    aria-current={activeSubject === subj ? 'true' : undefined}
-                    onClick={() => handleSubject(subj)}>
-                    <span aria-hidden="true">{m.emoji}</span><span>{m.label}</span>
-                  </button>
-                );
-              })}
+              {subjects.map(subj => { const m = SUBJECT_META[subj] || { emoji: '📘', label: subj }; return <button key={subj} className="sl-subject-card" role="listitem" aria-current={activeSubject === subj ? 'true' : undefined} onClick={() => handleSubject(subj)}><span aria-hidden="true">{m.emoji}</span><span>{m.label}</span></button>; })}
             </div>
           </section>
         )}
 
-        {/* ── Units ── */}
         {activeSubject && units.length > 0 && (
           <section className="sl-units" aria-label={`Units in ${activeSubject}`}>
-            <h2 className="sl-section-title">
-              <span aria-hidden="true">{meta.emoji} </span>{activeSubject} — Units
-            </h2>
+            <h2 className="sl-section-title"><span aria-hidden="true">{meta.emoji} </span>{activeSubject} — Units</h2>
             <div className="sl-units__list" role="list">
-              {units.map(unit => (
-                <button key={unit._id} className="sl-unit-row" role="listitem"
-                  aria-current={activeUnit === unit._id ? 'true' : undefined}
-                  onClick={() => handleUnit(unit)}>
-                  <span className="sl-unit-row__num">Unit {unit.unitNumber}</span>
-                  <span className="sl-unit-row__title">{unit.unitTitle}</span>
-                  <span className="sl-unit-row__arrow" aria-hidden="true">›</span>
-                </button>
-              ))}
+              {units.map(unit => <button key={unit._id} className="sl-unit-row" role="listitem" aria-current={activeUnit === unit._id ? 'true' : undefined} onClick={() => handleUnit(unit)}><span className="sl-unit-row__num">Unit {unit.unitNumber}</span><span className="sl-unit-row__title">{unit.unitTitle}</span><span className="sl-unit-row__arrow" aria-hidden="true">›</span></button>)}
             </div>
           </section>
         )}
 
-        {/* ── Loader ── */}
-        {unitLoading && (
-          <div className="sl-loader" role="status" aria-live="polite" aria-label="Loading unit content">
-            <div className="sl-spinner" aria-hidden="true" /><p>Loading unit content…</p>
-          </div>
-        )}
+        {unitLoading && <div className="sl-loader" role="status" aria-live="polite" aria-label="Loading unit content"><div className="sl-spinner" aria-hidden="true" /><p>Loading unit content…</p></div>}
 
-        {/* ── Content ── */}
         {unitData && !unitLoading && (
           <section className="sl-content" aria-label={`Unit ${unitData.unitNumber}: ${unitData.unitTitle}`}>
             <div className="sl-content__header">
-              <h2 className="sl-content__title" tabIndex={-1} ref={contentRef}>
-                <span aria-hidden="true">{meta.emoji} </span>
-                Unit {unitData.unitNumber}: {unitData.unitTitle}
-              </h2>
+              <h2 className="sl-content__title" tabIndex={-1} ref={contentRef}><span aria-hidden="true">{meta.emoji} </span>Unit {unitData.unitNumber}: {unitData.unitTitle}</h2>
               <div className="sl-tabs" role="tablist" aria-label="Content format">
-                {TABS.map((tab, i) => (
-                  <button
-                    key={tab.id} id={`tab-${tab.id}`} className="sl-tab"
-                    role="tab" aria-selected={activeTab === tab.id}
-                    aria-controls={`panel-${tab.id}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    onKeyDown={e => {
-                      if (e.key === 'ArrowRight') { const next = TABS[(i+1)%TABS.length].id; setActiveTab(next); document.getElementById(`tab-${next}`)?.focus(); }
-                      if (e.key === 'ArrowLeft')  { const prev = TABS[(i-1+TABS.length)%TABS.length].id; setActiveTab(prev); document.getElementById(`tab-${prev}`)?.focus(); }
-                    }}
-                    tabIndex={activeTab === tab.id ? 0 : -1}
-                  >
-                    <span aria-hidden="true">{tab.icon} </span>{tab.label}
-                  </button>
-                ))}
+                {TABS.map((tab, i) => <button key={tab.id} id={`tab-${tab.id}`} className="sl-tab" role="tab" aria-selected={activeTab === tab.id} aria-controls={`panel-${tab.id}`} onClick={() => setActiveTab(tab.id)} onKeyDown={e => { if (e.key === 'ArrowRight') { const next = TABS[(i+1)%TABS.length].id; setActiveTab(next); document.getElementById(`tab-${next}`)?.focus(); } if (e.key === 'ArrowLeft') { const prev = TABS[(i-1+TABS.length)%TABS.length].id; setActiveTab(prev); document.getElementById(`tab-${prev}`)?.focus(); } }} tabIndex={activeTab === tab.id ? 0 : -1}><span aria-hidden="true">{tab.icon} </span>{tab.label}</button>)}
               </div>
             </div>
-
             <div className="sl-content__body">
               {TABS.map(tab => (
-                <div key={tab.id} id={`panel-${tab.id}`} role="tabpanel"
-                  aria-labelledby={`tab-${tab.id}`} hidden={activeTab !== tab.id} tabIndex={0}>
+                <div key={tab.id} id={`panel-${tab.id}`} role="tabpanel" aria-labelledby={`tab-${tab.id}`} hidden={activeTab !== tab.id} tabIndex={0}>
                   {activeTab === tab.id && (
                     <>
-                      {tab.id === 'text' && (
-                        <div>
-                          {/* ── Click-hint bar ── */}
-                          <p className="sl-click-hint" aria-live="polite">
-                            <span aria-hidden="true">💡</span>
-                            Click any word to explore its meaning
-                          </p>
-
-                          <TTSReader
-                            text={unitData?.content?.text
-                              ? unitData.content.text.replace(/<[^>]+>/g, '')
-                              : 'No content available'}
-                          />
-
-                          {/* WordClickableText replaces plain TextTab for the text panel */}
-                          <WordClickableText
-                            html={unitData.content?.text}
-                            onWordClick={handleWordClick}
-                          />
-                        </div>
-                      )}
+                      {tab.id === 'text' && <div><p className="sl-click-hint" aria-live="polite"><span aria-hidden="true">💡</span>Click any word to explore its meaning + see the ISL sign</p><TTSReader text={unitData?.content?.text ? unitData.content.text.replace(/<[^>]+>/g, '') : 'No content available'} /><WordClickableText html={unitData.content?.text} onWordClick={handleWordClick} /></div>}
                       {tab.id === 'video' && <VideoTab videoUrl={unitData.content?.videoUrl} signUrl={unitData.content?.signLanguageVideoUrl} />}
                       {tab.id === 'quiz'  && <QuizTab  quiz={unitData.content?.quiz || []} />}
                     </>
@@ -1403,14 +889,13 @@ export default function Education2() {
           </section>
         )}
 
-        {/* ── Welcome ── */}
         {!fetched && !loading && (
           <div className="sl-welcome" role="region" aria-label="Welcome">
             <span className="sl-welcome__icon" aria-hidden="true">🎓</span>
             <h2>Welcome to SmartLearn!</h2>
             <p>Select a class above and click <strong>Fetch Contents</strong> to begin your learning journey.</p>
             <div className="sl-welcome__pills" aria-label="Features">
-              <span className="sl-welcome__pill">🤟 Sign Language Videos</span>
+              <span className="sl-welcome__pill">🤟 ISL Sign Videos</span>
               <span className="sl-welcome__pill">📖 Text Explanations</span>
               <span className="sl-welcome__pill">🧩 Interactive Quizzes</span>
               <span className="sl-welcome__pill">💡 Tap-to-Learn Words</span>

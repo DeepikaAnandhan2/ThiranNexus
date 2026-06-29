@@ -12,6 +12,7 @@ const WordExplanationSchema = new mongoose.Schema({
   simplifiedDefinition: { type: String, default: '' },
   islGloss:     { type: [String], default: [] },
   directSignUrl:{ type: String, default: '' },
+  islSignVideoUrl: { type: String, default: '' },   // ← NEW: YouTube ISL sign embed URL
 }, { timestamps: true });
 
 module.exports = mongoose.model('WordExplanation', WordExplanationSchema);
