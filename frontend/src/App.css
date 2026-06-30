@@ -953,6 +953,11 @@ button:focus-visible {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: #ccd0db; border-radius: 100px; }
 
+/* Hide scrollbar on mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar { width: 0px; }
+}
+
 /* ══════════════════════════════════════════════════════════
    GESTURE UI ELEMENTS
 ══════════════════════════════════════════════════════════ */

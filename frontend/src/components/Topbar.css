@@ -1,21 +1,14 @@
 .topbar {
   height: 70px;
-
-  /* IMPORTANT: Do NOT force full viewport width */
   width: 100%;
-
   background: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   padding: 0 30px;
-
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-
   position: sticky;
   top: 0;
-
   z-index: 900;
   box-sizing: border-box;
 }
@@ -50,4 +43,69 @@
   height: 40px;
   border-radius: 50%;
   cursor: pointer;
+}
+
+/* =========================================================================
+   MOBILE VIEW (< 768px)
+   ========================================================================= */
+@media (max-width: 768px) {
+  body, html {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .topbar {
+    padding: 0 16px;
+    height: 60px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+  }
+
+  .search-bar {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 12px;
+  }
+
+  .user-avatar img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .color-accessibility-control {
+    display: none !important;
+  }
+}
+
+/* =========================================================================
+   TABLET VIEW (769px - 1024px)
+   ========================================================================= */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .topbar {
+    padding: 0 20px;
+  }
+
+  .search-bar {
+    width: 180px;
+  }
+}
+
+/* =========================================================================
+   DESKTOP VIEW (> 1024px)
+   ========================================================================= */
+@media (min-width: 1025px) {
+  .topbar {
+    padding: 0 30px;
+  }
+
+  .search-bar {
+    width: 250px;
+  }
 }
