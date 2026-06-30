@@ -24,7 +24,7 @@ export default function Login() {
     if (e) e.preventDefault();
     if (!email || !password) { alert("Please enter email and password ⚠️"); return; }
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+      const res = await axios.post("https://thirannexus.onrender.com/api/auth/login", { email, password });
       if (res.data.success) {
         await login(res.data.token, res.data.user);
         navigate(res.data.user?.role === 'parent' ? "/parent-dashboard" : "/dashboard");

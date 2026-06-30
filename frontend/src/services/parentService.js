@@ -1,6 +1,6 @@
 // frontend/src/services/parentService.js
 import axios from 'axios'
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const BASE = import.meta.env.VITE_API_URL || 'https://thirannexus.onrender.com'
 const api = axios.create({ baseURL: BASE })
 api.interceptors.request.use(cfg => {
   const token = localStorage.getItem('tn_token') || localStorage.getItem('token')

@@ -15,8 +15,8 @@ import PlayerList    from '../components/games/PlayerList'
 import ChatPanel     from '../components/games/ChatPanel'
 import '../styles/Scribble.css'
 
-const API        = 'http://localhost:5000'
-const SOCKET_URL = 'http://localhost:5000'
+const API        = 'https://thirannexus.onrender.com'
+const SOCKET_URL = 'https://thirannexus.onrender.com'
 
 const AVATARS = ['😊','😎','🤩','😜','🥳','😇','🤓','😏','🥸','😈','👻','🤖','🦊','🐼','🦁','🐸']
 
