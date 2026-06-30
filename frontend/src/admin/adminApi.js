@@ -2,7 +2,7 @@
 // Central API layer for all admin dashboard data fetching.
 // Used by every admin page component.
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const BASE = import.meta.env.VITE_API_URL || "https://thirannexus.onrender.com";
 
 // ── Token helpers ─────────────────────────────────────────
 const getToken = () => localStorage.getItem('admin_token')

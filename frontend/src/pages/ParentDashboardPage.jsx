@@ -9,7 +9,7 @@ import {
 } from 'react-icons/fa'
 import '../styles/ParentDashboard.css'
 
-const API = 'http://localhost:5000'
+const API = 'https://thirannexus.onrender.com'
 const token = () => localStorage.getItem('tn_token')
 const headers = () => ({ Authorization: `Bearer ${token()}` })
 

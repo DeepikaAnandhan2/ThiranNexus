@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const BASE = import.meta.env.VITE_API_URL || "https://thirannexus.onrender.com";
 const getHeaders = () => {
   const token = localStorage.getItem("token") || localStorage.getItem("tn_token");
   return token ? { Authorization: `Bearer ${token}` } : {};

@@ -57,7 +57,7 @@ export default function Register() {
     if (!cleanUdid) return alert("Enter your UDID first");
     setVerifying(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/auth/verify-udid/${cleanUdid}`);
+      const res = await axios.get(`https://thirannexus.onrender.com/api/auth/verify-udid/${cleanUdid}`);
       if (res.data.valid) {
         const typeLabel = res.data.disabilityType || getDisabilityLabel(cleanUdid);
         setUdidVerified(true);
@@ -81,7 +81,7 @@ export default function Register() {
     if (!formData.linkedStudentUDID.trim()) return alert("Enter your child's UDID first");
     setVerifying(true); setChildPreview(null); setChildVerified(false);
     try {
-      const res = await axios.get(`http://localhost:5000/api/auth/verify-udid/${formData.linkedStudentUDID.trim()}?mode=parent`);
+      const res = await axios.get(`https://thirannexus.onrender.com/api/auth/verify-udid/${formData.linkedStudentUDID.trim()}?mode=parent`);
       if (res.data.valid) {
         setChildVerified(true);
         setChildPreview({ name: res.data.studentName, disabilityType: res.data.disabilityType });
@@ -110,7 +110,7 @@ export default function Register() {
       if (formData.role === 'parent') {
         payload.linkedStudentUDID = formData.linkedStudentUDID;
       }
-      const res = await axios.post("http://localhost:5000/api/auth/register", payload);
+      const res = await axios.post("https://thirannexus.onrender.com/api/auth/register", payload);
       if (res.data.success) {
         alert("Account created! 🚀 Please login.");
         navigate("/login");
