@@ -15,8 +15,8 @@ import PlayerList    from '../components/games/PlayerList'
 import ChatPanel     from '../components/games/ChatPanel'
 import '../styles/Scribble.css'
 
-const API        = 'https://thirannexus.onrender.com'
-const SOCKET_URL = 'https://thirannexus.onrender.com'
+const API        = import.meta.env.VITE_API_URL || 'https://thirannexus.onrender.com'
+const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://thirannexus.onrender.com'
 
 const AVATARS = ['😊','😎','🤩','😜','🥳','😇','🤓','😏','🥸','😈','👻','🤖','🦊','🐼','🦁','🐸']
 
@@ -29,7 +29,7 @@ function getStoredUser() {
   return null
 }
 
-export default function Scribble() {
+export default function Scribble({ onBack }) {
   // ── User identity ──────────────────────────────────────────────────────────
   // Read directly (not via useState) so it's always the real DB _id
   const storedUser = getStoredUser()
@@ -265,6 +265,15 @@ export default function Scribble() {
 
       <div className="lobby-card">
         <div className="lobby-header">
+          {onBack && (
+            <button 
+              className="lobby-back-btn" 
+              onClick={onBack}
+              title="Back to Games"
+            >
+              ← Back
+            </button>
+          )}
           <FaPencilAlt className="lobby-header-icon" />
           <h1 className="lobby-title">Scribble</h1>
           <p className="lobby-subtitle">Draw • Guess • Win</p>
@@ -396,7 +405,10 @@ export default function Scribble() {
           ) : (
             <p className="waiting-host-msg">⏳ Waiting for host to start the game…</p>
           )}
-          <button className="lobby-btn lobby-btn-ghost" onClick={() => setScreen('lobby')}>
+          <button 
+            className="lobby-btn lobby-btn-ghost" 
+            onClick={() => onBack ? onBack() : setScreen('lobby')}
+          >
             Leave Room
           </button>
         </div>

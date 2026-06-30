@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FaHome, FaBook, FaGamepad, FaTrophy,
-  FaSignOutAlt, FaEdit, FaComments, FaGraduationCap,
+  FaSignOutAlt, FaComments, FaGraduationCap,
   FaUser // ✅ Imported user icon for profile decoration
 } from 'react-icons/fa';
 import { useListNavigation } from '../hooks/useListNavigation';
@@ -17,7 +17,6 @@ export default function Sidebar() {
     { icon: <FaBook />, label: 'Education', path: '/education' },
     { icon: <FaGraduationCap />, label: 'SmartLearn', path: '/education2' },
     { icon: <FaGamepad />, label: 'Games', path: '/games' },
-    { icon: <FaEdit />, label: 'Scribble', path: '/scribble' },
     { icon: <FaTrophy />, label: 'Schemes', path: '/schemes' },
     { icon: <FaUser />, label: 'My Profile', path: '/profile' }, // ✅ Integrated cleanly into list array matrix
     { icon: <FaComments />, label: 'Help & Support', path: '/feedback' },
