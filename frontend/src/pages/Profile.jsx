@@ -27,7 +27,7 @@ export default function Profile() {
       
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/users/profile/${userId}`);
+        const response = await fetch(`https://thirannexus.onrender.com/api/users/profile/${userId}`);
         
         if (!response.ok) {
           throw new Error('Could not pull backend database profile values.');
@@ -70,7 +70,7 @@ export default function Profile() {
     const userId = user?._id || user?.id;
     
     try {
-      const response = await fetch(`/api/users/profile/update/${userId}`, {
+      const response = await fetch(`https://thirannexus.onrender.com/api/users/profile/update/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

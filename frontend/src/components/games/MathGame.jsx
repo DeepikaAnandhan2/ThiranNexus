@@ -116,7 +116,7 @@ export default function MathGame({ onBack, gestureAction, clearGestureAction }) 
       // Save score to backend
       try {
         const token = localStorage.getItem('token')
-        await axios.post('/api/dashboard/game/score', {
+        await axios.post('https://thirannexus.onrender.com/api/dashboard/game/score', {
           gameType: 'math',
           score: correct ? SCORE_PER_CORRECT[d] : 0,
           streak: correct ? streak + 1 : 0

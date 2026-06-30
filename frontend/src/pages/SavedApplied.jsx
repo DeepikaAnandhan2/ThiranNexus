@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../utils/api";
 import { Link } from "react-router-dom";
 import "../styles/schemes.css";
 
@@ -18,7 +18,7 @@ export default function SavedApplied() {
           return;
         }
 
-        const res = await axios.get(`/api/schemes/user/${user._id}`);
+        const res = await API.get(`/schemes/user/${user._id}`);
         console.log("USER SCHEMES:", res.data);
 
         setData(res.data || []);

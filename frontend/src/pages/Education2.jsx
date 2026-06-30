@@ -759,8 +759,8 @@ function A11yToolbar({ highContrast, setHighContrast, largeText, setLargeText })
 }
 
 const SUBJECT_META = { Biology: { emoji: '🧬', label: 'Biology' }, Tamil: { emoji: '📜', label: 'Tamil' } };
-const API  = '/api/education2';
-const WAPI = '/api/word';
+const API  = 'https://thirannexus.onrender.com/api/education2';
+const WAPI = 'https://thirannexus.onrender.com/api/word';
 const TABS = [{ id: 'text', label: 'Text', icon: '📖' }, { id: 'video', label: 'Video', icon: '🎥' }, { id: 'quiz', label: 'Quiz', icon: '🧩' }];
 
 // ══════════════════════════════════════════════════════════════
