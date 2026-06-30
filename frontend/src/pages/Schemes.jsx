@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import API from '../utils/api';
 import "../styles/schemes.css";
 
 const Schemes = ({ user }) => {
@@ -16,13 +16,9 @@ const Schemes = ({ user }) => {
 
         const disabilityType = user?.disabilityType || "none";
 
-        console.log("USER TYPE:", disabilityType);
-
-        const res = await axios.get(
-          `/api/schemes/recommended?disabilityType=${disabilityType}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
+        const res = await API.get(
+          `/schemes/recommended?disabilityType=${disabilityType}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
         console.log("SCHEMES:", res.data);

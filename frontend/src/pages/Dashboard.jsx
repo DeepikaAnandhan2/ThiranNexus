@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { FaGamepad, FaMedal, FaBook, FaUsers, FaGraduationCap, FaChartLine, FaShieldAlt, FaHistory, FaChevronRight, FaTrophy } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { dashboardService } from '../services/dashboardService';
@@ -74,7 +74,7 @@ export default function Dashboard() {
       if (selectedTab === 'education') {
         const token = localStorage.getItem("token") || localStorage.getItem('tn_token');
         const grade = user?.grade || 'Class 12'; 
-        const res = await axios.get(`/api/education2/subjects?className=${grade}`, {
+        const res = await axios.get(`https://thirannexus.onrender.com/api/education2/subjects?className=${grade}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setEducation(prev => ({ ...prev, subjects: res.data.subjects || [] }));
@@ -88,13 +88,13 @@ export default function Dashboard() {
       if (selectedTab === 'schemes') {
         const token = localStorage.getItem("token") || localStorage.getItem('tn_token');
         const disabilityType = user?.disabilityType || "none";
-        const recommendedRes = await axios.get(`/api/schemes/recommended?disabilityType=${disabilityType}`, {
+        const recommendedRes = await axios.get(`https://thirannexus.onrender.com/api/schemes/recommended?disabilityType=${disabilityType}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setSchemes(recommendedRes.data || []);
 
         if (user?._id) {
-          const userRes = await axios.get(`/api/schemes/user/${user._id}`, {
+          const userRes = await axios.get(`https://thirannexus.onrender.com/api/schemes/user/${user._id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setUserSchemes(userRes.data || { saved: [], applied: [] });
@@ -115,7 +115,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
       const grade = user?.grade || 'Class 12';
-      const res = await axios.get(`/api/education2/units?className=${grade}&subjectName=${subjectName}`, {
+      const res = await axios.get(`https://thirannexus.onrender.com/api/education2/units?className=${grade}&subjectName=${subjectName}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEducation(prev => ({ ...prev, selectedSubject: subjectName, units: res.data.units || [] }));

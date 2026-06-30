@@ -85,7 +85,7 @@ export default function TongueTwister({ onBack, gestureAction, clearGestureActio
       // Save score to backend
       try {
         const token = localStorage.getItem('token')
-        await axios.post('/api/dashboard/game/score', {
+        await axios.post('https://thirannexus.onrender.com/api/dashboard/game/score', {
           gameType: 'twister',
           score: ev.rating === 'excellent' ? 3 : ev.rating === 'good' ? 1 : 0,
           streak: ev.rating !== 'tryAgain' ? round + 1 : 0

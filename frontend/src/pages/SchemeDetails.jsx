@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import API from "../utils/api";
 import "../styles/schemes.css";
 
 const SchemeDetails = () => {
@@ -11,7 +11,7 @@ const SchemeDetails = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await axios.get(`/api/schemes/${id}`);
+        const res = await API.get(`/schemes/${id}`);
         console.log("SCHEME:", res.data);
         setScheme(res.data);
       } catch (err) {
@@ -25,7 +25,7 @@ const SchemeDetails = () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
 
-      await axios.post("/api/schemes/save", {
+      await API.post("/schemes/save", {
         userId: user._id,
         schemeId: id
       });
@@ -40,7 +40,7 @@ const SchemeDetails = () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
 
-      await axios.post("/api/schemes/apply", {
+      await API.post("/schemes/apply", {
         userId: user._id,
         schemeId: id
       });
