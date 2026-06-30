@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TongueTwister from '../components/games/TongueTwister'
 import MathGame from '../components/games/MathGame'
+import Scribble from './Scribble'
 import { speak } from '../utils/speech'
 import { useGestures } from '../utils/useGestures'
 import '../styles/Games.css'
@@ -20,9 +21,7 @@ export default function Games() {
   const selectGame = async (id, title) => {
     await speak(`Starting ${title}.`)
 
-    if (id === 'scribble') {
-      navigate('/scribble')
-    } else if (id === 'logic') {
+    if (id === 'logic') {
       navigate('/games/logic') // ✅ LOGIC NAVIGATION
     } else {
       setActiveGame(id)
@@ -50,6 +49,7 @@ export default function Games() {
   // Render active games
   if (activeGame === 'twister') return <TongueTwister onBack={goBack} />
   if (activeGame === 'math') return <MathGame onBack={goBack} />
+  if (activeGame === 'scribble') return <Scribble onBack={goBack} />
 
   return (
     <div className="games-page">

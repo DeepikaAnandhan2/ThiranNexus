@@ -67,6 +67,32 @@
 /* Header */
 .lobby-header {
   text-align: center; margin-bottom: 2rem;
+  position: relative;
+}
+
+.lobby-back-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #8B5CF6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.lobby-back-btn:hover {
+  background: #7C3AED;
+  transform: translateX(-2px);
+}
+
+.lobby-back-btn:active {
+  transform: translateX(-1px) scale(0.98);
 }
 
 .lobby-header-icon {

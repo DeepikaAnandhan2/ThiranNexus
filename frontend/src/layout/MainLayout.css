@@ -1,81 +1,137 @@
-/* Ensure the body expands fully without standard document offsets */
-body, html {
-  margin: 0;
-  padding: 0;
+/* ==========================================================================
+   GLOBAL
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
 }
 
 /* ==========================================================================
-   Structural Alignment for AppLayout (.app-shell, .content-area, .page-inner)
+   APP LAYOUT
    ========================================================================== */
-.app-shell {
+
+.app-shell,
+.layout {
   display: flex;
-  width: 100%; /* Changed from 100vw to prevent layout calculation bugs with scrollbars */
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   overflow: hidden;
 }
 
-.content-area {
+/* Sidebar takes 240px only on desktop */
+.content-area,
+.main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* Instructs main frame to occupy all remaining width space */
-  width: 100%;
-  height: 100%;
-  min-width: 0; /* Prevents flex items from breaking grid/flex wrappers inside */
+  min-width: 0;
+  margin-left: 240px;
+  width: calc(100% - 240px);
+  transition: margin 0.3s ease;
 }
 
-.app-shell .page-content {
-  flex-grow: 1;
-  width: 100%;
+/* Scrollable page */
+
+.page-content,
+.app-shell .page-content,
+.layout .page-content {
+  flex: 1;
   overflow-y: auto;
-  box-sizing: border-box;
-  padding: 0 !important; /* CRITICAL: Removed padding so pages can stretch completely edge-to-edge */
+  overflow-x: hidden;
+  width: 100%;
 }
 
-/* Strips any layout engine caps or auto margins causing side gaps */
+/* Inner container */
+
 .page-inner {
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important; /* CRITICAL: Removed constraint padding */
-  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  padding: 24px;
+  margin: 0;
 }
 
 /* ==========================================================================
-   Structural Alignment for MainLayout (.layout, .main, .page-content)
+   MOBILE
    ========================================================================== */
-.layout {
-  display: flex;
-  width: 100%; /* Changed from 100vw to prevent layout calculation bugs with scrollbars */
-  height: 100vh;
-  overflow: hidden;
+
+@media (max-width:768px){
+
+  .app-shell,
+  .layout{
+      flex-direction:column;
+  }
+
+  .content-area,
+  .main{
+
+      margin-left:0 !important;
+      width:100% !important;
+      min-width:100%;
+  }
+
+  .page-content{
+
+      width:100%;
+      overflow-x:hidden;
+  }
+
+  .page-inner{
+
+      width:100%;
+      padding:16px;
+      margin:0;
+  }
+
 }
 
-.main {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1; /* Eliminates white margins on screens using standard components */
-  width: 100%;
-  height: 100%;
-  min-width: 0; /* Prevents flex items from breaking grid/flex wrappers inside */
+/* ==========================================================================
+   TABLET
+   ========================================================================== */
+
+@media (min-width:769px) and (max-width:1024px){
+
+  .content-area,
+  .main{
+
+      margin-left:240px;
+      width:calc(100% - 240px);
+  }
+
+  .page-inner{
+
+      padding:24px;
+  }
+
 }
 
-.layout .page-content {
-  flex-grow: 1;
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important; /* CRITICAL: Removed padding so page headers/banners sit completely tight to the layout */
-  overflow-y: auto;
-  box-sizing: border-box;
-}
+/* ==========================================================================
+   DESKTOP
+   ========================================================================== */
 
-/* Fallback fix to ensure target container elements adapt accurately */
-#root {
-  width: 100%;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
+@media (min-width:1025px){
+
+  .content-area,
+  .main{
+
+      margin-left:240px;
+      width:calc(100% - 240px);
+  }
+
+  .page-inner{
+
+      padding:32px;
+  }
+
 }
