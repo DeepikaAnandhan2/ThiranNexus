@@ -11,9 +11,9 @@
 }
 
 .page-content > .page-inner > .page-container {
-  width: calc(100% + 400px);
-  max-width: none;
-  margin: 0 -40px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -186,21 +186,38 @@
   margin-top: 20px;
 }
 
-/* ─── Responsive ────────────────────────────────────── */
-@media (max-width: 768px) {
-  .page-container {
-    padding: 20px;
+@media (max-width:768px){
+
+  .page-container{
+      width:100%;
+      max-width:100%;
+      margin:0;
+      padding:16px 12px;
+      overflow-x:hidden;
+      box-sizing:border-box;
   }
 
-  .page-title {
-    font-size: 22px;
+  .page-content > .page-inner > .page-container{
+      width:100%;
+      max-width:100%;
+      margin:0;
+      padding:16px 12px;
   }
 
-  .detail-title {
-    font-size: 22px;
+  .page-title{
+      font-size:22px;
   }
 
-  .grid {
-    grid-template-columns: 1fr;
+  .detail-title{
+      font-size:22px;
+  }
+
+  .grid{
+      grid-template-columns:1fr;
+      gap:16px;
+  }
+
+  .card{
+      width:100%;
   }
 }

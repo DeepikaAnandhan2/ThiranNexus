@@ -547,86 +547,114 @@
   color: #a0aec0;
 }
 
-@media (max-width: 768px) {
-  .nav-container {
-    padding: 0 1rem;
-  }
+@media (max-width:768px){
 
-  .nav-links {
-    gap: 1rem;
-  }
+/* ---------- Navbar ---------- */
 
-  .hero-container {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    text-align: center;
-    padding: 0 1rem;
-  }
-
-  .hero-title {
-    font-size: 2.5rem;
-  }
-
-  .hero-actions {
-    justify-items: center;
-  }
-
-  .hero-stats {
-    justify-content: center;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .floating-stats {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .stat-card {
-    flex: 1;
-    min-width: 70px;
-  }
-
-  .testimonials-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .feature-card,
-  .testimonial-card {
-    padding: 1.5rem;
-  }
-
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  .footer-links {
-    grid-template-columns: 1fr;
-  }
-
-  .cta-actions {
-    flex-direction: column;
-    align-items: center;
-  }
+.nav{
+    position:fixed;
 }
 
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 2rem;
-  }
+.nav-container{
+    height:72px;
+    padding:0 16px;
+}
 
-  .hero-subtitle {
-    font-size: 1rem;
-  }
+.nav-logo .logo-text{
+    font-size:1.45rem;
+}
 
-  .section-header h2 {
-    font-size: 2rem;
-  }
+.nav-links{
+    gap:14px;
+}
 
-  .cta-content h2 {
-    font-size: 2rem;
-  }
+.nav-links a{
+    font-size:.82rem;
+}
+
+.nav-btn{
+    padding:8px 18px;
+    border-radius:999px;
+}
+
+/* ---------- Hero ---------- */
+
+.hero{
+    min-height:auto;
+    padding-top:72px;
+}
+
+.hero-container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px 16px 40px;
+    gap:28px;
+}
+
+.hero-content{
+    width:100%;
+    max-width:100%;
+    align-items:center;
+}
+
+.hero-title{
+    font-size:2.15rem;
+    line-height:1.2;
+    margin-bottom:18px;
+}
+
+.hero-subtitle{
+    width:100%;
+    max-width:320px;
+    margin:0 auto 24px;
+    font-size:1rem;
+    line-height:1.8;
+}
+
+/* ---------- Buttons ---------- */
+
+.hero-actions{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.btn-primary,
+.btn-secondary{
+    width:100%;
+    height:58px;
+    min-width:unset;
+    border-radius:999px;
+}
+
+/* ---------- Image ---------- */
+
+.hero-visual{
+    width:100%;
+    display:flex;
+    justify-content:center;
+}
+
+.hero-image-card{
+    width:100%;
+    max-width:360px;
+    border-radius:28px;
+    padding:18px;
+}
+
+.hero-main-image{
+    width:100%;
+    display:block;
+}
+
+/* Hide stats if unused */
+
+.hero-stats{
+    display:none;
+}
+
 }

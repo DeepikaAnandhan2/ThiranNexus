@@ -199,3 +199,166 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ============================
+   RESPONSIVE DESIGN
+============================ */
+
+@media (max-width: 992px) {
+
+  .login-container {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  /* Left Section */
+  .login-left {
+    flex: none;
+    width: 100%;
+    padding: 60px 24px 30px;
+    min-height: 420px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .login-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .hero-text {
+    font-size: 2.7rem;
+    line-height: 1.15;
+  }
+
+  .hero-subtext {
+    font-size: 1rem;
+    margin-bottom: 1.8rem;
+  }
+
+  .hero-illustration {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+  }
+
+  .impact-badges {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* Right Section */
+  .login-right {
+    flex: none;
+    width: 100%;
+    padding: 40px 20px 50px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 450px;
+    padding: 3rem 2rem;
+    border-radius: 24px;
+  }
+
+  .login-title {
+    font-size: 2rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+
+  .login-input {
+    padding: 15px 18px;
+    font-size: 1rem;
+  }
+
+  .login-btn {
+    padding: 15px;
+    font-size: 1rem;
+  }
+}
+
+/* ============================
+   MOBILE
+============================ */
+
+@media (max-width: 576px) {
+
+  .login-left {
+    padding: 40px 20px 25px;
+    min-height: auto;
+  }
+
+  .hero-text {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .hero-subtext {
+    font-size: 0.95rem;
+  }
+
+  .hero-illustration {
+    max-width: 250px;
+  }
+
+  .impact-badges {
+    font-size: 0.85rem;
+  }
+
+  .login-right {
+    padding: 20px 15px 40px;
+  }
+
+  .login-card {
+    max-width: 100%;
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .brand-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 0.9rem;
+  }
+
+  .login-title {
+    font-size: 1.7rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.8rem;
+  }
+
+  .input-group {
+    gap: 10px;
+  }
+
+  .login-input {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+  }
+
+  .login-options {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .login-btn {
+    padding: 14px;
+    font-size: 0.95rem;
+  }
+
+  .join-text {
+    font-size: 0.85rem;
+  }
+}
