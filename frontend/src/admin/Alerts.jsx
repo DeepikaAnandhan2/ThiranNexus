@@ -19,7 +19,7 @@ function Toast({ msg, onClose }) {
     return () => clearTimeout(t);
   }, [onClose]);
   return (
-    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, background: "#fff", borderRadius: 14, padding: "16px 20px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", border: "1.5px solid #dcfce7", maxWidth: 360, animation: "slideUp 0.3s" }}>
+    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, background: "#fff", borderRadius: 12, padding: "16px 20px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", border: "1.5px solid #dcfce7", maxWidth: 360, animation: "slideUp 0.3s" }}>
       <div style={{ fontWeight: 700, color: "#166534", marginBottom: 6 }}>✅ Alert Resolved</div>
       <div style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>{msg}</div>
       <button onClick={onClose} style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#aaa" }}>×</button>
@@ -102,7 +102,7 @@ export default function Alerts() {
           { l: "Info",     v: counts.info     ?? 0, color: "#3b82f6", bg: "#dbeafe", icon: "ℹ️" },
           { l: "Resolved", v: counts.resolved ?? 0, color: "#10b981", bg: "#dcfce7", icon: "✅" },
         ].map((s, i) => (
-          <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "18px 20px", boxShadow: "0 2px 12px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff", display: "flex", alignItems: "center", gap: 14 }}>
+          <div key={i} style={{ background: "#fff", borderRadius: 12, padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 48, height: 48, borderRadius: 12, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{s.icon}</div>
             <div>
               <div style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{loading ? "—" : s.v}</div>
@@ -130,7 +130,7 @@ export default function Alerts() {
       </div>
 
       {/* Alert table */}
-      <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+      <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
         <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 16 }}>Recent Alerts {loading && <span style={{ fontSize: 12, color: "#aaa", fontWeight: 400 }}>Loading…</span>}</div>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>

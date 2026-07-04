@@ -1,5 +1,6 @@
 // src/admin/Users.jsx — real data from /api/admin/users
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { adminUsers } from "./adminApi";
 
 const DISABILITY_COLORS = {
@@ -138,7 +139,7 @@ export default function Users() {
           { l: "Parents",      v: totalParents,      color: "#3b82f6" },
           { l: "Pages",        v: data.pages,        color: "#f59e0b" },
         ].map((s, i) => (
-          <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", boxShadow: "0 2px 12px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+          <div key={i} style={{ background: "#fff", borderRadius: 12, padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.v ?? "—"}</div>
             <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>{s.l}</div>
           </div>
@@ -147,7 +148,7 @@ export default function Users() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 20 }}>
         {/* Table */}
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           {/* Filters */}
           <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
@@ -212,6 +213,7 @@ export default function Users() {
                             </td>
                             <td style={{ padding: "12px 14px" }}>
                               <div style={{ display: "flex", gap: 6 }}>
+                                <Link to={`/admin/users/${u._id}`} style={{ background: "#f0ebff", color: "#8B5CF6", textDecoration: "none", borderRadius: 7, padding: "0 10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600 }}>View</Link>
                                 <button
                                   onClick={() => handleDelete(u._id)}
                                   disabled={deleting}
@@ -242,7 +244,7 @@ export default function Users() {
 
         {/* Side panel */}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
             <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 16 }}>Disability Distribution</div>
             {loading
               ? <div style={{ height: 120, background: "#f0ebff", borderRadius: 10 }} />
@@ -250,7 +252,7 @@ export default function Users() {
             }
           </div>
 
-          <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
             <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 16 }}>Avg Score by Disability</div>
             {loading
               ? [1,2,3].map(i => <div key={i} style={{ height: 32, background: "#f0ebff", borderRadius: 8, marginBottom: 8 }} />)

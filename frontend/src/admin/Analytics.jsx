@@ -88,7 +88,7 @@ export default function Analytics() {
         {loading
           ? [1,2,3,4].map(i => <Skel key={i} />)
           : kpiCards.map((k, i) => (
-              <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "18px 20px", boxShadow: "0 2px 12px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+              <div key={i} style={{ background: "#fff", borderRadius: 12, padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <span style={{ fontSize: 22 }}>{k.icon}</span>
                 </div>
@@ -101,19 +101,19 @@ export default function Analytics() {
 
       {/* Charts row */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 24 }}>
-        <div style={{ background: "#fff", borderRadius: 16, padding: 22, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 22, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 4 }}>Daily Sessions</div>
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>Scribble sessions per day</div>
           {loading ? <Skel /> : <LineChart data={charts.dailySessions || []} color="#8B5CF6" />}
         </div>
-        <div style={{ background: "#fff", borderRadius: 16, padding: 22, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 22, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 4 }}>Math Scores</div>
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>
             Avg: {charts.mathScores?.avg ?? "—"} · Max: {charts.mathScores?.max ?? "—"} · Total: {charts.mathScores?.total ?? "—"}
           </div>
           {loading ? <Skel /> : <BarChart data={charts.mathScores?.series || []} labels={charts.labels || []} color="#3b82f6" />}
         </div>
-        <div style={{ background: "#fff", borderRadius: 16, padding: 22, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 22, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 4 }}>Speech Accuracy</div>
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>
             Avg: {charts.speechAccuracy?.avg ?? "—"} · Total: {charts.speechAccuracy?.total ?? "—"}
@@ -125,7 +125,7 @@ export default function Analytics() {
       {/* Bottom row */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         {/* Per-game breakdown */}
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 16 }}>Average Score by Game</div>
           {loading
             ? <Skel />
@@ -158,7 +158,7 @@ export default function Analytics() {
         </div>
 
         {/* Top performers */}
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 16 }}>Top Performing Users</div>
           {loading
             ? [1,2,3,4,5].map(i => <div key={i} style={{ height: 44, background: "#f0ebff", borderRadius: 8, marginBottom: 8 }} />)

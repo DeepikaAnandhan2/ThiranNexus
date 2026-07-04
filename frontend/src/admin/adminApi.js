@@ -55,6 +55,8 @@ export const adminUsers = {
   getById: (id)           => req('GET',    `/users/${id}`),
   update:  (id, data)     => req('PUT',    `/users/${id}`, data),
   delete:  (id)           => req('DELETE', `/users/${id}`),
+  sendReport: (id)        => req('POST',   `/users/${id}/report`),
+  notifySchemes: (id, data) => req('POST', `/users/${id}/schemes/notify`, data)
 }
 
 // ════════════════════════════════════════════════════════

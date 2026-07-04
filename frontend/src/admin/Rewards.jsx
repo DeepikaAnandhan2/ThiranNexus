@@ -50,7 +50,7 @@ export default function Rewards() {
           { l: "Active Streaks", v: loading ? "—" : stats.activeStreaks  ?? 0,                   icon: "🔥", color: "#ef4444" },
           { l: "Top Score",      v: loading ? "—" : leaders[0]?.totalScore ?? 0,                 icon: "🏆", color: "#10b981" },
         ].map((s, i) => (
-          <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "18px 20px", boxShadow: "0 2px 12px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+          <div key={i} style={{ background: "#fff", borderRadius: 12, padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>{s.icon}</div>
             <div style={{ fontSize: 24, fontWeight: 800, color: s.color }}>{s.v}</div>
             <div style={{ fontSize: 13, color: "#888", marginTop: 3 }}>{s.l}</div>
@@ -60,7 +60,7 @@ export default function Rewards() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 20 }}>
         {/* Leaderboard */}
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 16, marginBottom: 20 }}>🏆 Leaderboard</div>
 
           {loading
@@ -114,13 +114,13 @@ export default function Rewards() {
         </div>
 
         {/* Badges */}
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 16, marginBottom: 20 }}>🏅 Badge Distribution</div>
           {loading
             ? [1,2,3,4,5,6,7].map(i => <Skel key={i} h={48} />)
             : <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {Object.entries(BADGE_META).map(([key, meta]) => (
-                  <div key={key} style={{ background: "#faf9ff", borderRadius: 14, padding: 14, border: "1.5px solid #f0ebff", textAlign: "center" }}>
+                  <div key={key} style={{ background: "#faf9ff", borderRadius: 12, padding: 14, border: "1px solid #e5e7eb", textAlign: "center" }}>
                     <div style={{ width: 44, height: 44, borderRadius: 12, background: `${meta.color}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 8px" }}>{meta.icon}</div>
                     <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 12, marginBottom: 3 }}>{meta.name}</div>
                     <div style={{ fontSize: 11, color: "#888", marginBottom: 8 }}>{meta.desc}</div>
@@ -134,7 +134,7 @@ export default function Rewards() {
 
           {/* Points summary card */}
           {!loading && stats.totalPoints != null && (
-            <div style={{ background: "linear-gradient(135deg,#8B5CF6,#5c29e7)", borderRadius: 16, padding: 18, marginTop: 16, color: "#fff" }}>
+            <div style={{ background: "linear-gradient(135deg,#8B5CF6,#5c29e7)", borderRadius: 12, padding: 18, marginTop: 16, color: "#fff" }}>
               <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Total Points in System</div>
               <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{(stats.totalPoints||0).toLocaleString()}</div>
               <div style={{ fontSize: 11, opacity: 0.7 }}>Across {stats.usersPlayed||0} active players</div>

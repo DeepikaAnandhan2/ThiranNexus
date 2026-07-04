@@ -9,6 +9,7 @@ import Alerts      from "./Alerts";
 import Feedback    from "./Feedback";
 import Rewards     from "./Rewards";
 import Settings    from "./Settings";
+import StudentDetail from "./StudentDetail";
 
 export default function AdminRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function AdminRoutes() {
       <Route element={<AdminLayout />}>
         <Route index        element={<Dashboard />} />
         <Route path="users"     element={<Users />} />
+        <Route path="users/:id" element={<StudentDetail />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="content"   element={<Content />} />
         <Route path="alerts"    element={<Alerts />} />
