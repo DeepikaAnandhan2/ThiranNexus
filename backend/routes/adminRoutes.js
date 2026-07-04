@@ -21,6 +21,9 @@ router.get   ('/users/stats',    users.getUserStats)
 router.get   ('/users/:id',      users.getUserById)
 router.put   ('/users/:id',      users.updateUser)
 router.delete('/users/:id',      users.deleteUser)
+router.post  ('/users/:id/report', users.sendMonthlyReport)
+router.post  ('/users/:id/schemes/notify', users.notifySchemes)
+
 
 // ── Analytics ─────────────────────────────────────────────────
 router.get('/analytics', analytics.getAnalytics)

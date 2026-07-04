@@ -154,7 +154,7 @@ export default function Settings() {
 
       {/* Admins Tab */}
       {tab === "Admins" && (
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 16, marginBottom: 16 }}>
             Admin Accounts ({loading ? "…" : admins.length})
           </div>
@@ -221,7 +221,7 @@ export default function Settings() {
 
       {/* Roles & Permissions */}
       {tab === "Roles & Permissions" && (
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 16, marginBottom: 16 }}>Role Permissions Matrix</div>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
@@ -254,7 +254,7 @@ export default function Settings() {
 
       {/* System tab */}
       {tab === "System" && (
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 16, marginBottom: 20 }}>System Preferences</div>
           {[
             { key: "notifications", label: "Email Notifications", desc: "Send email alerts to admins for critical events" },
@@ -274,7 +274,7 @@ export default function Settings() {
           ))}
 
           {/* Platform info from real API */}
-          <div style={{ marginTop: 24, padding: 20, background: "#faf9ff", borderRadius: 14, border: "1.5px solid #f0ebff" }}>
+          <div style={{ marginTop: 24, padding: 20, background: "#faf9ff", borderRadius: 12, border: "1px solid #e5e7eb" }}>
             <div style={{ fontWeight: 700, color: "#1a1a2e", marginBottom: 12 }}>Platform Info (Live)</div>
             {(platform
               ? [

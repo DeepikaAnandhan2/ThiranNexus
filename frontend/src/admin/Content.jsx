@@ -245,7 +245,7 @@ export default function Content() {
               { l: "Visual",        v: schemes.filter(s => s.disabilityType === "visual").length,  color: "#3b82f6" },
               { l: "Speech",        v: schemes.filter(s => s.disabilityType === "speech").length,  color: "#10b981" },
             ].map((s, i) => (
-              <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", boxShadow: "0 2px 12px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+              <div key={i} style={{ background: "#fff", borderRadius: 12, padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
                 <div style={{ fontSize: 24, fontWeight: 800, color: s.color }}>{loading ? "—" : s.v}</div>
                 <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>{s.l}</div>
               </div>
@@ -279,7 +279,7 @@ export default function Content() {
           </div>
 
           {/* Table */}
-          <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
@@ -369,7 +369,7 @@ export default function Content() {
       {tab === "Game Stats" && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           {loading
-            ? [1,2].map(i => <div key={i} style={{ height: 180, background: "#f0ebff", borderRadius: 16 }} />)
+            ? [1,2].map(i => <div key={i} style={{ height: 180, background: "#f0ebff", borderRadius: 12 }} />)
             : gameStats
               ? [
                   { key: "tonguetwister", label: "Tongue Twister", icon: "🗣️", color: "#8B5CF6" },
@@ -377,9 +377,9 @@ export default function Content() {
                 ].map(g => {
                   const d = gameStats[g.key] || {};
                   return (
-                    <div key={g.key} style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+                    <div key={g.key} style={{ background: "#fff", borderRadius: 12, padding: 28, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-                        <div style={{ width: 52, height: 52, borderRadius: 14, background: `${g.color}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>{g.icon}</div>
+                        <div style={{ width: 52, height: 52, borderRadius: 12, background: `${g.color}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>{g.icon}</div>
                         <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 18 }}>{g.label}</div>
                       </div>
                       {[

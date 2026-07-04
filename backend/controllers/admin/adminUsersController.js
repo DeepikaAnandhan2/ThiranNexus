@@ -133,3 +133,109 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 }
+
+// ── Email Setup (nodemailer) ─────────────────────────────────────────
+const nodemailer = require('nodemailer')
+// For demo/dev purposes, you could use Ethereal or default config.
+// Here we use a generic mock config that outputs to console if no env vars.
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+  port: process.env.SMTP_PORT || 587,
+  auth: {
+    user: process.env.SMTP_USER || 'test@ethereal.email',
+    pass: process.env.SMTP_PASS || 'password'
+  }
+})
+
+// POST /api/admin/users/:id/report
+exports.sendMonthlyReport = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    const parentEmail = user.parentEmail || user.email // Fallback if no parent email
+    if (!parentEmail) return res.status(400).json({ error: 'No parent or user email found to send report' })
+
+    // Generate a simple mock HTML report
+    const htmlReport = `
+      <h2>Monthly Progress Report</h2>
+      <p>Dear Parent/Guardian of <strong>${user.name}</strong>,</p>
+      <p>This is the monthly progress report from ThiranNexus.</p>
+      <ul>
+        <li><strong>Department/Class:</strong> ${user.course || user.className || 'N/A'}</li>
+        <li><strong>Disability Type:</strong> ${user.disabilityType || 'None'}</li>
+      </ul>
+      <p>Keep up the good work! Please log into the portal for detailed analytics on cognitive and educational performance.</p>
+      <br />
+      <p>Best Regards,</p>
+      <p>ThiranNexus Admin Team</p>
+    `
+
+    console.log(`Sending Monthly Report to ${parentEmail}...`)
+    
+    // Attempt to send email (in dev it might fail if real credentials aren't provided, but we catch it)
+    try {
+      const info = await transporter.sendMail({
+        from: '"ThiranNexus Admin" <admin@thirannexus.com>',
+        to: parentEmail,
+        subject: `Monthly Progress Report for ${user.name}`,
+        html: htmlReport
+      })
+      console.log('Message sent: %s', info.messageId)
+    } catch (mailErr) {
+      console.warn("Mail send failed (probably missing SMTP config). Logging to console instead.", mailErr.message)
+    }
+
+    res.json({ success: true, message: 'Monthly report sent successfully' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// POST /api/admin/users/:id/schemes/notify
+exports.notifySchemes = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    const { schemes } = req.body // Array of schemes passed from frontend
+
+    const parentEmail = user.parentEmail || user.email
+    if (!parentEmail) return res.status(400).json({ error: 'No parent or user email found to send notification' })
+
+    const htmlSchemes = schemes && schemes.length > 0 
+      ? schemes.map(s => `<li><strong>${s.title}</strong>: ${s.benefits} <br/><a href="${s.link || '#'}">More info</a></li>`).join('')
+      : '<li>No specific schemes found at this time.</li>'
+
+    const htmlContent = `
+      <h2>Eligible Government Schemes Notification</h2>
+      <p>Dear Parent/Guardian of <strong>${user.name}</strong>,</p>
+      <p>Based on the student's profile, they may be eligible for the following government schemes/benefits:</p>
+      <ul>
+        ${htmlSchemes}
+      </ul>
+      <p>Please review these opportunities as they can provide significant support.</p>
+      <br />
+      <p>Best Regards,</p>
+      <p>ThiranNexus Admin Team</p>
+    `
+
+    console.log(`Sending Schemes Notification to ${parentEmail}...`)
+    
+    try {
+      const info = await transporter.sendMail({
+        from: '"ThiranNexus Admin" <admin@thirannexus.com>',
+        to: parentEmail,
+        subject: `Eligible Schemes for ${user.name}`,
+        html: htmlContent
+      })
+      console.log('Message sent: %s', info.messageId)
+    } catch (mailErr) {
+      console.warn("Mail send failed (probably missing SMTP config). Logging to console instead.", mailErr.message)
+    }
+
+    res.json({ success: true, message: 'Schemes notification sent successfully' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}

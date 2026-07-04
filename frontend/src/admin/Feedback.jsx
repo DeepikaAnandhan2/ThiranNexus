@@ -83,7 +83,7 @@ export default function Feedback() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
         {stats.map((s, i) => (
-          <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", boxShadow: "0 2px 12px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+          <div key={i} style={{ background: "#fff", borderRadius: 12, padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
             <div style={{ fontSize: 24, fontWeight: 800, color: s.color }}>{loading ? "—" : s.v}</div>
             <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>{s.l}</div>
           </div>
@@ -92,7 +92,7 @@ export default function Feedback() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 20 }}>
         {/* Ticket list */}
-        <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb" }}>
           <div style={{ fontWeight: 800, color: "#1a1a2e", fontSize: 15, marginBottom: 16 }}>All Tickets</div>
           {loading
             ? [1,2,3].map(i => <div key={i} style={{ height: 80, background: "#f0ebff", borderRadius: 12, marginBottom: 8 }} />)
@@ -121,7 +121,7 @@ export default function Feedback() {
 
         {/* Detail panel */}
         {selected && (
-          <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 16px rgba(92,41,231,0.07)", border: "1.5px solid #f0ebff", display: "flex", flexDirection: "column" }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #e5e7eb", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "#1a1a2e" }}>{selected.subject}</div>
