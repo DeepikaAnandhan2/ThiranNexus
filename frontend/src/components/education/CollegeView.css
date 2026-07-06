@@ -3,10 +3,11 @@
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 24px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 24px 16px;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Cards */
@@ -108,4 +109,36 @@
 .isl-grid iframe {
   width: 100%;
   aspect-ratio: 16/9;
+}
+
+@media (max-width:768px){
+
+  .college-wrap{
+      padding:16px 12px;
+  }
+
+  .college-card{
+      flex-direction:column;
+      padding:12px;
+  }
+
+  .college-thumb{
+      width:100%;
+      max-width:280px;
+      margin:0 auto;
+  }
+
+  .actions{
+      flex-wrap:wrap;
+  }
+
+  .actions button,
+  .actions a{
+      flex:1;
+      justify-content:center;
+  }
+
+  .isl-grid{
+      grid-template-columns:1fr;
+  }
 }

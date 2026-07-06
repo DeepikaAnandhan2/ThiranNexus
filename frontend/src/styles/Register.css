@@ -284,3 +284,236 @@
 }
 
 /* ... Keep floating-bg and card styles from previous version ... */
+
+
+/* ==========================================
+   TABLET (<= 992px)
+========================================== */
+@media screen and (max-width: 992px) {
+
+  .reg-container {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .reg-left {
+    flex: none;
+    width: 100%;
+    min-height: 420px;
+    padding: 60px 30px 30px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .reg-content {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    margin: auto;
+  }
+
+  .reg-hero-text {
+    font-size: 2.7rem;
+    line-height: 1.2;
+  }
+
+  .reg-hero-subtext {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .reg-hero-illustration {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+  }
+
+  .reg-quote-box {
+    max-width: 420px;
+  }
+
+  .reg-right {
+    flex: none;
+    width: 100%;
+    padding: 40px 20px 50px;
+    justify-content: center;
+  }
+
+  .reg-card {
+    width: 100%;
+    max-width: 480px;
+    padding: 3rem 2rem;
+  }
+
+  .reg-title {
+    font-size: 2rem;
+  }
+
+  .reg-input {
+    font-size: 1rem;
+    padding: 15px 16px;
+  }
+
+  .reg-btn,
+  .reg-secondary-btn,
+  .reg-verify-btn {
+    min-height: 50px;
+  }
+}
+
+/* ==========================================
+   MOBILE (<= 768px)
+========================================== */
+@media screen and (max-width: 768px) {
+
+  .reg-container {
+    flex-direction: column;
+  }
+
+  .reg-left {
+    width: 100%;
+    min-height: auto;
+    padding: 40px 20px 25px;
+  }
+
+  .reg-content {
+    width: 100%;
+  }
+
+  .reg-hero-text {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .reg-hero-subtext {
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .reg-hero-illustration {
+    max-width: 240px;
+  }
+
+  .reg-quote-box {
+    max-width: 100%;
+    padding: 1.2rem;
+  }
+
+  .reg-right {
+    width: 100%;
+    padding: 20px 16px 40px;
+  }
+
+  .reg-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .brand-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .reg-title {
+    font-size: 1.7rem;
+  }
+
+  .reg-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .reg-input {
+    padding: 14px 15px;
+    font-size: 0.95rem;
+  }
+
+  /* UDID section */
+  .reg-udid-row,
+  .reg-udid-input-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .udid-field {
+    width: 100%;
+  }
+
+  .reg-verify-btn {
+    width: 100%;
+    height: 50px;
+  }
+
+  /* Action buttons */
+  .reg-action-row,
+  .reg-nav-btns {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .reg-btn,
+  .reg-secondary-btn,
+  .reg-back-btn {
+    width: 100%;
+    height: 50px;
+    flex: none;
+  }
+
+  .reg-switch {
+    text-align: center;
+    font-size: 0.85rem;
+  }
+}
+
+/* ==========================================
+   SMALL MOBILE (<= 480px)
+========================================== */
+@media screen and (max-width: 480px) {
+
+  .reg-left {
+    padding: 30px 16px 20px;
+  }
+
+  .reg-hero-text {
+    font-size: 1.75rem;
+  }
+
+  .reg-hero-subtext {
+    font-size: 0.9rem;
+  }
+
+  .reg-hero-illustration {
+    max-width: 200px;
+  }
+
+  .reg-quote-box {
+    padding: 1rem;
+  }
+
+  .reg-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .reg-title {
+    font-size: 1.5rem;
+  }
+
+  .reg-input {
+    font-size: 0.9rem;
+    padding: 13px 14px;
+  }
+
+  .reg-btn,
+  .reg-secondary-btn,
+  .reg-back-btn,
+  .reg-verify-btn {
+    font-size: 0.9rem;
+    height: 48px;
+  }
+
+  .reg-switch {
+    font-size: 0.8rem;
+  }
+}

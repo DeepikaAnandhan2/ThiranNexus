@@ -11,9 +11,10 @@
 .education-container{
     width:100%;
     max-width:100%;
-    margin:0;
-    padding:24px;
+    margin:0 auto;
+    padding:24px 16px;
     box-sizing:border-box;
+    overflow-x:hidden;
 }
 
 /* CENTER CONTENT */
@@ -46,7 +47,7 @@
   gap: 40px;
   width: 100%;
   max-width: 900px;
-  padding: 20px;
+  padding: 0;
   align-items: stretch; /* 🔥 ensures equal height */
 }
 
@@ -126,4 +127,37 @@
   font-weight: 600;
   color: var(--primary-purple);
   cursor: pointer;
+}
+
+@media (max-width:768px){
+
+  .edu-container,
+  .education-container{
+      padding:20px 12px;
+  }
+
+  .main-title{
+      font-size:2rem;
+      margin-top:20px;
+  }
+
+  .main-subtitle{
+      margin:10px auto 30px;
+      padding:0 10px;
+  }
+
+  .level-cards-grid{
+      grid-template-columns:1fr;
+      gap:24px;
+      padding:0;
+      width:100%;
+      max-width:100%;
+  }
+
+  .level-card{
+      width:100%;
+      max-width:340px;
+      margin:0 auto;
+      padding:24px;
+  }
 }
