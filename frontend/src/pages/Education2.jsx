@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import TTSReader from '../components/education/TTSReader'
 import '../components/education/TTSReader.css'
+import { useAuth } from "../context/AuthContext";
 
 import SignAvatarPlayer from './SignAvatarPlayer';
 import { resolveSignStrategy } from './SignAnimationController';
@@ -43,7 +44,9 @@ const STYLES = `
   :focus-visible { outline: 3px solid var(--sl-accent) !important; outline-offset: 3px !important; }
   :focus:not(:focus-visible) { outline: none; }
 
-  .sl-page { font-family: var(--sl-font); background: var(--sl-bg); color: var(--sl-text); min-height: 100vh; line-height: 1.6; }
+.sl-page{
+    background: var(--sl-bg);
+}
   .sl-header { background: var(--sl-surface); border-bottom: 1px solid var(--sl-border); padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
   .sl-header__brand { display: flex; flex-direction: column; gap: 0.15rem; }
   .sl-header__logo  { font-size: 1.35rem; font-weight: 800; color: var(--sl-accent); letter-spacing: -0.02em; }
@@ -89,10 +92,15 @@ const STYLES = `
   .sl-unit-row__title { flex: 1; font-weight: 600; }
   .sl-unit-row__arrow { color: var(--sl-text-muted); }
 
-  .sl-content { background: var(--sl-surface); border: 1px solid var(--sl-border); border-radius: var(--sl-radius); overflow: hidden; }
+  .sl-content{
+    background:transparent;
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+}
   .sl-content__header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--sl-border); display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
   .sl-content__title { font-size: 1.15rem; font-weight: 800; }
-  .sl-content__body { padding: 1.5rem; }
+  .sl-content__body { padding:0; }
 
   .sl-tabs { display: flex; gap: 0.25rem; background: var(--sl-bg); border-radius: var(--sl-radius-sm); padding: 0.25rem; }
   .sl-tab { padding: 0.45rem 1rem; border-radius: var(--sl-radius-sm); border: 2px solid transparent; background: transparent; color: var(--sl-text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s; }
@@ -771,6 +779,8 @@ export default function Education2() {
   const [highContrast, setHighContrast] = useState(false); const [largeText, setLargeText] = useState(false);
   const [selectedClass, setSelectedClass] = useState(''); const [classError, setClassError] = useState(''); const [fetched, setFetched] = useState(false); const [loading, setLoading] = useState(false);
   const [subjects, setSubjects] = useState([]); const [activeSubject, setActiveSubject] = useState(null); const [units, setUnits] = useState([]); const [activeUnit, setActiveUnit] = useState(null); const [unitData, setUnitData] = useState(null); const [unitLoading, setUnitLoading] = useState(false); const [activeTab, setActiveTab] = useState('text'); const [fetchError, setFetchError] = useState('');
+  const { user } = useAuth();
+const disabilityType = user?.disabilityType?.toLowerCase();
   const [popupData, setPopupData] = useState(null); const [popupLoading, setPopupLoading] = useState(false);
   const subjectsRef = useRef(null); const contentRef = useRef(null); const statusRef = useRef(null);
   function announce(msg) { if (statusRef.current) statusRef.current.textContent = msg; }

@@ -4,19 +4,54 @@ import TongueTwister from '../components/games/TongueTwister'
 import MathGame from '../components/games/MathGame'
 import Scribble from './Scribble'
 import { speak } from '../utils/speech'
+import { useAuth } from "../context/AuthContext";
 import { useGestures } from '../utils/useGestures'
 import '../styles/Games.css'
 
 const GAMES = [
-  { id: 'twister', icon: '🌀', title: 'Tongue Twister', desc: 'Practice tricky phrases aloud', badge: '👈 Swipe Left', color: 'teal' },
-  { id: 'math', icon: '🧮', title: 'Mental Math', desc: 'Solve equations using your voice', badge: '👆👆 Double Tap', color: 'orange' },
-  { id: 'logic', icon: '🧩', title: 'Logic Game', desc: 'Solve row-based puzzles', badge: '🧠 Brain Game', color: 'blue' }, // ✅ NEW
-  { id: 'scribble', icon: '✍️', title: 'Scribble', desc: 'Draw and improve brain coordination', badge: '👉 Swipe Right', color: 'purple' },
-]
+  {
+    id: "twister",
+    icon: "🌀",
+    title: "Tongue Twister",
+    desc: "Practice tricky phrases aloud",
+    badge: "👈 Swipe Left",
+    color: "teal",
+    disability: "visual",
+  },
+  {
+    id: "math",
+    icon: "🧮",
+    title: "Mental Math",
+    desc: "Solve equations using your voice",
+    badge: "👆👆 Double Tap",
+    color: "orange",
+    disability: "visual",
+  },
+  {
+    id: "logic",
+    icon: "🧩",
+    title: "Logic Game",
+    desc: "Solve row-based puzzles",
+    badge: "🧠 Brain Game",
+    color: "blue",
+    disability: "hearing",
+  },
+  {
+    id: "scribble",
+    icon: "✍️",
+    title: "Scribble",
+    desc: "Draw and improve brain coordination",
+    badge: "👉 Swipe Right",
+    color: "purple",
+    disability: "hearing",
+  },
+];
 
 export default function Games() {
   const [activeGame, setActiveGame] = useState(null)
   const navigate = useNavigate()
+  const { user } = useAuth();
+const disabilityType = user?.disabilityType?.toLowerCase();
 
   const selectGame = async (id, title) => {
     await speak(`Starting ${title}.`)
@@ -35,9 +70,21 @@ export default function Games() {
 
   // Gesture Support
   useGestures({
-    onSwipeLeft: () => { if (!activeGame) selectGame('twister', 'Tongue Twister') },
-    onSwipeRight: () => { if (!activeGame) selectGame('scribble', 'Scribble') },
-    onDoubleTap: () => { if (!activeGame) selectGame('math', 'Mental Math') },
+   onSwipeLeft: () => {
+  if (!activeGame && disabilityType === "visual") {
+    selectGame("twister", "Tongue Twister");
+  }
+},
+    onSwipeRight: () => {
+  if (!activeGame && disabilityType === "hearing") {
+    selectGame("scribble", "Scribble");
+  }
+},
+    onDoubleTap: () => {
+  if (!activeGame && disabilityType === "visual") {
+    selectGame("math", "Mental Math");
+  }
+},
     onSwipeUp: () => {
       if (!activeGame)
         speak('Swipe left for Tongue Twister. Double tap for Math. Swipe right for Scribble. Tap Logic Game for puzzle.')
@@ -50,6 +97,9 @@ export default function Games() {
   if (activeGame === 'twister') return <TongueTwister onBack={goBack} />
   if (activeGame === 'math') return <MathGame onBack={goBack} />
   if (activeGame === 'scribble') return <Scribble onBack={goBack} />
+  const filteredGames = GAMES.filter(
+  (game) => game.disability === disabilityType
+);
 
   return (
     <div className="games-page">
@@ -78,7 +128,7 @@ export default function Games() {
 
         {/* Game Cards */}
         <nav className="games-nav">
-          {GAMES.map(({ id, icon, title, desc, badge, color }) => (
+          {filteredGames.map(({ id, icon, title, desc, badge, color }) => (
             <button
               key={id}
               className={`games-card ${color}`}
@@ -99,9 +149,13 @@ export default function Games() {
         <div className="games-replay-wrap">
           <button
             className="games-replay-btn"
-            onClick={() =>
-              speak('Swipe left for Tongue Twister. Double tap for Math. Swipe right for Scribble. Tap Logic Game for puzzle.')
-            }
+            onClick={() => {
+  if (disabilityType === "visual") {
+    speak("Swipe left for Tongue Twister. Double tap for Mental Math.");
+  } else if (disabilityType === "hearing") {
+    speak("Swipe right for Scribble. Tap Logic Game.");
+  }
+}}
           >
             🔊 Replay Instructions
           </button>

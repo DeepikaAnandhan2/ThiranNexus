@@ -217,20 +217,16 @@
 
 /* ── Content section ── */
 .e2-content {
-  background: var(--e2-white);
-  border-radius: 20px;
-  box-shadow: var(--e2-shadow-lg);
-  overflow: hidden;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .e2-content__header {
-  background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
-  padding: 20px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 14px;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 20px;
 }
 
 .e2-content__title {
@@ -266,9 +262,8 @@
   color: var(--e2-purple);
 }
 
-.e2-content__body {
-  padding: 28px;
-  min-height: 300px;
+.e2-content__body{
+    padding:0;
 }
 
 /* ── Text content ── */
