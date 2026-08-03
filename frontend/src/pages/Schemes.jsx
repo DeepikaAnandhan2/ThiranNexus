@@ -1,72 +1,86 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import API from '../utils/api';
+import React from "react";
+import { Link } from "react-router-dom";
+import schemesData from "../data/schemesData";
 import "../styles/schemes.css";
 
 const Schemes = ({ user }) => {
-  const [schemes, setSchemes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Get logged-in user
+  const loggedUser =
+    user || JSON.parse(localStorage.getItem("user"));
 
-  useEffect(() => {
-    const fetchSchemes = async () => {
-      try {
-        setLoading(true);
+  // Get disability type
+  const disabilityType = (
+    loggedUser?.disabilityType || "all"
+  ).toLowerCase();
 
-        const token = localStorage.getItem("token");
-
-        const disabilityType = user?.disabilityType || "none";
-
-        const res = await API.get(
-          `/schemes/recommended?disabilityType=${disabilityType}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        console.log("SCHEMES:", res.data);
-
-        setSchemes(res.data || []);
-      } catch (err) {
-        console.error("Error fetching schemes:", err);
-        setSchemes([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSchemes();
-  }, [user]);
-
-  if (loading) {
+  // Filter schemes
+  const filteredSchemes = schemesData.filter((scheme) => {
     return (
-      <div className="page-container">
-        <h2>Loading schemes...</h2>
-      </div>
+      scheme.disabilityType.toLowerCase() === disabilityType ||
+      scheme.disabilityType.toLowerCase() === "all"
     );
-  }
+  });
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Recommended Schemes</h1>
 
-      <p>
-        Showing schemes for <b>{user?.disabilityType || "none"}</b> disability
+      <h1 className="page-title">
+        Government Recommended Schemes
+      </h1>
+
+      <p className="scheme-subtitle">
+        Showing schemes for{" "}
+        <strong>{disabilityType}</strong>
       </p>
 
-      <div className="grid">
-        {schemes.length === 0 ? (
-          <p className="no-schemes">No schemes found</p>
-        ) : (
-          schemes.map((scheme) => (
-            <div className="card" key={scheme._id}>
+      {filteredSchemes.length === 0 ? (
+
+        <div className="no-schemes-card">
+          <h2>No Schemes Found</h2>
+
+          <p>
+            No schemes are available for this disability type.
+          </p>
+        </div>
+
+      ) : (
+
+        <div className="grid">
+
+          {filteredSchemes.map((scheme) => (
+
+            <div
+              className="card"
+              key={scheme._id}
+            >
+
+              <span className="scheme-type">
+                {scheme.disabilityType.toUpperCase()}
+              </span>
+
               <h3>{scheme.title}</h3>
+
               <p>{scheme.description}</p>
 
-              <Link to={`/scheme/${scheme._id}`} className="btn btn-view">
-                View Details
-              </Link>
+              <div className="button-group">
+
+                <Link
+                  to={`/scheme/${scheme._id}`}
+                  className="btn btn-view"
+                >
+                  View Details
+                </Link>
+
+              </div>
+
             </div>
-          ))
-        )}
-      </div>
+
+          ))}
+
+        </div>
+
+      )}
+
     </div>
   );
 };

@@ -1,119 +1,210 @@
 const Scheme = require("../models/Scheme");
 const UserScheme = require("../models/UserScheme");
 
-// 🔥 Normalize function (VERY IMPORTANT)
+/* ===========================================================
+   Normalize Disability Type
+=========================================================== */
 const normalize = (type) => {
-  if (!type) return "none";
+  if (!type) return "all";
 
-  const t = type.toLowerCase();
+  const t = type.toString().trim().toLowerCase();
 
-  if (t.includes("vis")) return "visual";
-  if (t.includes("hea")) return "hearing";
-  if (t.includes("cog")) return "cognitive";
-  if (t.includes("phy")) return "physical";
+  if (t.includes("visual") || t.includes("vision") || t.includes("vis"))
+    return "visual";
 
-  return t;
+  if (t.includes("hearing") || t.includes("hear") || t.includes("hea"))
+    return "hearing";
+
+  if (t.includes("physical") || t.includes("phy"))
+    return "physical";
+
+  if (t.includes("cognitive") || t.includes("cog"))
+    return "cognitive";
+
+  if (t === "all") return "all";
+
+  return "all";
 };
 
-// ✅ GET RECOMMENDED SCHEMES
+/* ===========================================================
+   GET RECOMMENDED SCHEMES
+=========================================================== */
 exports.getRecommendedSchemes = async (req, res) => {
   try {
-    const userType = normalize(req.query.disabilityType);
+    const disabilityType = normalize(req.query.disabilityType);
 
-    console.log("USER TYPE:", userType);
+    console.log("=======================================");
+    console.log("Requested Disability :", req.query.disabilityType);
+    console.log("Normalized Type      :", disabilityType);
 
-    const schemes = await Scheme.find();
+    const schemes = await Scheme.find().sort({ createdAt: -1 });
 
-    const filtered = schemes.filter((s) => {
-      const type = normalize(s.disabilityType);
+    console.log("Total Schemes in DB :", schemes.length);
 
-      return type === userType || type === "all";
+    const filteredSchemes = schemes.filter((scheme) => {
+      const schemeType = normalize(scheme.disabilityType);
+
+      return (
+        schemeType === disabilityType ||
+        schemeType === "all"
+      );
     });
 
-    console.log("FILTERED:", filtered.length);
+    console.log("Matched Schemes :", filteredSchemes.length);
+    console.log("=======================================");
 
-    res.json(filtered.slice(0, 4)); // limit 4
+    return res.status(200).json(filteredSchemes);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Get Recommended Schemes Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch schemes",
+    });
   }
 };
 
-// ✅ GET SCHEME DETAILS
+/* ===========================================================
+   GET SINGLE SCHEME
+=========================================================== */
 exports.getSchemeById = async (req, res) => {
   try {
     const scheme = await Scheme.findById(req.params.id);
-    res.json(scheme);
+
+    if (!scheme) {
+      return res.status(404).json({
+        success: false,
+        message: "Scheme not found",
+      });
+    }
+
+    res.status(200).json(scheme);
   } catch (err) {
-    res.status(500).json({ error: "Error fetching scheme" });
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to fetch scheme",
+    });
   }
 };
 
-// ✅ SAVE SCHEME (FIXED DUPLICATE ISSUE)
+/* ===========================================================
+   SAVE SCHEME
+=========================================================== */
 exports.saveScheme = async (req, res) => {
   try {
     const { userId, schemeId } = req.body;
 
-    const exists = await UserScheme.findOne({
-      userId,
-      schemeId,
-      status: "saved"
-    });
-
-    if (exists) {
-      return res.status(400).json({ message: "Already saved" });
+    if (!userId || !schemeId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing userId or schemeId",
+      });
     }
 
-    await UserScheme.create({
+    const alreadySaved = await UserScheme.findOne({
       userId,
       schemeId,
-      status: "saved"
+      status: "saved",
     });
 
-    res.json({ message: "Saved successfully" });
+    if (alreadySaved) {
+      return res.status(409).json({
+        success: false,
+        message: "Scheme already saved",
+      });
+    }
+
+    const savedScheme = await UserScheme.create({
+      userId,
+      schemeId,
+      status: "saved",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Scheme saved successfully",
+      data: savedScheme,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Save failed" });
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to save scheme",
+    });
   }
 };
 
-// ✅ APPLY SCHEME (FIXED)
+/* ===========================================================
+   APPLY SCHEME
+=========================================================== */
 exports.applyScheme = async (req, res) => {
   try {
     const { userId, schemeId } = req.body;
 
-    const exists = await UserScheme.findOne({
-      userId,
-      schemeId,
-      status: "applied"
-    });
-
-    if (exists) {
-      return res.status(400).json({ message: "Already applied" });
+    if (!userId || !schemeId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing userId or schemeId",
+      });
     }
 
-    await UserScheme.create({
+    const alreadyApplied = await UserScheme.findOne({
       userId,
       schemeId,
-      status: "applied"
+      status: "applied",
     });
 
-    res.json({ message: "Applied successfully" });
+    if (alreadyApplied) {
+      return res.status(409).json({
+        success: false,
+        message: "Already applied",
+      });
+    }
+
+    const appliedScheme = await UserScheme.create({
+      userId,
+      schemeId,
+      status: "applied",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Application submitted",
+      data: appliedScheme,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Apply failed" });
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to apply",
+    });
   }
 };
 
-// ✅ GET USER SCHEMES (IMPORTANT FOR SAVED PAGE)
+/* ===========================================================
+   GET SAVED & APPLIED SCHEMES
+=========================================================== */
 exports.getUserSchemes = async (req, res) => {
   try {
-    const data = await UserScheme.find({
-      userId: req.params.userId
-    }).populate("schemeId");
+    const { userId } = req.params;
 
-    res.json(data);
+    const schemes = await UserScheme.find({
+      userId,
+    })
+      .populate("schemeId")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(schemes);
   } catch (err) {
-    res.status(500).json({ error: "Error fetching user schemes" });
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to fetch user schemes",
+    });
   }
 };

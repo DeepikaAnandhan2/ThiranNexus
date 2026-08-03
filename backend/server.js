@@ -8,7 +8,7 @@ const { Server } = require('socket.io')
 require('dotenv').config()
 
 const connectDB      = require('./config/db')
-const seedSchemes    = require('./data/seedSchemes')
+const seedSchemes = require('./seedSchemes');
 const parentRoutes   = require('./routes/parentRoutes')
 const education2Routes = require('./routes/education2')
 const adminRoutes    = require('./routes/adminRoutes')
@@ -25,8 +25,18 @@ const io     = new Server(server, {
 
 // ── 2. Database ────────────────────────────────────────────────────────────
 connectDB()
-  .then(() => { console.log('✅ DB Connected'); seedSchemes() })
-  .catch(err => console.error('❌ DB Connection Error:', err))
+  .then(async () => {
+    console.log("✅ MongoDB Connected");
+
+    // Seed all schemes
+    await seedSchemes();
+
+    console.log("✅ Schemes loaded successfully");
+  })
+  .catch((err) => {
+    console.error("❌ Database Connection Error");
+    console.error(err);
+  });
 
 // ── 3. Middleware ──────────────────────────────────────────────────────────
 app.use(cors())
