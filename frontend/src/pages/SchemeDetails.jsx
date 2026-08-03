@@ -1,101 +1,174 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import API from "../utils/api";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import schemesData from "../data/schemesData";
 import "../styles/schemes.css";
 
 const SchemeDetails = () => {
   const { id } = useParams();
-  const [scheme, setScheme] = useState(null);
-  const [msg, setMsg] = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const res = await API.get(`/schemes/${id}`);
-        console.log("SCHEME:", res.data);
-        setScheme(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetch();
-  }, [id]);
+  const [message, setMessage] = useState("");
 
-  const handleSave = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
+  // Find the selected scheme
+  const scheme = schemesData.find((item) => item._id === id);
 
-      await API.post("/schemes/save", {
-        userId: user._id,
-        schemeId: id
-      });
+  if (!scheme) {
+    return (
+      <div className="page-container">
 
-      setMsg("✅ Saved successfully");
-    } catch {
-      setMsg("⚠️ Already saved");
+        <div className="back-container">
+          <button
+            className="btn btn-back"
+            onClick={() => navigate("/schemes")}
+          >
+            ← Back
+          </button>
+        </div>
+
+        <div className="no-schemes-card">
+          <h2>Scheme Not Found</h2>
+          <p>The requested scheme does not exist.</p>
+        </div>
+
+      </div>
+    );
+  }
+
+  // Save Scheme
+  const handleSave = () => {
+    const saved =
+      JSON.parse(localStorage.getItem("savedSchemes")) || [];
+
+    const exists = saved.some(
+      (item) => item._id === scheme._id
+    );
+
+    if (exists) {
+      setMessage("⚠️ Scheme already saved.");
+      return;
     }
+
+    saved.push(scheme);
+
+    localStorage.setItem(
+      "savedSchemes",
+      JSON.stringify(saved)
+    );
+
+    setMessage("✅ Scheme saved successfully.");
   };
 
-  const handleApply = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
+  // Apply Scheme
+  const handleApply = () => {
+    const applied =
+      JSON.parse(localStorage.getItem("appliedSchemes")) || [];
 
-      await API.post("/schemes/apply", {
-        userId: user._id,
-        schemeId: id
-      });
+    const exists = applied.some(
+      (item) => item._id === scheme._id
+    );
 
-      // ✅ FIXED LINK
-      const link = scheme?.applyLink || scheme?.link;
+    if (!exists) {
+      applied.push(scheme);
 
-      if (link && link.startsWith("http")) {
-        window.open(link, "_blank");
-      } else {
-        setMsg("❌ No valid apply link");
-      }
+      localStorage.setItem(
+        "appliedSchemes",
+        JSON.stringify(applied)
+      );
+    }
 
-    } catch (err) {
-      console.error(err);
-      setMsg("❌ Apply failed");
+    setMessage("✅ Redirecting to the application portal...");
+
+    if (scheme.applyLink) {
+      window.open(scheme.applyLink, "_blank");
     }
   };
-
-  if (!scheme) return <p className="page-container">Loading...</p>;
 
   return (
     <div className="page-container">
+
+      {/* Back Button */}
+
+      <div className="back-container">
+        <button
+          className="btn btn-back"
+          onClick={() => navigate("/schemes")}
+        >
+          ← Back
+        </button>
+      </div>
+
+      {/* Card */}
+
       <div className="card detail-card">
 
-        <h1 className="detail-title">{scheme.title}</h1>
-        <p>{scheme.description}</p>
+        <span className="scheme-type">
+          {scheme.disabilityType.toUpperCase()}
+        </span>
 
-        {msg && <p className="status-msg">{msg}</p>}
+        <h1 className="detail-title">
+          {scheme.title}
+        </h1>
 
-        <div className="section-title">Eligibility</div>
+        <p className="detail-description">
+          {scheme.description}
+        </p>
+
+        {message && (
+          <div className="status-msg">
+            {message}
+          </div>
+        )}
+
+        <hr />
+
+        <h2 className="section-title">
+          Eligibility
+        </h2>
+
         <ul className="detail-list">
-          {scheme.eligibility?.map((e, i) => (
-            <li key={i}>{e}</li>
+          {scheme.eligibility.map((item, index) => (
+            <li key={index}>{item}</li>
           ))}
         </ul>
 
-        <div className="section-title">Documents</div>
+        <h2 className="section-title">
+          Benefits
+        </h2>
+
+        <p className="benefits-text">
+          {scheme.benefits}
+        </p>
+
+        <h2 className="section-title">
+          Required Documents
+        </h2>
+
         <ul className="detail-list">
-          {scheme.documentsRequired?.map((d, i) => (
-            <li key={i}>{d}</li>
+          {scheme.documentsRequired.map((item, index) => (
+            <li key={index}>{item}</li>
           ))}
         </ul>
 
         <div className="button-group">
-          <button onClick={handleSave} className="btn btn-save">
-            Save
+
+          <button
+            className="btn btn-save"
+            onClick={handleSave}
+          >
+            Save Scheme
           </button>
 
-          <button onClick={handleApply} className="btn btn-apply">
-            Apply
+          <button
+            className="btn btn-apply"
+            onClick={handleApply}
+          >
+            Apply Now
           </button>
+
         </div>
 
       </div>
+
     </div>
   );
 };

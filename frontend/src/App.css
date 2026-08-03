@@ -1112,9 +1112,14 @@ button:focus-visible {
 }
 
 /* Right side */
-.content-area { margin-left: 240px; width: calc(100% - 240px);
-   flex: 1; min-width: 0; display: flex;
-    flex-direction: column; }
+.content-area {
+  flex: 1;
+  margin-left: 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+}
 
 /* Topbar stays normal */
 .content-area > *:first-child {
@@ -1123,17 +1128,21 @@ button:focus-visible {
   z-index: 10;
 }
 
-
 .page-content {
-  width: 100%;
+    flex: 1;
+    width: 100%;
 }
-
 
 .page-inner { width: 100%; max-width: none; 
   margin: 0; padding: 0 32px; 
   box-sizing: border-box; } 
 
 /* 🔥 FORCE FULL WIDTH FIX */
+.page-inner {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
 .page-inner * {
   max-width: none !important;
 }
@@ -1156,11 +1165,12 @@ button:focus-visible {
 }
 
 .page-inner {
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 40px !important; /* spacing from sidebar */
+  width: 100%;
+  margin: 0;
+  padding: 0 0px;  
+      /* or 16px */
+  box-sizing: border-box;
 }
-
 /* Fix common container patterns */
 .container,
 .wrapper,
@@ -1180,16 +1190,17 @@ button:focus-visible {
 }
 
 .content-area .home-hero,
-.content-area .game-banner {
-  border-radius: 0;
-  width: 100%;
+.content-area .game-banner{
+    width:100%;
+    margin:0;
+    border-radius:0;
 }
 
 .content-area .home-body,
 .content-area .game-body {
-  max-width: none;
-  padding: 1.5rem 2rem 2rem;
-  align-items: flex-start;
+    width: 100%;
+    max-width: none;
+    padding: 1.5rem 0 2rem;
 }
 
 /* Fix card grid — responsive columns */

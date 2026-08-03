@@ -23,7 +23,7 @@
   flex: 1;
   min-height: 100vh;
   background: linear-gradient(135deg, #faf5ff 0%, #ede9fe 40%, #e0e7ff 100%);
-  padding: 28px 32px;
+  padding: 28px 0px;
   overflow-y: auto;
   font-family: 'Segoe UI', system-ui, sans-serif;
 }

@@ -1,112 +1,204 @@
 import React, { useEffect, useState } from "react";
-import API from "../utils/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/schemes.css";
 
-export default function SavedApplied() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+const SavedApplied = () => {
+  const navigate = useNavigate();
+
+  const [savedSchemes, setSavedSchemes] = useState([]);
+  const [appliedSchemes, setAppliedSchemes] = useState([]);
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-
-        if (!user?._id) {
-          setData([]);
-          setLoading(false);
-          return;
-        }
-
-        const res = await API.get(`/schemes/user/${user._id}`);
-        console.log("USER SCHEMES:", res.data);
-
-        setData(res.data || []);
-      } catch (err) {
-        console.error("Error fetching saved schemes:", err);
-        setData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetch();
+    loadSchemes();
   }, []);
 
-  const saved = data.filter((d) => d.status === "saved");
-  const applied = data.filter((d) => d.status === "applied");
+  const loadSchemes = () => {
+    const saved =
+      JSON.parse(localStorage.getItem("savedSchemes")) || [];
 
-  if (loading) {
-    return (
-      <div className="page-container">
-        <h2>Loading your schemes...</h2>
-      </div>
+    const applied =
+      JSON.parse(localStorage.getItem("appliedSchemes")) || [];
+
+    setSavedSchemes(saved);
+    setAppliedSchemes(applied);
+  };
+
+  // Remove Saved Scheme
+  const removeSaved = (id) => {
+    const updated = savedSchemes.filter(
+      (scheme) => scheme._id !== id
     );
-  }
+
+    localStorage.setItem(
+      "savedSchemes",
+      JSON.stringify(updated)
+    );
+
+    setSavedSchemes(updated);
+  };
+
+  // Remove Applied Scheme
+  const removeApplied = (id) => {
+    const updated = appliedSchemes.filter(
+      (scheme) => scheme._id !== id
+    );
+
+    localStorage.setItem(
+      "appliedSchemes",
+      JSON.stringify(updated)
+    );
+
+    setAppliedSchemes(updated);
+  };
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Your Schemes</h1>
 
-      {/* ✅ SAVED SCHEMES */}
-      <h2 style={{ marginTop: "20px" }}>Saved Schemes</h2>
+      {/* Back Button */}
+      <div className="back-container">
+        <button
+          className="btn btn-back"
+          onClick={() => navigate("/dashboard")}
+        >
+          ← Back
+        </button>
+      </div>
 
-      {saved.length === 0 ? (
-        <p className="no-schemes">No saved schemes yet</p>
-      ) : (
-        <div className="grid">
-          {saved.map((item) => {
-            const scheme = item.schemeId;
+      <h1 className="page-title">
+        My Saved & Applied Schemes
+      </h1>
 
-            return (
-              <div className="card" key={item._id}>
-                <h3>{scheme?.title}</h3>
-                <p>{scheme?.description}</p>
+      {/* ===================== Saved Schemes ===================== */}
 
-                <div className="button-group">
-                  <Link
-                    to={`/scheme/${scheme?._id}`}
-                    className="btn btn-view"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+      <h2 className="section-title">
+        Saved Schemes
+      </h2>
+
+      {savedSchemes.length === 0 ? (
+
+        <div className="no-schemes-card">
+          <h3>No Saved Schemes</h3>
+          <p>
+            You haven't saved any schemes yet.
+          </p>
         </div>
+
+      ) : (
+
+        <div className="grid">
+
+          {savedSchemes.map((scheme) => (
+
+            <div
+              className="card"
+              key={scheme._id}
+            >
+
+              <span className="scheme-type">
+                {scheme.disabilityType.toUpperCase()}
+              </span>
+
+              <h3>{scheme.title}</h3>
+
+              <p>{scheme.description}</p>
+
+              <div className="button-group">
+
+                <Link
+                  to={`/scheme/${scheme._id}`}
+                  className="btn btn-view"
+                >
+                  View Details
+                </Link>
+
+                <button
+                  className="btn btn-save"
+                  onClick={() =>
+                    removeSaved(scheme._id)
+                  }
+                >
+                  Remove
+                </button>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
       )}
 
-      {/* ✅ APPLIED SCHEMES */}
-      <h2 style={{ marginTop: "40px" }}>Applied Schemes</h2>
+      {/* ===================== Applied Schemes ===================== */}
 
-      {applied.length === 0 ? (
-        <p className="no-schemes">No applied schemes yet</p>
-      ) : (
-        <div className="grid">
-          {applied.map((item) => {
-            const scheme = item.schemeId;
+      <h2
+        className="section-title"
+        style={{ marginTop: "50px" }}
+      >
+        Applied Schemes
+      </h2>
 
-            return (
-              <div className="card" key={item._id}>
-                <h3>{scheme?.title}</h3>
-                <p>{scheme?.description}</p>
+      {appliedSchemes.length === 0 ? (
 
-                <div className="button-group">
-                  <a
-                    href={scheme?.applyLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-apply"
-                  >
-                    Open Application
-                  </a>
-                </div>
-              </div>
-            );
-          })}
+        <div className="no-schemes-card">
+          <h3>No Applied Schemes</h3>
+          <p>
+            You haven't applied for any schemes yet.
+          </p>
         </div>
+
+      ) : (
+
+        <div className="grid">
+
+          {appliedSchemes.map((scheme) => (
+
+            <div
+              className="card"
+              key={scheme._id}
+            >
+
+              <span className="scheme-type">
+                {scheme.disabilityType.toUpperCase()}
+              </span>
+
+              <h3>{scheme.title}</h3>
+
+              <p>{scheme.description}</p>
+
+              <div className="button-group">
+
+                <a
+                  href={scheme.applyLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-apply"
+                >
+                  Open Portal
+                </a>
+
+                <button
+                  className="btn btn-save"
+                  onClick={() =>
+                    removeApplied(scheme._id)
+                  }
+                >
+                  Remove
+                </button>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
       )}
+
     </div>
   );
-}
+};
+
+export default SavedApplied;

@@ -1,223 +1,390 @@
-/* ─── Page Container ───────────────────────────────────── */
+/* ===========================================
+   PAGE
+=========================================== */
+
 .page-container {
-  width: 100%;
-  max-width: none;
-  padding: 24px;
-  margin: 0;
-  box-sizing: border-box;
-  background: #f4f7fe;
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, sans-serif;
-}
-
-.page-content > .page-inner > .page-container {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.page-container > * {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* ─── Header Section ───────────────────────────────────── */
-.ai-header {
-  margin-bottom: 25px;
+    width: 100%;
+    min-height: 100vh;
+    padding: 40px;
+    background: #f5f7fb;
 }
 
 .page-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: #1b2559;
-  margin-bottom: 5px;
+    font-size: 34px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 10px;
 }
 
-.ai-subtitle {
-  font-size: 14px;
-  color: #6b7280;
+.scheme-subtitle {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 17px;
 }
 
-/* ─── Grid Layout ─────────────────────────────────────── */
+.scheme-subtitle strong {
+    color: #6c63ff;
+}
+
+/* ===========================================
+   BACK BUTTON
+=========================================== */
+
+.back-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.btn-back {
+    background: #374151;
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: .3s;
+}
+
+.btn-back:hover {
+    background: #111827;
+    transform: translateX(-4px);
+}
+
+/* ===========================================
+   GRID
+=========================================== */
+
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 30px;
 }
 
-/* ─── Card Style ──────────────────────────────────────── */
+/* ===========================================
+   CARD
+=========================================== */
+
 .card {
-  background: #ffffff;
-  padding: 22px;
-  border-radius: 18px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  transition: 0.2s ease;
-  display: flex;
-  flex-direction: column;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
+    transition: .35s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    animation: cardFade .4s ease;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    transform: translateY(-8px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .12);
 }
 
-/* ─── Titles & Text ───────────────────────────────────── */
 .card h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1b2559;
-  margin-bottom: 8px;
+    color: #4f46e5;
+    font-size: 22px;
+    margin-bottom: 15px;
 }
 
 .card p {
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 15px;
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 20px;
 }
 
-/* ─── Section Titles ─────────────────────────────────── */
-.section-title {
-  margin-top: 15px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #6366f1;
-  text-transform: uppercase;
+.card hr {
+    border: none;
+    border-top: 1px solid #ececec;
+    margin: 25px 0;
 }
 
-.small-text {
-  font-size: 13px;
-  color: #4b5563;
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
 }
 
-/* ─── Detail Page ─────────────────────────────────────── */
+@keyframes cardFade {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===========================================
+   BUTTONS
+=========================================== */
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.btn {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: .3s;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-view {
+    background: #6c63ff;
+    color: white;
+}
+
+.btn-view:hover {
+    background: #5448ff;
+}
+
+.btn-save {
+    background: #ff9800;
+    color: white;
+}
+
+.btn-save:hover {
+    background: #fb8c00;
+}
+
+.btn-apply {
+    background: #2e7d32;
+    color: white;
+}
+
+.btn-apply:hover {
+    background: #1b5e20;
+}
+
+/* ===========================================
+   HOVER EFFECTS
+=========================================== */
+
+.btn-view:hover,
+.btn-save:hover,
+.btn-apply:hover,
+.btn-back:hover {
+    transform: translateY(-2px);
+}
+
+/* ===========================================
+   BADGE
+=========================================== */
+
+.scheme-type {
+    display: inline-block;
+    margin-bottom: 15px;
+    padding: 7px 14px;
+    border-radius: 50px;
+    background: #ecebff;
+    color: #5b4ef7;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* ===========================================
+   DETAILS PAGE
+=========================================== */
+
 .detail-card {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  box-sizing: border-box;
+    max-width: 900px;
+    margin: auto;
 }
 
 .detail-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1b2559;
-  margin-bottom: 10px;
+    font-size: 34px;
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.detail-description {
+    font-size: 17px;
+    color: #555;
+    margin: 25px 0;
+    line-height: 1.8;
+}
+
+.section-title {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #374151;
 }
 
 .detail-list {
-  margin-top: 10px;
-  padding-left: 20px;
+    padding-left: 20px;
 }
 
 .detail-list li {
-  margin-bottom: 8px;
-  color: #374151;
-  font-size: 14px;
+    margin-bottom: 12px;
+    color: #555;
+    line-height: 1.7;
 }
 
-/* ─── Buttons ─────────────────────────────────────────── */
-.btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  border: none;
-  cursor: pointer;
-  transition: 0.2s ease;
-  text-align: center;
+.detail-list li::marker {
+    color: #6c63ff;
 }
 
-/* View Button */
-.btn-view {
-  background: #6366f1;
-  color: white;
+.benefits-text {
+    color: #444;
+    line-height: 1.8;
 }
 
-/* Save Button */
-.btn-save {
-  background: #eef2ff;
-  color: #6366f1;
-  border: 1px solid #6366f1;
-}
+/* ===========================================
+   STATUS
+=========================================== */
 
-/* Apply Button */
-.btn-apply {
-  background: #22c55e;
-  color: white;
-}
-
-/* Hover */
-.btn:hover {
-  transform: translateY(-1px);
-  opacity: 0.95;
-}
-
-/* ─── Button Group (IMPORTANT FIX) ───────────────────── */
-.button-group {
-  display: flex;
-  flex-direction: column;   /* 🔥 STACKED BUTTONS */
-  gap: 12px;
-  margin-top: 25px;
-}
-
-/* ─── Status Message ─────────────────────────────────── */
 .status-msg {
-  background: #ecfdf5;
-  color: #065f46;
-  padding: 10px;
-  border-radius: 8px;
-  margin: 15px 0;
-  font-size: 14px;
-  text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 10px;
+    background: #ecfdf5;
+    color: #047857;
+    border-left: 5px solid #10b981;
+    font-weight: 600;
 }
 
-/* ─── No Data / Error ────────────────────────────────── */
-.no-schemes {
-  text-align: center;
-  color: #6b7280;
-  font-size: 16px;
-  margin-top: 20px;
+.error-message {
+    margin: 20px 0;
+    padding: 14px;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-left: 5px solid #ef4444;
 }
 
-@media (max-width:768px){
+/* ===========================================
+   EMPTY CARD
+=========================================== */
 
-  .page-container{
-      width:100%;
-      max-width:100%;
-      margin:0;
-      padding:16px 12px;
-      overflow-x:hidden;
-      box-sizing:border-box;
-  }
+.no-schemes-card {
+    background: white;
+    border-radius: 18px;
+    padding: 45px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
+    animation: fadeIn .5s ease;
+}
 
-  .page-content > .page-inner > .page-container{
-      width:100%;
-      max-width:100%;
-      margin:0;
-      padding:16px 12px;
-  }
+.no-schemes-card h2,
+.no-schemes-card h3 {
+    color: #374151;
+}
 
-  .page-title{
-      font-size:22px;
-  }
+.no-schemes-card p {
+    color: #777;
+    margin-top: 12px;
+}
 
-  .detail-title{
-      font-size:22px;
-  }
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-  .grid{
-      grid-template-columns:1fr;
-      gap:16px;
-  }
+/* ===========================================
+   LOADER
+=========================================== */
 
-  .card{
-      width:100%;
-  }
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.loader {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 6px solid #e5e7eb;
+    border-top: 6px solid #6c63ff;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===========================================
+   RESPONSIVE
+=========================================== */
+
+@media (max-width: 992px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 20px;
+    }
+
+    .page-title {
+        font-size: 28px;
+    }
+
+    .detail-title {
+        font-size: 28px;
+    }
+
+    .button-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .button-group .btn {
+        width: 100%;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 24px;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .detail-card {
+        padding: 20px;
+    }
 }

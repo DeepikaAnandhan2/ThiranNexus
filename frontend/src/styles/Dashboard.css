@@ -255,11 +255,13 @@
   }
 
   .tn-dash-main {
-    width: 100%;
-    max-width: 100%;
-    margin: 0 !important;
-    overflow-x: hidden;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  flex: 1;
+  min-width: 0;
+}
 
   .tn-hero-banner {
     padding: 16px 0;
@@ -280,10 +282,13 @@
     width: 100%;
   }
 
-  .tn-view-panel {
-    width: 100%;
-    max-width: 100%;
-  }
+ .tn-view-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  flex: 1;
+}
 
   .tn-nav-tabs {
     gap: 8px;
@@ -526,5 +531,18 @@
     width: 100%;
   }
 }
+/* ---------- FULL WIDTH FIX ---------- */
 
+.tn-dash-container,
+.tn-dash-main,
+.tn-view-panel,
+.tn-glass-card,
+.tn-grid-2,
+.tn-hero-banner {
+    width: 100%;
+    max-width: none !important;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+}
 @keyframes tn-pulse { 0%,100% { background-position: 200% center; } 50% { background-position: -200% center; } }
