@@ -1,4 +1,3 @@
-
 :root {
   --bg-primary: #ffffff;
   --bg-surface: #f8fafc;
@@ -11,8 +10,9 @@
   --error-color: #ef4444;
 }
 
-
+/* 🔍 GLOBAL LOW VISION OVERRIDE (High-Contrast Black & Yellow) */
 [data-vision-profile="low-vision"] {
+  /* 1. Override standard app color variables */
   --bg-primary: #000000 !important;
   --bg-surface: #121212 !important;
   --text-primary: #ffff00 !important;   /* High-visibility yellow text */
@@ -22,8 +22,83 @@
   --border-color: #ffffff !important;
   --success-color: #00ff00 !important;
   --error-color: #ff0000 !important;
+
+  /* 2. Override main App.css layout variables */
+  --bg: #000000 !important;
+  --white: #121212 !important;
+  --navy: #000000 !important;
+  --navy2: #000000 !important;
+  --text: #ffff00 !important;
+  --text-mid: #ffffff !important;
+  --text-muted: #ffffff !important;
+  --border: #ffffff !important;
 }
 
+/* 3. Universal High-Contrast Overrides for Layout & Elements */
+html[data-vision-profile="low-vision"],
+[data-vision-profile="low-vision"] body,
+[data-vision-profile="low-vision"] #root,
+[data-vision-profile="low-vision"] main,
+[data-vision-profile="low-vision"] section,
+[data-vision-profile="low-vision"] div,
+[data-vision-profile="low-vision"] article,
+[data-vision-profile="low-vision"] header,
+[data-vision-profile="low-vision"] nav,
+[data-vision-profile="low-vision"] footer {
+  background-color: #000000 !important;
+  background: #000000 !important;
+  color: #ffff00 !important;
+}
+
+/* Typography scaling & contrast */
+[data-vision-profile="low-vision"] p,
+[data-vision-profile="low-vision"] span,
+[data-vision-profile="low-vision"] label,
+[data-vision-profile="low-vision"] li,
+[data-vision-profile="low-vision"] h1,
+[data-vision-profile="low-vision"] h2,
+[data-vision-profile="low-vision"] h3,
+[data-vision-profile="low-vision"] h4,
+[data-vision-profile="low-vision"] h5,
+[data-vision-profile="low-vision"] h6 {
+  color: #ffff00 !important;
+  font-weight: 800 !important;
+}
+
+/* Card & Box Outlines */
+[data-vision-profile="low-vision"] .game-card,
+[data-vision-profile="low-vision"] .twister-card,
+[data-vision-profile="low-vision"] .question-card,
+[data-vision-profile="low-vision"] .result-card,
+[data-vision-profile="low-vision"] .gesture-guide,
+[data-vision-profile="low-vision"] .home-body,
+[data-vision-profile="low-vision"] .game-body {
+  background-color: #121212 !important;
+  background: #121212 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* Buttons & Inputs */
+[data-vision-profile="low-vision"] button,
+[data-vision-profile="low-vision"] a,
+[data-vision-profile="low-vision"] input,
+[data-vision-profile="low-vision"] select,
+[data-vision-profile="low-vision"] textarea {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+  border: 2px solid #ffff00 !important;
+  font-weight: 800 !important;
+}
+
+[data-vision-profile="low-vision"] button:hover,
+[data-vision-profile="low-vision"] button:focus-visible,
+[data-vision-profile="low-vision"] a:hover {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+  border-color: #ffff00 !important;
+  outline: 3px solid #ffffff !important;
+}
 
 
 /* Protanopia (Red-Cone Deficiency) */
