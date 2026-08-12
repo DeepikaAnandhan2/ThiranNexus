@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import TTSReader from '../components/education/TTSReader'
-import '../components/education/TTSReader.css'
+import TTSReader from '../components/education/TTSReader';
+import '../components/education/TTSReader.css';
 import { useAuth } from "../context/AuthContext";
 
 import SignAvatarPlayer from './SignAvatarPlayer';
@@ -393,18 +393,31 @@ const STYLES = `
   }
 `;
 
+// Video links configuration for Reproduction in Organisms, Unit 2, and Tamil Unit 2
+const VIDEO_RESOURCES = {
+  reproduction: {
+    standard: 'https://www.youtube.com/embed/uLXz1PLgCGg',
+    sign: 'https://www.youtube.com/embed/Y3iiYuKTJkw'
+  },
+  unit2: {
+    standard: 'https://www.youtube.com/embed/6UXGobXdZGA',
+    sign: 'https://www.youtube.com/embed/lW8hbdNGhBE'
+  },
+  tamilUnit2: {
+    standard: 'https://www.youtube.com/embed/kZcq-xP8RNs',
+    sign: 'https://www.youtube.com/embed/kZcq-xP8RNs'
+  }
+};
+
 function useGlobalStyle(css) {
   useEffect(() => {
     const tag = document.createElement('style');
     tag.textContent = css;
     document.head.appendChild(tag);
     return () => document.head.removeChild(tag);
-  }, []);
+  }, [css]);
 }
 
-// ══════════════════════════════════════════════════════════════
-// WORD EXPLANATION POPUP
-// ══════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
 // WORD EXPLANATION POPUP
 // ══════════════════════════════════════════════════════════════
@@ -606,7 +619,6 @@ function ExplanationPopup({ data, onDismiss }) {
   );
 }
 
-
 // ══════════════════════════════════════════════════════════════
 // WORD CLICKABLE TEXT
 // ══════════════════════════════════════════════════════════════
@@ -702,17 +714,87 @@ function QuizTab({ quiz }) {
 // ══════════════════════════════════════════════════════════════
 // VIDEO TAB
 // ══════════════════════════════════════════════════════════════
-function VideoTab({ videoUrl, signUrl, unitTitle }) {
+function VideoTab({ videoUrl, signUrl, unitTitle, subjectName, unitNumber }) {
   const [mode, setMode] = useState('standard');
-  const url = mode === 'sign' ? signUrl : videoUrl;
-  return <div className="sl-video" role="region" aria-label="Lesson video"><div className="sl-video__toggle" role="group" aria-label="Video mode"><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'standard'} onClick={() => setMode('standard')}><span aria-hidden="true">🎬</span> Standard Video</button><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'sign'} onClick={() => setMode('sign')}><span aria-hidden="true">🤟</span> Sign Language</button></div><div className="sl-video__frame-wrap">{url ? <iframe key={url} src={url} title={mode === 'sign' ? 'Sign language lesson video' : 'Lesson video'} allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" className="sl-video__frame" /> : <div className="sl-video__placeholder" role="status"><span aria-hidden="true">🎥</span><p>Video not available.</p><a href={`https://www.youtube.com/results?search_query=${encodeURIComponent((unitTitle || 'lesson') + (mode === 'sign' ? ' Indian Sign Language' : ' lesson'))}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sl-primary)', textDecoration: 'none', fontWeight: 'bold', marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--sl-surface)', borderRadius: '8px', border: '1px solid var(--sl-border)' }}>🔍 Search YouTube for {mode === 'sign' ? 'ISL' : ''} Lesson →</a></div>}</div><p className="sl-video__caption-notice"><span aria-hidden="true">ℹ️</span>Closed captions available — use player controls or <kbd>C</kbd> to toggle.</p></div>;
+  
+  // Resolve mapped videos based on subject and unit
+  let mappedStandard = videoUrl;
+  let mappedSign = signUrl;
+
+  const isTamil = subjectName?.toLowerCase().includes('tamil');
+  const isUnit2 = Number(unitNumber) === 2 || unitTitle?.toLowerCase().includes('unit 2');
+  const isReproduction = unitTitle?.toLowerCase().includes('reproduction');
+
+  if (isTamil && isUnit2) {
+    mappedStandard = VIDEO_RESOURCES.tamilUnit2.standard;
+    mappedSign = VIDEO_RESOURCES.tamilUnit2.sign;
+  } else if (isUnit2) {
+    mappedStandard = VIDEO_RESOURCES.unit2.standard;
+    mappedSign = VIDEO_RESOURCES.unit2.sign;
+  } else if (isReproduction) {
+    mappedStandard = VIDEO_RESOURCES.reproduction.standard;
+    mappedSign = VIDEO_RESOURCES.reproduction.sign;
+  }
+
+  const url = mode === 'sign' ? mappedSign : mappedStandard;
+
+  return (
+    <div className="sl-video" role="region" aria-label="Lesson video">
+      <div className="sl-video__toggle" role="group" aria-label="Video mode">
+        <button className="sl-btn sl-btn--outline" aria-pressed={mode === 'standard'} onClick={() => setMode('standard')}>
+          <span aria-hidden="true">🎬</span> Standard Video
+        </button>
+        <button className="sl-btn sl-btn--outline" aria-pressed={mode === 'sign'} onClick={() => setMode('sign')}>
+          <span aria-hidden="true">🤟</span> Sign Language
+        </button>
+      </div>
+      <div className="sl-video__frame-wrap">
+        {url ? (
+          <iframe
+            key={url}
+            src={url}
+            title={mode === 'sign' ? 'Sign language lesson video' : 'Lesson video'}
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            className="sl-video__frame"
+          />
+        ) : (
+          <div className="sl-video__placeholder" role="status">
+            <span aria-hidden="true">🎥</span>
+            <p>Video not available.</p>
+            <a
+              href={`https://www.youtube.com/results?search_query=${encodeURIComponent((unitTitle || 'lesson') + (mode === 'sign' ? ' Indian Sign Language' : ' lesson'))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--sl-primary)', textDecoration: 'none', fontWeight: 'bold', marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--sl-surface)', borderRadius: '8px', border: '1px solid var(--sl-border)' }}
+            >
+              🔍 Search YouTube for {mode === 'sign' ? 'ISL' : ''} Lesson →
+            </a>
+          </div>
+        )}
+      </div>
+      <p className="sl-video__caption-notice">
+        <span aria-hidden="true">ℹ️</span>Closed captions available — use player controls or <kbd>C</kbd> to toggle.
+      </p>
+    </div>
+  );
 }
 
 // ══════════════════════════════════════════════════════════════
 // ACCESSIBILITY TOOLBAR (unchanged)
 // ══════════════════════════════════════════════════════════════
 function A11yToolbar({ highContrast, setHighContrast, largeText, setLargeText }) {
-  return <div className="sl-a11y-bar" role="toolbar" aria-label="Accessibility options"><span className="sl-a11y-bar__label" aria-hidden="true">Accessibility</span><button className="sl-a11y-btn" aria-pressed={highContrast} onClick={() => setHighContrast(v => !v)}><span aria-hidden="true">◑</span> High Contrast</button><button className="sl-a11y-btn" aria-pressed={largeText} onClick={() => setLargeText(v => !v)}><span aria-hidden="true">A+</span> Large Text</button></div>;
+  return (
+    <div className="sl-a11y-bar" role="toolbar" aria-label="Accessibility options">
+      <span className="sl-a11y-bar__label" aria-hidden="true">Accessibility</span>
+      <button className="sl-a11y-btn" aria-pressed={highContrast} onClick={() => setHighContrast(v => !v)}>
+        <span aria-hidden="true">◑</span> High Contrast
+      </button>
+      <button className="sl-a11y-btn" aria-pressed={largeText} onClick={() => setLargeText(v => !v)}>
+        <span aria-hidden="true">A+</span> Large Text
+      </button>
+    </div>
+  );
 }
 
 const SUBJECT_META = { Biology: { emoji: '🧬', label: 'Biology' }, Tamil: { emoji: '📜', label: 'Tamil' } };
@@ -721,17 +803,32 @@ const WAPI = 'https://thirannexus.onrender.com/api/word';
 const TABS = [{ id: 'text', label: 'Text', icon: '📖' }, { id: 'video', label: 'Video', icon: '🎥' }, { id: 'quiz', label: 'Quiz', icon: '🧩' }];
 
 // ══════════════════════════════════════════════════════════════
-// MAIN COMPONENT (unchanged)
+// MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════
 export default function Education2() {
   useGlobalStyle(STYLES);
-  const [highContrast, setHighContrast] = useState(false); const [largeText, setLargeText] = useState(false);
-  const [selectedClass, setSelectedClass] = useState(''); const [classError, setClassError] = useState(''); const [fetched, setFetched] = useState(false); const [loading, setLoading] = useState(false);
-  const [subjects, setSubjects] = useState([]); const [activeSubject, setActiveSubject] = useState(null); const [units, setUnits] = useState([]); const [activeUnit, setActiveUnit] = useState(null); const [unitData, setUnitData] = useState(null); const [unitLoading, setUnitLoading] = useState(false); const [activeTab, setActiveTab] = useState('text'); const [fetchError, setFetchError] = useState('');
+  const [highContrast, setHighContrast] = useState(false);
+  const [largeText, setLargeText] = useState(false);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [classError, setClassError] = useState('');
+  const [fetched, setFetched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [activeSubject, setActiveSubject] = useState(null);
+  const [units, setUnits] = useState([]);
+  const [activeUnit, setActiveUnit] = useState(null);
+  const [unitData, setUnitData] = useState(null);
+  const [unitLoading, setUnitLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('text');
+  const [fetchError, setFetchError] = useState('');
   const { user } = useAuth();
-const disabilityType = user?.disabilityType?.toLowerCase();
-  const [popupData, setPopupData] = useState(null); const [popupLoading, setPopupLoading] = useState(false);
-  const subjectsRef = useRef(null); const contentRef = useRef(null); const statusRef = useRef(null);
+  const disabilityType = user?.disabilityType?.toLowerCase();
+  const [popupData, setPopupData] = useState(null);
+  const [popupLoading, setPopupLoading] = useState(false);
+  const subjectsRef = useRef(null);
+  const contentRef = useRef(null);
+  const statusRef = useRef(null);
+
   function announce(msg) { if (statusRef.current) statusRef.current.textContent = msg; }
 
   const handleWordClick = useCallback(async (word) => {
@@ -838,8 +935,16 @@ const disabilityType = user?.disabilityType?.toLowerCase();
                   {activeTab === tab.id && (
                     <>
                       {tab.id === 'text' && <div><p className="sl-click-hint" aria-live="polite"><span aria-hidden="true">💡</span>Click any word to explore its meaning + see the ISL sign</p><TTSReader text={unitData?.content?.text ? unitData.content.text.replace(/<[^>]+>/g, '') : 'No content available'} /><WordClickableText html={unitData.content?.text} onWordClick={handleWordClick} /></div>}
-                      {tab.id === 'video' && <VideoTab videoUrl={unitData.content?.videoUrl} signUrl={unitData.content?.signLanguageVideoUrl} unitTitle={unitData.unitTitle} />}
-                      {tab.id === 'quiz'  && <QuizTab  quiz={unitData.content?.quiz || []} />}
+                      {tab.id === 'video' && (
+                        <VideoTab
+                          videoUrl={unitData.content?.videoUrl}
+                          signUrl={unitData.content?.signLanguageVideoUrl}
+                          unitTitle={unitData.unitTitle}
+                          subjectName={activeSubject}
+                          unitNumber={unitData.unitNumber}
+                        />
+                      )}
+                      {tab.id === 'quiz'  && <QuizTab quiz={unitData.content?.quiz || []} />}
                     </>
                   )}
                 </div>
