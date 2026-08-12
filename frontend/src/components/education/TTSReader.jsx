@@ -2,6 +2,16 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import './TTSReader.css'
 import { FaPlay, FaPause, FaStop } from 'react-icons/fa'
 
+function splitText(text) {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const chunks = [];
+  sentences.forEach(s => {
+    const trimmed = s.trim();
+    if (trimmed) chunks.push(trimmed);
+  });
+  return chunks;
+}
+
 export default function TTSReader({ text }) {
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
@@ -9,85 +19,73 @@ export default function TTSReader({ text }) {
   const [voices, setVoices] = useState([])
   const [selectedVoice, setSelectedVoice] = useState(null)
 
-  const utterRef = useRef(null)
+  const chunkIndexRef = useRef(0)
+  const chunksRef = useRef([])
 
-  // 🔊 Load voices properly (important fix)
- useEffect(() => {
-  const loadVoices = () => {
-    const allVoices = window.speechSynthesis.getVoices()
-
-    if (allVoices.length > 0) {
-      setVoices(allVoices)
-
-      // Better fallback logic
-      const female = allVoices.find(v =>
-        v.name.toLowerCase().includes('female') ||
-        v.name.toLowerCase().includes('zira')
-      )
-
-      const male = allVoices.find(v =>
-        v.name.toLowerCase().includes('male') ||
-        v.name.toLowerCase().includes('david')
-      )
-
-      setSelectedVoice(female || male || allVoices[0])
+  // Load voices properly
+  useEffect(() => {
+    const loadVoices = () => {
+      const allVoices = window.speechSynthesis.getVoices()
+      if (allVoices.length > 0) {
+        setVoices(allVoices)
+        const female = allVoices.find(v => v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira'))
+        const male = allVoices.find(v => v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david'))
+        setSelectedVoice(female || male || allVoices[0])
+      }
     }
-  }
+    loadVoices()
+    window.speechSynthesis.onvoiceschanged = loadVoices
+    return () => { window.speechSynthesis.onvoiceschanged = null }
+  }, [])
 
-  loadVoices()
-
-  window.speechSynthesis.onvoiceschanged = loadVoices
-
-  return () => {
-    window.speechSynthesis.onvoiceschanged = null
-  }
-}, [])
-
-const speak = useCallback(() => {
-  if (!window.speechSynthesis) return
-
-  window.speechSynthesis.cancel()
-
-  const utter = new SpeechSynthesisUtterance(text)
-
-  // 🔥 Detect Tamil text
-  const isTamil = /[\u0B80-\u0BFF]/.test(text)
-
-  // ✅ Set language properly
-  utter.lang = isTamil ? 'ta-IN' : 'en-US'
-
-  utter.rate = rate
-  utter.pitch = 1
-
-  // 🔥 Pick correct voice based on language
-  if (isTamil) {
-    const tamilVoice = voices.find(v => v.lang.includes('ta'))
-    if (tamilVoice) {
-      utter.voice = tamilVoice
+  const speakChunk = useCallback(() => {
+    if (chunkIndexRef.current >= chunksRef.current.length) {
+      setPlaying(false)
+      setPaused(false)
+      return;
     }
-  } else {
-    utter.voice = selectedVoice
-  }
+    
+    const chunkText = chunksRef.current[chunkIndexRef.current]
+    const utter = new SpeechSynthesisUtterance(chunkText)
+    
+    const isTamil = /[\u0B80-\u0BFF]/.test(chunkText)
+    utter.lang = isTamil ? 'ta-IN' : 'en-US'
+    utter.rate = rate
+    utter.pitch = 1
 
-  utter.onstart = () => {
-    setPlaying(true)
-    setPaused(false)
-  }
+    if (isTamil) {
+      const tamilVoice = voices.find(v => v.lang.includes('ta'))
+      if (tamilVoice) utter.voice = tamilVoice
+    } else {
+      utter.voice = selectedVoice
+    }
 
-  utter.onend = () => {
-    setPlaying(false)
-    setPaused(false)
-  }
+    utter.onstart = () => {
+      setPlaying(true)
+      setPaused(false)
+    }
 
-  utter.onerror = () => {
-    setPlaying(false)
-    setPaused(false)
-  }
+    utter.onend = () => {
+      chunkIndexRef.current += 1
+      speakChunk()
+    }
 
-  utterRef.current = utter
-  window.speechSynthesis.speak(utter)
-}, [text, rate, selectedVoice, voices])
+    utter.onerror = () => {
+      setPlaying(false)
+      setPaused(false)
+    }
 
+    // Fix Chrome garbage collection bug
+    window._currentUtterance = utter;
+    window.speechSynthesis.speak(utter)
+  }, [rate, selectedVoice, voices])
+
+  const speak = useCallback(() => {
+    window.speechSynthesis.cancel()
+    chunksRef.current = splitText(text || '')
+    chunkIndexRef.current = 0
+    speakChunk()
+  }, [text, speakChunk])
 
   const handlePlay = () => {
     if (paused) {
@@ -109,6 +107,7 @@ const speak = useCallback(() => {
     window.speechSynthesis.cancel()
     setPlaying(false)
     setPaused(false)
+    chunkIndexRef.current = chunksRef.current.length // Stop sequence
   }
 
   return (
@@ -116,7 +115,6 @@ const speak = useCallback(() => {
       <div className="tts-label">🔊 Read Aloud</div>
 
       <div className="tts-controls">
-
         {!playing ? (
           <button className="tts-btn tts-play" onClick={handlePlay}>
             <FaPlay /> Play
@@ -131,8 +129,7 @@ const speak = useCallback(() => {
           <FaStop /> Stop
         </button>
 
-        {/* 🔥 Voice Selection */}
-        
+        {/* Voice Selection */}
         <select
           className="tts-voice-select"
           value={selectedVoice?.name || ''}

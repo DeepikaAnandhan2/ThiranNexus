@@ -403,98 +403,8 @@ function useGlobalStyle(css) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// ISL SIGN TAB — avatar (left) + YouTube ISL video (right)
+// WORD EXPLANATION POPUP
 // ══════════════════════════════════════════════════════════════
-function ISLSignTab({ data, accent }) {
-  const strategy = resolveSignStrategy(data.word, data);
-
-  return (
-    <div className="sl-isl-tab">
-
-      {/* ── LEFT: Avatar with gloss track ── */}
-      <div className="sl-isl-tab__avatar" style={{ '--sl-popup-accent': accent }}>
-        <span style={{ fontSize: 9, color: '#555', letterSpacing: '0.08em', fontWeight: 700 }}>
-          ISL GLOSS TRACK
-        </span>
-        <SignAvatarPlayer
-          strategy={strategy}
-          accent={accent}
-          speed={1.0}
-        />
-      </div>
-
-      {/* ── RIGHT: YouTube ISL video ── */}
-      <div className="sl-isl-tab__video">
-        <span className="sl-isl-tab__video-label">ISL SIGN VIDEO</span>
-
-        {data.islSignVideoUrl ? (
-          <>
-            <div className="sl-isl-tab__video-frame-wrap">
-              <iframe
-                key={data.islSignVideoUrl}
-                src={data.islSignVideoUrl}
-                title={`ISL sign language video for: ${data.word}`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="sl-isl-tab__video-frame"
-              />
-            </div>
-            <p className="sl-isl-tab__note">
-              Indian Sign Language video for "{data.word}" via YouTube
-            </p>
-          </>
-        ) : (
-          /* ── Fallback: Google Images ISL sign search ── */
-          <div className="sl-isl-tab__fallback">
-            {/* Label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <span style={{ fontSize: 9, color: '#555', letterSpacing: '0.08em', fontWeight: 700 }}>
-                ISL SIGN IMAGE — GOOGLE SEARCH
-              </span>
-              <span style={{ fontSize: 10, color: '#444', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 4 }}>
-                No video found · showing image results
-              </span>
-            </div>
-
-            {/* Google Images iframe — searches "word Indian sign language" */}
-            <div className="sl-isl-tab__fallback-frame-wrap">
-              <iframe
-                key={data.word}
-                src={`https://www.google.com/search?q=${encodeURIComponent(data.word + ' Indian sign language ISL')}&tbm=isch&igu=1`}
-                title={`Google Images: ${data.word} Indian sign language`}
-                className="sl-isl-tab__fallback-frame"
-                sandbox="allow-scripts allow-same-origin allow-popups"
-                aria-label={`Image search results for ${data.word} ISL sign`}
-              />
-            </div>
-
-            {/* Open in new tab link — in case iframe is blocked */}
-            <a
-              href={`https://www.google.com/search?q=${encodeURIComponent(data.word + ' Indian sign language ISL')}&tbm=isch`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sl-isl-tab__fallback-link"
-              style={{ color: accent }}
-              aria-label={`Open Google Images search for ${data.word} ISL sign in new tab`}
-            >
-              🔍 Open in Google Images →
-            </a>
-          </div>
-        )}
-      </div>
-
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════
-// SIGN LANGUAGE AVATAR (wrapper for non-ISL-tab usage)
-// ══════════════════════════════════════════════════════════════
-function SignLanguageAvatar({ word, popupData, accent = '#7c3aed' }) {
-  const strategy = resolveSignStrategy(word, popupData);
-  return <SignAvatarPlayer strategy={strategy} accent={accent} speed={1.0} />;
-}
-
 // ══════════════════════════════════════════════════════════════
 // WORD EXPLANATION POPUP
 // ══════════════════════════════════════════════════════════════
@@ -511,7 +421,7 @@ function ExplanationPopup({ data, onDismiss }) {
     setImgError(false);
     prevFocus.current = document.activeElement;
     setTimeout(() => closeRef.current?.focus(), 50);
-    timerRef.current = setTimeout(handleDismiss, 20000);
+    timerRef.current = setTimeout(handleDismiss, 40000);
     return () => clearTimeout(timerRef.current);
   }, [data]);
 
@@ -528,12 +438,16 @@ function ExplanationPopup({ data, onDismiss }) {
   const accent = data.color || '#7c3aed';
   const levelLabel = { easy: 'Basic', medium: 'Intermediate', hard: 'Advanced' }[data.level] || 'Intermediate';
 
-  // ── Tabs: Definition, Visual, Video (if exists), ISL Sign (always shown) ──
+  const strategy = resolveSignStrategy(data.word, data);
+  const isSpell = strategy.strategy === 'spell';
+  const tokens = isSpell ? (data.word || '').split('') : (strategy.glossTokens || [data.word.toUpperCase()]);
+
   const tabs = [
     { key: 'definition', label: '📖 Definition' },
+    { key: 'spelling',   label: '🔤 Spelling'   },
     { key: 'diagram',    label: '✨ Visual'     },
     data.videoUrl ? { key: 'video', label: '🎬 Video' } : null,
-    { key: 'isl',        label: '🤟 ISL Sign'  },   // ← NEW TAB
+    { key: 'isl',        label: '🤟 ISL Sign'  },
   ].filter(Boolean);
 
   return (
@@ -578,85 +492,120 @@ function ExplanationPopup({ data, onDismiss }) {
           ))}
         </div>
 
-        {/* ══ ISL Sign tab — full-width, no inner split needed (has its own layout) ══ */}
-        {activeTab === 'isl' && (
-          <div id="popup-panel-isl" role="tabpanel" aria-labelledby="popup-tab-isl">
-            <ISLSignTab data={data} accent={accent} />
-          </div>
-        )}
-
-        {/* ══ All other tabs use the split layout (avatar left, content right) ══ */}
-        {activeTab !== 'isl' && (
-          <div className="sl-popup__split">
-
-            {/* Left: avatar with gloss track */}
-            <SignLanguageAvatar word={data.word} popupData={data} accent={accent} />
-
-            {/* Right: tab content */}
-            <div className="sl-popup__content-pane">
-              <div className="sl-popup__body">
-
-                {/* Definition */}
-                <div id="popup-panel-definition" role="tabpanel" aria-labelledby="popup-tab-definition" hidden={activeTab !== 'definition'}>
-                  {data.simplifiedDefinition && (
-                    <div style={{ marginBottom: 14, background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: 8, borderLeft: `3px solid ${accent}` }}>
-                      <span style={{ fontSize: 10, color: '#888', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: 3 }}>SIMPLE ISL TEXT</span>
-                      <p className="sl-popup__def-text" style={{ fontSize: 15, color: '#fff', fontWeight: 600, margin: 0, lineHeight: 1.5 }}>{data.simplifiedDefinition}</p>
-                    </div>
-                  )}
-                  <span style={{ fontSize: 10, color: '#666', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: 6 }}>FULL DICTIONARY DEFINITION</span>
-                  <p className="sl-popup__def-text">{data.definition}</p>
-                  {data.example && (
-                    <div className="sl-popup__example">
-                      <span className="sl-popup__example-label">EXAMPLE</span>
-                      <p className="sl-popup__example-text">"{data.example}"</p>
-                    </div>
-                  )}
+        <div className="sl-popup__body" style={{ padding: '20px', minHeight: '200px' }}>
+          
+          {/* Definition */}
+          {activeTab === 'definition' && (
+            <div id="popup-panel-definition" role="tabpanel" aria-labelledby="popup-tab-definition">
+              {data.simplifiedDefinition && (
+                <div style={{ marginBottom: 14, background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: 8, borderLeft: `3px solid ${accent}` }}>
+                  <span style={{ fontSize: 10, color: '#888', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: 3 }}>SIMPLE EXPLANATION</span>
+                  <p className="sl-popup__def-text" style={{ fontSize: 15, color: '#fff', fontWeight: 600, margin: 0, lineHeight: 1.5 }}>{data.simplifiedDefinition}</p>
                 </div>
-
-                {/* Visual */}
-                <div id="popup-panel-diagram" role="tabpanel" aria-labelledby="popup-tab-diagram" hidden={activeTab !== 'diagram'}>
-                  <div className="sl-popup__media">
-                    {data.animationUrl && !imgError
-                      ? <>
-                          <img src={data.animationUrl} alt={`Visual representation of ${data.word}`} className="sl-popup__image" onError={() => setImgError(true)} />
-                          <p className="sl-popup__caption">Visual: {data.word}</p>
-                        </>
-                      : <div className="sl-popup__no-media" role="status">
-                          <span aria-hidden="true">🔬</span>
-                          <p>No visual available yet.</p>
-                        </div>
-                    }
-                  </div>
+              )}
+              <span style={{ fontSize: 10, color: '#666', letterSpacing: '0.05em', fontWeight: 700, display: 'block', marginBottom: 6 }}>FULL DICTIONARY DEFINITION</span>
+              <p className="sl-popup__def-text">{data.definition}</p>
+              {data.example && (
+                <div className="sl-popup__example">
+                  <span className="sl-popup__example-label">EXAMPLE</span>
+                  <p className="sl-popup__example-text">"{data.example}"</p>
                 </div>
+              )}
+            </div>
+          )}
 
-                {/* Video */}
-                {data.videoUrl && (
-                  <div id="popup-panel-video" role="tabpanel" aria-labelledby="popup-tab-video" hidden={activeTab !== 'video'}>
-                    <div className="sl-popup__media">
-                      <div style={{ width: '100%', background: '#0d0d0d', borderRadius: 12, padding: 24, textAlign: 'center', border: '1px solid rgba(255,0,0,.25)' }} aria-hidden="true">
-                        <span style={{ fontSize: '2rem', color: '#FF0000' }}>▶</span>
-                        <p style={{ color: '#aaa', fontSize: 13, textTransform: 'capitalize', margin: '6px 0 0' }}>{data.word} — video explanation</p>
-                      </div>
-                      <p style={{ color: '#666', fontSize: 13, textAlign: 'center', margin: 0 }}>A short educational video explaining "{data.word}".</p>
-                      <button className="sl-popup__watch-btn" onClick={() => window.open(data.videoUrl, '_blank', 'noopener,noreferrer')} aria-label={`Watch ${data.word} on YouTube`}>
-                        ▶ &nbsp;Open in YouTube
-                      </button>
-                      <p className="sl-popup__video-hint">Opens in a new tab</p>
-                    </div>
-                  </div>
-                )}
-
+          {/* Spelling */}
+          {activeTab === 'spelling' && (
+            <div id="popup-panel-spelling" role="tabpanel" aria-labelledby="popup-tab-spelling">
+              <div className="sl-avatar-gloss-bar" style={{ marginTop: 0, background: 'rgba(255,255,255,0.05)' }}>
+                <span className="sl-avatar-gloss-label" style={{ color: '#aaa' }}>{isSpell ? 'Fingerspelling' : 'ISL Gloss'}</span>
+                <div className="sl-avatar-gloss-list" aria-hidden="true" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'center' }}>
+                  {tokens.map((token, idx) => (
+                    <span key={idx} className="sl-avatar-gloss-item" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>
+                      {token.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <p className="sl-popup__hint" aria-hidden="true">Auto-closes in 20s · Esc to close</p>
+          {/* Visual Image */}
+          {activeTab === 'diagram' && (
+            <div id="popup-panel-diagram" role="tabpanel" aria-labelledby="popup-tab-diagram">
+              {data.animationUrl && !imgError ? (
+                 <div style={{ textAlign: 'center', background: '#0d0d0d', borderRadius: '12px', padding: '10px' }}>
+                   <img src={data.animationUrl} alt={`Visual representation of ${data.word}`} className="sl-popup__image" onError={() => setImgError(true)} style={{ maxHeight: '200px', objectFit: 'contain' }} />
+                   <p className="sl-popup__caption">Visual: {data.word}</p>
+                 </div>
+              ) : (
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px' }}>
+                   <span style={{ fontSize: '24px' }}>🔍</span>
+                   <div>
+                     <p style={{ margin: '0 0 4px', fontSize: '14px', color: '#fff' }}>No exact visual available.</p>
+                     <a href={`https://www.google.com/search?q=${encodeURIComponent(data.word)}&tbm=isch`} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontSize: '13px', fontWeight: 'bold', textDecoration: 'none' }}>
+                       Search Google Images for "{data.word}" →
+                     </a>
+                   </div>
+                 </div>
+              )}
+            </div>
+          )}
+
+          {/* YouTube Lesson Link */}
+          {activeTab === 'video' && (
+            <div id="popup-panel-video" role="tabpanel" aria-labelledby="popup-tab-video">
+              {data.videoUrl ? (
+                 <div className="sl-popup__media">
+                   <div style={{ width: '100%', background: '#0d0d0d', borderRadius: 12, padding: 24, textAlign: 'center', border: '1px solid rgba(255,0,0,.25)' }} aria-hidden="true">
+                     <span style={{ fontSize: '2rem', color: '#FF0000' }}>▶</span>
+                     <p style={{ color: '#aaa', fontSize: 13, textTransform: 'capitalize', margin: '6px 0 0' }}>{data.word} — video explanation</p>
+                   </div>
+                   <p style={{ color: '#666', fontSize: 13, textAlign: 'center', margin: '8px 0' }}>A short educational video explaining "{data.word}".</p>
+                   <button className="sl-popup__watch-btn" onClick={() => window.open(data.videoUrl, '_blank', 'noopener,noreferrer')} aria-label={`Watch ${data.word} on YouTube`} style={{ background: '#FF0000', padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', color: '#fff', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>
+                     ▶ Watch Video Lesson on YouTube
+                   </button>
+                 </div>
+              ) : (
+                 <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.word + ' lesson')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'rgba(255,0,0,0.1)', color: '#ff4444', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' }}>
+                   ▶ Search YouTube for "{data.word}" lesson
+                 </a>
+              )}
+            </div>
+          )}
+
+          {/* ISL Resource */}
+          {activeTab === 'isl' && (
+            <div id="popup-panel-isl" role="tabpanel" aria-labelledby="popup-tab-isl">
+              {data.islSignVideoUrl || data.directSignUrl ? (
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                   <div style={{ width: '100%', position: 'relative', paddingTop: '56.25%', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
+                     <iframe src={data.islSignVideoUrl || data.directSignUrl} title={`ISL video for ${data.word}`} allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} />
+                   </div>
+                   <p style={{ fontSize: '11px', color: '#666', margin: 0, textAlign: 'center' }}>Official ISL Video</p>
+                 </div>
+              ) : (
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px' }}>
+                   <span style={{ fontSize: '24px' }}>🤟</span>
+                   <div>
+                     <p style={{ margin: '0 0 4px', fontSize: '14px', color: '#fff' }}>No official ISL video found.</p>
+                     <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(data.word + ' Indian Sign Language')}`} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontSize: '13px', fontWeight: 'bold', textDecoration: 'none' }}>
+                       Search YouTube for ISL Sign →
+                     </a>
+                   </div>
+                 </div>
+              )}
+            </div>
+          )}
+
+        </div>
+
+        <p className="sl-popup__hint" aria-hidden="true">Auto-closes in 40s · Esc to close</p>
       </div>
     </div>
   );
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // WORD CLICKABLE TEXT
@@ -751,12 +700,12 @@ function QuizTab({ quiz }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// VIDEO TAB (unchanged)
+// VIDEO TAB
 // ══════════════════════════════════════════════════════════════
-function VideoTab({ videoUrl, signUrl }) {
+function VideoTab({ videoUrl, signUrl, unitTitle }) {
   const [mode, setMode] = useState('standard');
   const url = mode === 'sign' ? signUrl : videoUrl;
-  return <div className="sl-video" role="region" aria-label="Lesson video"><div className="sl-video__toggle" role="group" aria-label="Video mode"><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'standard'} onClick={() => setMode('standard')}><span aria-hidden="true">🎬</span> Standard Video</button><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'sign'} onClick={() => setMode('sign')}><span aria-hidden="true">🤟</span> Sign Language</button></div><div className="sl-video__frame-wrap">{url ? <iframe key={url} src={url} title={mode === 'sign' ? 'Sign language lesson video' : 'Lesson video'} allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" className="sl-video__frame" /> : <div className="sl-video__placeholder" role="status"><span aria-hidden="true">🎥</span><p>Video not available.</p></div>}</div><p className="sl-video__caption-notice"><span aria-hidden="true">ℹ️</span>Closed captions available — use player controls or <kbd>C</kbd> to toggle.</p></div>;
+  return <div className="sl-video" role="region" aria-label="Lesson video"><div className="sl-video__toggle" role="group" aria-label="Video mode"><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'standard'} onClick={() => setMode('standard')}><span aria-hidden="true">🎬</span> Standard Video</button><button className="sl-btn sl-btn--outline" aria-pressed={mode === 'sign'} onClick={() => setMode('sign')}><span aria-hidden="true">🤟</span> Sign Language</button></div><div className="sl-video__frame-wrap">{url ? <iframe key={url} src={url} title={mode === 'sign' ? 'Sign language lesson video' : 'Lesson video'} allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" className="sl-video__frame" /> : <div className="sl-video__placeholder" role="status"><span aria-hidden="true">🎥</span><p>Video not available.</p><a href={`https://www.youtube.com/results?search_query=${encodeURIComponent((unitTitle || 'lesson') + (mode === 'sign' ? ' Indian Sign Language' : ' lesson'))}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sl-primary)', textDecoration: 'none', fontWeight: 'bold', marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--sl-surface)', borderRadius: '8px', border: '1px solid var(--sl-border)' }}>🔍 Search YouTube for {mode === 'sign' ? 'ISL' : ''} Lesson →</a></div>}</div><p className="sl-video__caption-notice"><span aria-hidden="true">ℹ️</span>Closed captions available — use player controls or <kbd>C</kbd> to toggle.</p></div>;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -889,7 +838,7 @@ const disabilityType = user?.disabilityType?.toLowerCase();
                   {activeTab === tab.id && (
                     <>
                       {tab.id === 'text' && <div><p className="sl-click-hint" aria-live="polite"><span aria-hidden="true">💡</span>Click any word to explore its meaning + see the ISL sign</p><TTSReader text={unitData?.content?.text ? unitData.content.text.replace(/<[^>]+>/g, '') : 'No content available'} /><WordClickableText html={unitData.content?.text} onWordClick={handleWordClick} /></div>}
-                      {tab.id === 'video' && <VideoTab videoUrl={unitData.content?.videoUrl} signUrl={unitData.content?.signLanguageVideoUrl} />}
+                      {tab.id === 'video' && <VideoTab videoUrl={unitData.content?.videoUrl} signUrl={unitData.content?.signLanguageVideoUrl} unitTitle={unitData.unitTitle} />}
                       {tab.id === 'quiz'  && <QuizTab  quiz={unitData.content?.quiz || []} />}
                     </>
                   )}
