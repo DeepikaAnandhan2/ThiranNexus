@@ -1,210 +1,719 @@
+const mongoose = require("mongoose");
+
 const Scheme = require("../models/Scheme");
 const UserScheme = require("../models/UserScheme");
 
-/* ===========================================================
-   Normalize Disability Type
-=========================================================== */
+
+/* =========================================================
+   NORMALIZE DISABILITY TYPE
+========================================================= */
+
 const normalize = (type) => {
-  if (!type) return "all";
+  if (!type) {
+    return "all";
+  }
 
-  const t = type.toString().trim().toLowerCase();
+  const t = type
+    .toString()
+    .trim()
+    .toLowerCase();
 
-  if (t.includes("visual") || t.includes("vision") || t.includes("vis"))
+  if (
+    t.includes("visual") ||
+    t.includes("vision") ||
+    t.includes("vis")
+  ) {
     return "visual";
+  }
 
-  if (t.includes("hearing") || t.includes("hear") || t.includes("hea"))
+  if (
+    t.includes("hearing") ||
+    t.includes("hear") ||
+    t.includes("hea")
+  ) {
     return "hearing";
+  }
 
-  if (t.includes("physical") || t.includes("phy"))
+  if (
+    t.includes("physical") ||
+    t.includes("phy")
+  ) {
     return "physical";
+  }
 
-  if (t.includes("cognitive") || t.includes("cog"))
+  if (
+    t.includes("cognitive") ||
+    t.includes("cog")
+  ) {
     return "cognitive";
+  }
 
-  if (t === "all") return "all";
+  if (t === "all") {
+    return "all";
+  }
 
   return "all";
 };
 
-/* ===========================================================
+
+/* =========================================================
    GET RECOMMENDED SCHEMES
-=========================================================== */
+
+   GET
+   /api/schemes/recommended?disabilityType=visual
+========================================================= */
+
 exports.getRecommendedSchemes = async (req, res) => {
   try {
-    const disabilityType = normalize(req.query.disabilityType);
+    const requestedType =
+      req.query.disabilityType;
 
-    console.log("=======================================");
-    console.log("Requested Disability :", req.query.disabilityType);
-    console.log("Normalized Type      :", disabilityType);
+    const disabilityType =
+      normalize(requestedType);
 
-    const schemes = await Scheme.find().sort({ createdAt: -1 });
+    console.log(
+      "======================================="
+    );
 
-    console.log("Total Schemes in DB :", schemes.length);
+    console.log(
+      "Requested Disability :",
+      requestedType
+    );
 
-    const filteredSchemes = schemes.filter((scheme) => {
-      const schemeType = normalize(scheme.disabilityType);
+    console.log(
+      "Normalized Type      :",
+      disabilityType
+    );
 
-      return (
-        schemeType === disabilityType ||
-        schemeType === "all"
-      );
+
+    const schemes = await Scheme.find({
+      $or: [
+        {
+          disabilityType:
+            disabilityType
+        },
+        {
+          disabilityType: "all"
+        }
+      ]
+    }).sort({
+      createdAt: -1
     });
 
-    console.log("Matched Schemes :", filteredSchemes.length);
-    console.log("=======================================");
 
-    return res.status(200).json(filteredSchemes);
+    console.log(
+      "Matched Schemes :",
+      schemes.length
+    );
+
+    console.log(
+      "Scheme Names :",
+      schemes.map(
+        (scheme) => scheme.title
+      )
+    );
+
+    console.log(
+      "======================================="
+    );
+
+
+    return res.status(200).json(
+      schemes
+    );
+
   } catch (err) {
-    console.error("Get Recommended Schemes Error:", err);
+
+    console.error(
+      "Get Recommended Schemes Error:",
+      err
+    );
 
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch schemes",
+      message:
+        "Failed to fetch schemes"
     });
   }
 };
 
-/* ===========================================================
+
+/* =========================================================
    GET SINGLE SCHEME
-=========================================================== */
-exports.getSchemeById = async (req, res) => {
+
+   GET /api/schemes/:id
+========================================================= */
+
+exports.getSchemeById = async (
+  req,
+  res
+) => {
+
   try {
-    const scheme = await Scheme.findById(req.params.id);
+
+    const { id } = req.params;
+
+
+    console.log(
+      "Requested Scheme ID:",
+      id
+    );
+
+
+    /* Check valid MongoDB ObjectId */
+
+    if (
+      !mongoose.Types.ObjectId.isValid(
+        id
+      )
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid scheme ID"
+      });
+    }
+
+
+    const scheme =
+      await Scheme.findById(id);
+
 
     if (!scheme) {
+
+      console.log(
+        "Scheme not found:",
+        id
+      );
+
       return res.status(404).json({
         success: false,
-        message: "Scheme not found",
+        message:
+          "Scheme not found"
       });
     }
 
-    res.status(200).json(scheme);
-  } catch (err) {
-    console.error(err);
 
-    res.status(500).json({
+    console.log(
+      "Scheme found:",
+      scheme.title
+    );
+
+
+    return res.status(200).json(
+      scheme
+    );
+
+  } catch (err) {
+
+    console.error(
+      "Get Scheme By ID Error:",
+      err
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Unable to fetch scheme",
+      message:
+        "Unable to fetch scheme"
     });
   }
 };
 
-/* ===========================================================
+
+/* =========================================================
    SAVE SCHEME
-=========================================================== */
-exports.saveScheme = async (req, res) => {
+
+   POST /api/schemes/save
+
+   Body:
+   {
+      userId: "1",
+      schemeId: "..."
+   }
+========================================================= */
+
+exports.saveScheme = async (
+  req,
+  res
+) => {
+
   try {
-    const { userId, schemeId } = req.body;
+
+    const {
+      userId,
+      schemeId
+    } = req.body;
+
+
+    console.log(
+      "======================================="
+    );
+
+    console.log(
+      "SAVE SCHEME"
+    );
+
+    console.log(
+      "User ID:",
+      userId
+    );
+
+    console.log(
+      "Scheme ID:",
+      schemeId
+    );
+
+
+    /* Validate input */
 
     if (!userId || !schemeId) {
+
       return res.status(400).json({
         success: false,
-        message: "Missing userId or schemeId",
+        message:
+          "Missing userId or schemeId"
       });
     }
 
-    const alreadySaved = await UserScheme.findOne({
-      userId,
-      schemeId,
-      status: "saved",
-    });
+
+    /* Validate Scheme ObjectId */
+
+    if (
+      !mongoose.Types.ObjectId.isValid(
+        schemeId
+      )
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid schemeId"
+      });
+    }
+
+
+    /* Make sure scheme exists */
+
+    const scheme =
+      await Scheme.findById(
+        schemeId
+      );
+
+
+    if (!scheme) {
+
+      return res.status(404).json({
+        success: false,
+        message:
+          "Scheme does not exist"
+      });
+    }
+
+
+    /* Check already saved */
+
+    const alreadySaved =
+      await UserScheme.findOne({
+        userId: userId,
+        schemeId: schemeId,
+        status: "saved"
+      });
+
 
     if (alreadySaved) {
+
       return res.status(409).json({
         success: false,
-        message: "Scheme already saved",
+        message:
+          "Scheme already saved"
       });
     }
 
-    const savedScheme = await UserScheme.create({
-      userId,
-      schemeId,
-      status: "saved",
-    });
 
-    res.status(201).json({
+    /* Create saved record */
+
+    const savedScheme =
+      await UserScheme.create({
+        userId: userId,
+        schemeId: schemeId,
+        status: "saved"
+      });
+
+
+    console.log(
+      "Scheme saved successfully"
+    );
+
+
+    console.log(
+      "======================================="
+    );
+
+
+    return res.status(201).json({
       success: true,
-      message: "Scheme saved successfully",
-      data: savedScheme,
+      message:
+        "Scheme saved successfully",
+      data: savedScheme
     });
-  } catch (err) {
-    console.error(err);
 
-    res.status(500).json({
+  } catch (err) {
+
+    console.error(
+      "Save Scheme Error:",
+      err
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Unable to save scheme",
+      message:
+        "Unable to save scheme"
     });
   }
 };
 
-/* ===========================================================
+
+/* =========================================================
    APPLY SCHEME
-=========================================================== */
-exports.applyScheme = async (req, res) => {
+
+   POST /api/schemes/apply
+
+   Body:
+   {
+      userId: "1",
+      schemeId: "..."
+   }
+========================================================= */
+
+exports.applyScheme = async (
+  req,
+  res
+) => {
+
   try {
-    const { userId, schemeId } = req.body;
+
+    const {
+      userId,
+      schemeId
+    } = req.body;
+
+
+    console.log(
+      "======================================="
+    );
+
+    console.log(
+      "APPLY SCHEME"
+    );
+
+    console.log(
+      "User ID:",
+      userId
+    );
+
+    console.log(
+      "Scheme ID:",
+      schemeId
+    );
+
+
+    /* Validate input */
 
     if (!userId || !schemeId) {
+
       return res.status(400).json({
         success: false,
-        message: "Missing userId or schemeId",
+        message:
+          "Missing userId or schemeId"
       });
     }
 
-    const alreadyApplied = await UserScheme.findOne({
-      userId,
-      schemeId,
-      status: "applied",
-    });
+
+    /* Validate ObjectId */
+
+    if (
+      !mongoose.Types.ObjectId.isValid(
+        schemeId
+      )
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid schemeId"
+      });
+    }
+
+
+    /* Check scheme exists */
+
+    const scheme =
+      await Scheme.findById(
+        schemeId
+      );
+
+
+    if (!scheme) {
+
+      return res.status(404).json({
+        success: false,
+        message:
+          "Scheme does not exist"
+      });
+    }
+
+
+    /* Check already applied */
+
+    const alreadyApplied =
+      await UserScheme.findOne({
+        userId: userId,
+        schemeId: schemeId,
+        status: "applied"
+      });
+
 
     if (alreadyApplied) {
+
       return res.status(409).json({
         success: false,
-        message: "Already applied",
+        message:
+          "Already applied"
       });
     }
 
-    const appliedScheme = await UserScheme.create({
-      userId,
-      schemeId,
-      status: "applied",
-    });
 
-    res.status(201).json({
+    /* Create application */
+
+    const appliedScheme =
+      await UserScheme.create({
+        userId: userId,
+        schemeId: schemeId,
+        status: "applied"
+      });
+
+
+    console.log(
+      "Application recorded successfully"
+    );
+
+
+    console.log(
+      "======================================="
+    );
+
+
+    return res.status(201).json({
       success: true,
-      message: "Application submitted",
-      data: appliedScheme,
+      message:
+        "Application submitted",
+      data: appliedScheme
     });
-  } catch (err) {
-    console.error(err);
 
-    res.status(500).json({
+  } catch (err) {
+
+    console.error(
+      "Apply Scheme Error:",
+      err
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Unable to apply",
+      message:
+        "Unable to apply"
     });
   }
 };
 
-/* ===========================================================
-   GET SAVED & APPLIED SCHEMES
-=========================================================== */
-exports.getUserSchemes = async (req, res) => {
+
+/* =========================================================
+   GET USER SAVED + APPLIED SCHEMES
+
+   GET /api/schemes/user/:userId
+========================================================= */
+
+exports.getUserSchemes = async (
+  req,
+  res
+) => {
+
   try {
-    const { userId } = req.params;
 
-    const schemes = await UserScheme.find({
-      userId,
-    })
-      .populate("schemeId")
-      .sort({ createdAt: -1 });
+    const {
+      userId
+    } = req.params;
 
-    res.status(200).json(schemes);
+
+    console.log(
+      "======================================="
+    );
+
+    console.log(
+      "GET USER SCHEMES"
+    );
+
+    console.log(
+      "User ID:",
+      userId
+    );
+
+
+    if (!userId) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "User ID is required"
+      });
+    }
+
+
+    /*
+      Populate the actual Scheme document.
+
+      Example result:
+
+      {
+        _id: "...",
+        userId: "1",
+        schemeId: {
+          _id: "...",
+          title: "...",
+          description: "..."
+        },
+        status: "saved"
+      }
+    */
+
+    const userSchemes =
+      await UserScheme.find({
+        userId: userId
+      })
+        .populate("schemeId")
+        .sort({
+          createdAt: -1
+        });
+
+
+    console.log(
+      "Total UserScheme records:",
+      userSchemes.length
+    );
+
+
+    /*
+      If schemeId is null, it means the
+      referenced Scheme no longer exists.
+
+      We don't send those broken records
+      to the frontend.
+    */
+
+    const validUserSchemes =
+      userSchemes.filter(
+        (item) =>
+          item.schemeId !== null
+      );
+
+
+    console.log(
+      "Valid UserScheme records:",
+      validUserSchemes.length
+    );
+
+
+    console.log(
+      "======================================="
+    );
+
+
+    return res.status(200).json(
+      validUserSchemes
+    );
+
   } catch (err) {
-    console.error(err);
 
-    res.status(500).json({
+    console.error(
+      "Get User Schemes Error:",
+      err
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Unable to fetch user schemes",
+      message:
+        "Unable to fetch user schemes"
+    });
+  }
+};
+
+
+/* =========================================================
+   DELETE SAVED/APPLIED RECORD
+
+   DELETE
+   /api/schemes/user/:userSchemeId
+========================================================= */
+
+exports.deleteUserScheme = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const {
+      userSchemeId
+    } = req.params;
+
+
+    if (
+      !mongoose.Types.ObjectId.isValid(
+        userSchemeId
+      )
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid UserScheme ID"
+      });
+    }
+
+
+    const deleted =
+      await UserScheme.findByIdAndDelete(
+        userSchemeId
+      );
+
+
+    if (!deleted) {
+
+      return res.status(404).json({
+        success: false,
+        message:
+          "Scheme record not found"
+      });
+    }
+
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Scheme removed successfully"
+    });
+
+  } catch (err) {
+
+    console.error(
+      "Delete User Scheme Error:",
+      err
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Unable to remove scheme"
     });
   }
 };
