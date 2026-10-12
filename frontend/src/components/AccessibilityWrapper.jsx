@@ -3,7 +3,15 @@ import React, { useEffect } from 'react';
 const AccessibilityWrapper = ({ children }) => {
   
   const speak = (text) => {
-    // Stop any current speech before starting new speech
+    // If a dedicated TTS reader (like SmartLearn's lesson audio) is actively playing,
+    // do NOT interrupt or cancel it with mouse hover.
+    if (window._isTTSActive) {
+      return;
+    }
+
+    if (!window.speechSynthesis) return;
+
+    // Stop any current hover speech before starting new speech
     window.speechSynthesis.cancel();
     
     if (!text) return;
@@ -17,9 +25,20 @@ const AccessibilityWrapper = ({ children }) => {
   };
 
   useEffect(() => {
+    let lastSpokenText = '';
+    let debounceTimer = null;
+
     const handleMouseOver = (e) => {
-      // Find the closest element that has an aria-label, placeholder, or text
+      // If student is currently listening to lesson TTS, ignore hover speaking
+      if (window._isTTSActive) return;
+
       const target = e.target;
+      if (!target) return;
+
+      // Do not trigger hover speech if target is inside the lesson reader or word lookup area
+      if (target.closest && target.closest('.tts-wrap, .sl-reader, .sl-text-content, .sl-content, .sl-popup, [data-no-tts="true"]')) {
+        return;
+      }
       
       // logic: Check aria-label first (best for accessibility), then placeholder, then button text
       const textToSpeak = 
@@ -27,8 +46,15 @@ const AccessibilityWrapper = ({ children }) => {
         target.placeholder || 
         (target.tagName === 'BUTTON' || target.tagName === 'A' || target.tagName === 'SPAN' ? target.innerText : null);
 
-      if (textToSpeak && textToSpeak.trim().length > 0) {
-        speak(textToSpeak);
+      if (textToSpeak && textToSpeak.trim().length > 0 && textToSpeak.trim().length < 200) {
+        const clean = textToSpeak.trim();
+        if (clean === lastSpokenText) return;
+        
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          lastSpokenText = clean;
+          speak(clean);
+        }, 150);
       }
     };
 
@@ -36,7 +62,10 @@ const AccessibilityWrapper = ({ children }) => {
     
     return () => {
       window.removeEventListener('mouseover', handleMouseOver);
-      window.speechSynthesis.cancel();
+      clearTimeout(debounceTimer);
+      if (!window._isTTSActive && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
