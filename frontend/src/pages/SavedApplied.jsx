@@ -1,197 +1,747 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  Link,
+  useNavigate
+} from "react-router-dom";
+
+import {
+  FaFileAlt,
+  FaAward
+} from "react-icons/fa";
+
 import "../styles/schemes.css";
 
+
 const SavedApplied = () => {
+
   const navigate = useNavigate();
 
-  const [savedSchemes, setSavedSchemes] = useState([]);
-  const [appliedSchemes, setAppliedSchemes] = useState([]);
+
+  /* =========================================================
+     STATE
+  ========================================================= */
+
+  const [
+    savedSchemes,
+    setSavedSchemes
+  ] = useState([]);
+
+  const [
+    appliedSchemes,
+    setAppliedSchemes
+  ] = useState([]);
+
+  const [
+    loading,
+    setLoading
+  ] = useState(true);
+
+  const [
+    error,
+    setError
+  ] = useState("");
+
+
+  /* =========================================================
+     LOGGED USER
+  ========================================================= */
+
+  let loggedUser = null;
+
+  try {
+
+    loggedUser =
+      JSON.parse(
+        localStorage.getItem("user")
+      );
+
+  } catch (err) {
+
+    console.error(
+      "Unable to read user:",
+      err
+    );
+  }
+
+
+  const userId =
+    loggedUser?._id ||
+    loggedUser?.id ||
+    loggedUser?.userId;
+
+
+  /* =========================================================
+     LOAD USER SCHEMES
+  ========================================================= */
 
   useEffect(() => {
+
     loadSchemes();
-  }, []);
 
-  const loadSchemes = () => {
-    const saved =
-      JSON.parse(localStorage.getItem("savedSchemes")) || [];
+  }, [userId]);
 
-    const applied =
-      JSON.parse(localStorage.getItem("appliedSchemes")) || [];
 
-    setSavedSchemes(saved);
-    setAppliedSchemes(applied);
+  const loadSchemes = async () => {
+
+    try {
+
+      setLoading(true);
+
+      setError("");
+
+
+      if (!userId) {
+
+        setError(
+          "User information not found. Please login again."
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+
+      console.log(
+        "Loading schemes for user:",
+        userId
+      );
+
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/schemes/user/${encodeURIComponent(
+            userId
+          )}`
+        );
+
+
+      const data =
+        await response.json();
+
+
+      console.log(
+        "User schemes response:",
+        data
+      );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          `Server returned ${response.status}`
+        );
+      }
+
+
+      const saved = [];
+      const applied = [];
+
+
+      if (Array.isArray(data)) {
+
+        data.forEach(
+          (item) => {
+
+            /*
+              IMPORTANT:
+
+              item.schemeId is the
+              actual populated Scheme.
+
+              Example:
+
+              item.schemeId = {
+                _id: "...",
+                title: "...",
+                description: "...",
+                disabilityType: "...",
+                ...
+              }
+            */
+
+            if (
+              !item ||
+              !item.schemeId
+            ) {
+
+              return;
+            }
+
+
+            const scheme = {
+
+              ...item.schemeId,
+
+              /*
+                This is the ID of the
+                UserScheme document.
+
+                Used for DELETE.
+              */
+
+              userSchemeId:
+                item._id,
+
+              userSchemeStatus:
+                item.status
+
+            };
+
+
+            if (
+              item.status === "saved"
+            ) {
+
+              saved.push(
+                scheme
+              );
+            }
+
+
+            if (
+              item.status === "applied"
+            ) {
+
+              applied.push(
+                scheme
+              );
+            }
+
+          }
+        );
+      }
+
+
+      console.log(
+        "Saved schemes:",
+        saved
+      );
+
+      console.log(
+        "Applied schemes:",
+        applied
+      );
+
+
+      setSavedSchemes(saved);
+
+      setAppliedSchemes(applied);
+
+
+    } catch (err) {
+
+      console.error(
+        "Error loading user schemes:",
+        err
+      );
+
+      setError(
+        "Unable to load your saved and applied schemes."
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
   };
 
-  // Remove Saved Scheme
-  const removeSaved = (id) => {
-    const updated = savedSchemes.filter(
-      (scheme) => scheme._id !== id
-    );
 
-    localStorage.setItem(
-      "savedSchemes",
-      JSON.stringify(updated)
-    );
+  /* =========================================================
+     REMOVE SAVED SCHEME
+  ========================================================= */
 
-    setSavedSchemes(updated);
+  const removeSaved = async (
+    userSchemeId
+  ) => {
+
+    try {
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/schemes/user/${userSchemeId}`,
+          {
+            method: "DELETE"
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Unable to remove saved scheme"
+        );
+      }
+
+
+      setSavedSchemes(
+        (previous) =>
+          previous.filter(
+            (scheme) =>
+              scheme.userSchemeId !==
+              userSchemeId
+          )
+      );
+
+
+    } catch (err) {
+
+      console.error(
+        "Remove saved scheme error:",
+        err
+      );
+
+      alert(
+        "Unable to remove saved scheme."
+      );
+    }
   };
 
-  // Remove Applied Scheme
-  const removeApplied = (id) => {
-    const updated = appliedSchemes.filter(
-      (scheme) => scheme._id !== id
-    );
 
-    localStorage.setItem(
-      "appliedSchemes",
-      JSON.stringify(updated)
-    );
+  /* =========================================================
+     REMOVE APPLIED SCHEME
+  ========================================================= */
 
-    setAppliedSchemes(updated);
+  const removeApplied = async (
+    userSchemeId
+  ) => {
+
+    try {
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/schemes/user/${userSchemeId}`,
+          {
+            method: "DELETE"
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Unable to remove applied scheme"
+        );
+      }
+
+
+      setAppliedSchemes(
+        (previous) =>
+          previous.filter(
+            (scheme) =>
+              scheme.userSchemeId !==
+              userSchemeId
+          )
+      );
+
+
+    } catch (err) {
+
+      console.error(
+        "Remove applied scheme error:",
+        err
+      );
+
+      alert(
+        "Unable to remove applied scheme."
+      );
+    }
   };
+
+
+  /* =========================================================
+     LOADING
+  ========================================================= */
+
+  if (loading) {
+
+    return (
+      <div className="page-container">
+
+        <div className="back-container">
+
+          <button
+            className="btn btn-back"
+            onClick={() =>
+              navigate("/dashboard")
+            }
+          >
+            ← Back
+          </button>
+
+        </div>
+
+
+        <h1 className="page-title">
+          My Saved & Applied Schemes
+        </h1>
+
+
+        <div className="no-schemes-card">
+
+          <h3>
+            Loading...
+          </h3>
+
+          <p>
+            Please wait while we load
+            your schemes.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+
+  /* =========================================================
+     ERROR
+  ========================================================= */
+
+  if (error) {
+
+    return (
+      <div className="page-container">
+
+        <div className="back-container">
+
+          <button
+            className="btn btn-back"
+            onClick={() =>
+              navigate("/dashboard")
+            }
+          >
+            ← Back
+          </button>
+
+        </div>
+
+
+        <h1 className="page-title">
+          My Saved & Applied Schemes
+        </h1>
+
+
+        <div className="no-schemes-card">
+
+          <h3>
+            Unable to Load Schemes
+          </h3>
+
+          <p>
+            {error}
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+
+  /* =========================================================
+     MAIN
+  ========================================================= */
 
   return (
     <div className="page-container">
 
-      {/* Back Button */}
+      {/* BACK */}
+
       <div className="back-container">
+
         <button
           className="btn btn-back"
-          onClick={() => navigate("/dashboard")}
+          onClick={() =>
+            navigate("/dashboard")
+          }
         >
           ← Back
         </button>
+
       </div>
+
+
+      {/* TITLE */}
 
       <h1 className="page-title">
         My Saved & Applied Schemes
       </h1>
 
-      {/* ===================== Saved Schemes ===================== */}
+
+      {/* =====================================================
+          SAVED SCHEMES
+      ===================================================== */}
 
       <h2 className="section-title">
         Saved Schemes
       </h2>
 
+
       {savedSchemes.length === 0 ? (
 
         <div className="no-schemes-card">
-          <h3>No Saved Schemes</h3>
+
+          <h3>
+            No Saved Schemes
+          </h3>
+
           <p>
-            You haven't saved any schemes yet.
+            You haven't saved any
+            schemes yet.
           </p>
+
         </div>
 
       ) : (
 
         <div className="grid">
 
-          {savedSchemes.map((scheme) => (
+          {savedSchemes.map(
+            (scheme, index) => {
 
-            <div
-              className="card"
-              key={scheme._id}
-            >
+              const accents = [
+                "#2563eb",
+                "#10b981",
+                "#f59e0b",
+                "#8b5cf6",
+                "#06b6d4"
+              ];
 
-              <span className="scheme-type">
-                {scheme.disabilityType.toUpperCase()}
-              </span>
 
-              <h3>{scheme.title}</h3>
-
-              <p>{scheme.description}</p>
-
-              <div className="button-group">
-
-                <Link
-                  to={`/scheme/${scheme._id}`}
-                  className="btn btn-view"
-                >
-                  View Details
-                </Link>
-
-                <button
-                  className="btn btn-save"
-                  onClick={() =>
-                    removeSaved(scheme._id)
+              return (
+                <div
+                  key={
+                    scheme.userSchemeId
                   }
+                  className="card scheme-card-ref"
+                  style={{
+                    "--accent-color":
+                      accents[
+                        index %
+                        accents.length
+                      ]
+                  }}
                 >
-                  Remove
-                </button>
 
-              </div>
+                  <div className="scheme-icon-circle">
 
-            </div>
+                    <FaAward />
 
-          ))}
+                  </div>
+
+
+                  <span className="scheme-type">
+
+                    {(
+                      scheme.disabilityType ||
+                      "all"
+                    ).toUpperCase()}
+
+                  </span>
+
+
+                  <h3>
+                    {scheme.title}
+                  </h3>
+
+
+                  <p>
+                    {scheme.description}
+                  </p>
+
+
+                  <div
+                    className="button-group"
+                    style={{
+                      marginTop: "auto"
+                    }}
+                  >
+
+                    <Link
+                      to={`/scheme/${scheme._id}`}
+                      className="btn btn-view"
+                    >
+                      View Details
+                    </Link>
+
+
+                    <button
+                      className="btn btn-save"
+                      onClick={() =>
+                        removeSaved(
+                          scheme.userSchemeId
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+
+                  </div>
+
+                </div>
+              );
+
+            }
+          )}
 
         </div>
 
       )}
 
-      {/* ===================== Applied Schemes ===================== */}
+
+      {/* =====================================================
+          APPLIED SCHEMES
+      ===================================================== */}
 
       <h2
         className="section-title"
-        style={{ marginTop: "50px" }}
+        style={{
+          marginTop: "50px"
+        }}
       >
         Applied Schemes
       </h2>
 
+
       {appliedSchemes.length === 0 ? (
 
         <div className="no-schemes-card">
-          <h3>No Applied Schemes</h3>
+
+          <h3>
+            No Applied Schemes
+          </h3>
+
           <p>
-            You haven't applied for any schemes yet.
+            You haven't applied for
+            any schemes yet.
           </p>
+
         </div>
 
       ) : (
 
         <div className="grid">
 
-          {appliedSchemes.map((scheme) => (
+          {appliedSchemes.map(
+            (scheme, index) => {
 
-            <div
-              className="card"
-              key={scheme._id}
-            >
+              const accents = [
+                "#10b981",
+                "#2563eb",
+                "#f59e0b",
+                "#8b5cf6",
+                "#06b6d4"
+              ];
 
-              <span className="scheme-type">
-                {scheme.disabilityType.toUpperCase()}
-              </span>
 
-              <h3>{scheme.title}</h3>
-
-              <p>{scheme.description}</p>
-
-              <div className="button-group">
-
-                <a
-                  href={scheme.applyLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-apply"
-                >
-                  Open Portal
-                </a>
-
-                <button
-                  className="btn btn-save"
-                  onClick={() =>
-                    removeApplied(scheme._id)
+              return (
+                <div
+                  key={
+                    scheme.userSchemeId
                   }
+                  className="card scheme-card-ref"
+                  style={{
+                    "--accent-color":
+                      accents[
+                        index %
+                        accents.length
+                      ]
+                  }}
                 >
-                  Remove
-                </button>
 
-              </div>
+                  <div className="scheme-icon-circle">
 
-            </div>
+                    <FaFileAlt />
 
-          ))}
+                  </div>
+
+
+                  <span className="scheme-type">
+
+                    {(
+                      scheme.disabilityType ||
+                      "all"
+                    ).toUpperCase()}
+
+                  </span>
+
+
+                  <h3>
+                    {scheme.title}
+                  </h3>
+
+
+                  <p>
+                    {scheme.description}
+                  </p>
+
+
+                  <div
+                    className="button-group"
+                    style={{
+                      marginTop: "auto"
+                    }}
+                  >
+
+                    <Link
+                      to={`/scheme/${scheme._id}`}
+                      className="btn btn-view"
+                    >
+                      View Details
+                    </Link>
+
+
+                    {scheme.applyLink && (
+
+                      <a
+                        href={
+                          scheme.applyLink
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-apply"
+                      >
+                        Open Portal
+                      </a>
+
+                    )}
+
+
+                    <button
+                      className="btn btn-save"
+                      onClick={() =>
+                        removeApplied(
+                          scheme.userSchemeId
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+
+                  </div>
+
+                </div>
+              );
+
+            }
+          )}
 
         </div>
 
@@ -200,5 +750,6 @@ const SavedApplied = () => {
     </div>
   );
 };
+
 
 export default SavedApplied;

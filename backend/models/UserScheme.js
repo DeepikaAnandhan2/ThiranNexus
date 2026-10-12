@@ -1,18 +1,31 @@
 const mongoose = require("mongoose");
 
-const userSchemeSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  },
-  schemeId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Scheme"
-  },
-  status: {
-    type: String,
-    enum: ["saved", "applied"]
-  }
-}, { timestamps: true });
+const userSchemeSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: String,
+      required: true,
+      trim: true
+    },
 
-module.exports = mongoose.model("UserScheme", userSchemeSchema);
+    schemeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Scheme",
+      required: true
+    },
+
+    status: {
+      type: String,
+      enum: ["saved", "applied"],
+      required: true
+    }
+  },
+  {
+    timestamps: true
+  }
+);
+
+module.exports = mongoose.model(
+  "UserScheme",
+  userSchemeSchema
+);
